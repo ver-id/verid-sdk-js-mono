@@ -31,6 +31,14 @@ describe('Assert utilities', () => {
     it('should allow empty strings when configured', () => {
       expect(() => assertString('', 'value', undefined, { allowEmpty: true })).not.toThrow();
     });
+
+    it('should throw for undefined value by default', () => {
+      expect(() => assertString(undefined, 'value')).toThrow('Invalid value: not a valid string');
+    });
+
+    it('should allow undefined value when configured', () => {
+      expect(() => assertString(undefined, 'value', undefined, { allowUndefined: true })).not.toThrow();
+    });
   });
 
   describe('assertNumber', () => {

@@ -160,9 +160,16 @@ export function assertString(
   error?: ErrorConstructorType,
   options?: {
     allowEmpty?: boolean;
+    allowUndefined?: boolean;
   },
 ): asserts value is string {
   const allowEmpty = options?.allowEmpty ?? false;
+  const allowUndefined = options?.allowUndefined ?? false;
+
+  if (typeof value === 'undefined') {
+    assert(allowUndefined, `Invalid ${name}: not a valid string`, error);
+    return;
+  }
 
   assert(typeof value === 'string', `Invalid ${name}: not a valid string`, error);
   assert(allowEmpty || value.trim() !== '', `Invalid ${name}: must be a non-empty string.`, error);
