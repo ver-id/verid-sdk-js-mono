@@ -180,8 +180,8 @@ jobs:
           LATEST_VERSION=$(git describe --tags --abbrev=0 | sed 's/.*@//')
           echo "Latest version: $LATEST_VERSION"
           
-          # Generate changelog and create GitHub release
-          npx nx release changelog "$LATEST_VERSION" --verbose
+          # Generate changelog and create GitHub release (skip git operations since version command already handled them)
+          npx nx release changelog "$LATEST_VERSION" --git-commit=false --git-tag=false --verbose
 
       - name: Publish packages
         env:
