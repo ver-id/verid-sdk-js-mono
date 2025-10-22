@@ -35,7 +35,7 @@ export const errorLink = new ErrorLink(({ error, operation }) => {
   }
 
   // Return an Observable that emits the custom error
-  return new Observable<never>((observer) => {
+  return new Observable<never>((observer: { error: (error: unknown) => void }) => {
     observer.error(customError);
   });
 });

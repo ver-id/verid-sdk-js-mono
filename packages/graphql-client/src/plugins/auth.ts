@@ -37,7 +37,11 @@ export const createAuthLink = (
   clientSecret: string,
 ) => {
   return new ApolloLink((operation, forward) => {
-    return new Observable<ApolloLink.Result>((observer) => {
+    return new Observable<ApolloLink.Result>((observer: { 
+      next: (value: ApolloLink.Result) => void; 
+      error: (error: unknown) => void; 
+      complete: () => void;
+    }) => {
       (async () => {
         try {
           const token = await getAuthorizationToken(authorizationServer, clientId, clientSecret);
@@ -48,8 +52,8 @@ export const createAuthLink = (
           });
           const observable = forward(operation);
           observable.subscribe({
-            next: (result) => observer.next(result),
-            error: (error) => observer.error(error),
+            next: (result: ApolloLink.Result) => observer.next(result),
+            error: (error: unknown) => observer.error(error),
             complete: () => observer.complete(),
           });
         } catch (e) {
