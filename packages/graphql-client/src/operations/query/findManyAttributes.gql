@@ -1,0 +1,21 @@
+query FindManyAttributes($input: FindManyAttributesInput) {
+  findManyAttributes(input: $input) {
+    edges {
+      node {
+        uuid
+        name
+        locale {
+          edges {
+            node {
+              locale
+              i18n
+            }
+          }
+        }
+        credential {
+          uuid
+        }
+      }
+    }
+  }
+}

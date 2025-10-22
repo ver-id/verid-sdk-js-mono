@@ -1,0 +1,12 @@
+import type * as Types from '../../contrib/graphql/schema-types.js';
+
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type FindManySchemesQueryVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.FindManySchemesInput>;
+}>;
+
+
+export type FindManySchemesQuery = { __typename?: 'Query', findManySchemes: { __typename?: 'SchemeConnection', edges: Array<{ __typename?: 'SchemeEdge', node: { __typename?: 'Scheme', uuid: string, name: string, locale: { __typename?: 'SchemeLocaleConnection', edges: Array<{ __typename?: 'SchemeLocaleEdge', node: { __typename?: 'SchemeLocale', locale: string, i18n: any } } | null> }, provider: { __typename?: 'Provider', uuid: string } } } | null> } };
+
+
+export const FindManySchemesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindManySchemes"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FindManySchemesInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findManySchemes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"locale"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"i18n"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"provider"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<FindManySchemesQuery, FindManySchemesQueryVariables>;

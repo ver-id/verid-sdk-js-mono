@@ -1,0 +1,67 @@
+{
+  "name": "@ver-id/graphql-client",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@verid-sdk-js-mono/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "dependsOn": [
+          "codegen"
+        ],
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "packages/graphql-client/dist",
+          "main": "packages/graphql-client/src/index.ts",
+          "tsConfig": "packages/graphql-client/tsconfig.lib.json",
+          "format": [
+            "esm",
+            "cjs"
+          ],
+          "declarationRootDir": "packages/graphql-client/src"
+        }
+      },
+      "codegen": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "graphql-codegen --config codegen.ts",
+            "find src/operations -name '*.gql.ts' -exec node scripts/fix-imports.mjs {} \\;"
+          ],
+          "parallel": false,
+          "cwd": "packages/graphql-client"
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@graphql-codegen/near-operation-file-preset": "^3.1.0",
+    "@graphql-codegen/typescript-operations": "^4.2.1"
+  },
+  "dependencies": {
+    "@apollo/client": "^4.0.7",
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-typed-document-node/core": "3.2.0"
+  }
+}

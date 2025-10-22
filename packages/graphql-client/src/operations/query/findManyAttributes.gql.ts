@@ -1,0 +1,12 @@
+import type * as Types from '../../contrib/graphql/schema-types.js';
+
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type FindManyAttributesQueryVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.FindManyAttributesInput>;
+}>;
+
+
+export type FindManyAttributesQuery = { __typename?: 'Query', findManyAttributes: { __typename?: 'AttributeConnection', edges: Array<{ __typename?: 'AttributeEdge', node: { __typename?: 'Attribute', uuid: string, name: string, locale: { __typename?: 'AttributeLocaleConnection', edges: Array<{ __typename?: 'AttributeLocaleEdge', node: { __typename?: 'AttributeLocale', locale: string, i18n: any } } | null> }, credential: { __typename?: 'Credential', uuid: string } } } | null> } };
+
+
+export const FindManyAttributesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindManyAttributes"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FindManyAttributesInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findManyAttributes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"locale"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"i18n"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"credential"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<FindManyAttributesQuery, FindManyAttributesQueryVariables>;

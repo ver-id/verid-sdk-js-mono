@@ -1,0 +1,14 @@
+query FindProvider($uuid: UUID!) {
+  findProvider(uuid: $uuid) {
+    uuid
+    name
+    locale {
+      edges {
+        node {
+          locale
+          i18n
+        }
+      }
+    }
+  }
+}

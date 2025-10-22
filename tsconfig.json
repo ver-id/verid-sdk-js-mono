@@ -2,5 +2,15 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./libs/core"
+    },
+    {
+      "path": "./packages/browser-client"
+    },
+    {
+      "path": "./packages/graphql-client"
+    }
+  ]
 }

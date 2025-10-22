@@ -1,0 +1,21 @@
+query FindManyIssuers($input: FindManyIssuersInput) {
+  findManyIssuers(input: $input) {
+    edges {
+      node {
+        uuid
+        name
+        locale {
+          edges {
+            node {
+              locale
+              i18n
+            }
+          }
+        }
+        scheme {
+          uuid
+        }
+      }
+    }
+  }
+}

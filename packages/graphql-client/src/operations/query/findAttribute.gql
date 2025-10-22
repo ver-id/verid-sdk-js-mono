@@ -1,0 +1,17 @@
+query FindAttribute($uuid: UUID!) {
+  findAttribute(uuid: $uuid) {
+    uuid
+    name
+    locale {
+      edges {
+        node {
+          locale
+          i18n
+        }
+      }
+    }
+    credential {
+      uuid
+    }
+  }
+}

@@ -1,0 +1,17 @@
+query FindScheme($uuid: UUID!) {
+  findScheme(uuid: $uuid) {
+    uuid
+    name
+    locale {
+      edges {
+        node {
+          locale
+          i18n
+        }
+      }
+    }
+    provider {
+      uuid
+    }
+  }
+}

@@ -1,0 +1,17 @@
+query FindIssuer($uuid: UUID!) {
+  findIssuer(uuid: $uuid) {
+    uuid
+    name
+    locale {
+      edges {
+        node {
+          locale
+          i18n
+        }
+      }
+    }
+    scheme {
+      uuid
+    }
+  }
+}

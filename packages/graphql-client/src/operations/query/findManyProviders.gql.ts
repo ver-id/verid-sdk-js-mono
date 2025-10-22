@@ -1,0 +1,12 @@
+import type * as Types from '../../contrib/graphql/schema-types.js';
+
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type FindManyProvidersQueryVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.FindManyProvidersInput>;
+}>;
+
+
+export type FindManyProvidersQuery = { __typename?: 'Query', findManyProviders: { __typename?: 'ProviderConnection', edges: Array<{ __typename?: 'ProviderEdge', node: { __typename?: 'Provider', uuid: string, name: string, locale: { __typename?: 'ProviderLocaleConnection', edges: Array<{ __typename?: 'ProviderLocaleEdge', node: { __typename?: 'ProviderLocale', locale: string, i18n: any } } | null> } } } | null> } };
+
+
+export const FindManyProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindManyProviders"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FindManyProvidersInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findManyProviders"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"locale"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"i18n"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<FindManyProvidersQuery, FindManyProvidersQueryVariables>;

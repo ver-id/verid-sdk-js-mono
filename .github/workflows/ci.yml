@@ -2,40 +2,179 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   actions: read
   contents: read
 
 jobs:
-  main:
+  # Stage 1: Setup (derive SHAs used by `nx affected`)
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      base: ${{ steps.set-shas.outputs.base }}
+      head: ${{ steps.set-shas.outputs.head }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive SHAs for Nx affected
+        id: set-shas
+        uses: nrwl/nx-set-shas@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+  # Stage 2: Lint (runs concurrently)
+  lint:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
-
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
-
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Lint affected projects
+        run: |
+          npx nx affected -t lint \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --parallel=3 --max-parallel=3
 
-      - run: npm ci --legacy-peer-deps
+  # Stage 3: Test (runs concurrently)
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Test affected projects
+        run: |
+          npx nx affected -t test \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --parallel=3 --max-parallel=3
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      - run: npx nx run-many -t lint test build typecheck
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: npx nx fix-ci
+  # Stage 4: Type check (runs concurrently)
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Type check affected projects
+        run: |
+          npx nx affected -t typecheck \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --parallel=3 --max-parallel=3
+
+  # Stage 5: Build (runs concurrently; no dependency on lint/test/typecheck)
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Build affected projects
+        run: |
+          npx nx affected -t build \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --parallel=3 --max-parallel=3
+
+  # Stage 6: Publish to GitHub Packages (only on main push)
+  publish:
+    needs: [setup, build, test, typecheck, lint]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write        # push tags/commits if release does so
+      packages: write        # publish to GitHub Packages
+      pull-requests: write   # optional: if your release tool opens PRs
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+          always-auth: true
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Version & publish (GitHub Packages)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # sufficient for GitHub Packages
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx nx release publish \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --yes
+
+  # Stage 7: Nx self-healing (optional)
+  nx-cloud-fix:
+    needs: [setup, lint, test, typecheck, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Nx CI self-healing
         if: always()
+        run: |
+          npx nx fix-ci || npx nx reset || true

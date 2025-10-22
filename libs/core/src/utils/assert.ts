@@ -1,0 +1,768 @@
+import { JWTPayload } from 'jose';
+import { InvalidAssertionError } from '../error/index.js';
+import { ICacheManager } from '../interface/ICacheManager.js';
+import { JSONValue, UUID } from '../types/generic.js';
+import {
+  AttestedJwtPayload,
+  AuthenticationResponse,
+  DisclosureResponse,
+  OpenIdJwtCompanyIdentifierType,
+  OpenIdJwtCompanyType,
+  OpenIdJwtNINIdentifierType,
+  OpenIdJwtPayload,
+  PlainJwtPayload,
+} from '../types/index.js';
+import { convertEnumToValues } from './generic.js';
+
+/**
+ * Regular expression pattern for validating UUID strings (versions 1-5).
+ * Matches the standard UUID format: 8-4-4-4-12 hexadecimal digits.
+ * @constant
+ */
+const RegExp =
+  /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5]{1}[0-9A-Fa-f]{3}-[ABab89]{1}[0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$/;
+
+/**
+ * Type definition for error constructor functions.
+ * Used to create custom error instances in assertion functions.
+ * @public
+ */
+type ErrorConstructorType = new (...args: any[]) => Error;
+
+/**
+ * Base assertion function that validates a condition and throws an error if it fails.
+ *
+ * @param assertion - The condition to test. If falsy, an error will be thrown
+ * @param message - The error message to display when the assertion fails
+ * @param ctor - Optional custom error constructor. Defaults to InvalidAssertionError
+ * @throws {InvalidAssertionError} When assertion fails and no custom error constructor is provided
+ * @throws {Error} Custom error type when assertion fails and a custom constructor is provided
+ * @example
+ * ```typescript
+ * assert(value > 0, 'Value must be positive');
+ * assert(typeof obj === 'object', 'Must be an object', TypeError);
+ * ```
+ */
+export function assert(
+  assertion: any,
+  message: string,
+  ctor?: ErrorConstructorType,
+): asserts assertion {
+  // Test assertion
+  if (!assertion) {
+    // Throw statement
+    if (ctor) {
+      assert(ctor?.prototype instanceof Error, 'Invalid ctor argument: not a valid Error.');
+
+      // Throw the error
+      throw new ctor(message);
+    } else {
+      throw new InvalidAssertionError(message);
+    }
+  }
+}
+
+/**
+ * Asserts that the given value is a valid JSON value.
+ * Recursively validates arrays and objects to ensure all nested values are valid JSON types.
+ *
+ * @param value - The value to validate as a JSON-compatible type
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid JSON type (by default)
+ * @throws {Error} Custom error type when specified and value is not a valid JSON type
+ */
+export function assertJsonValue(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is JSONValue {
+  assert(
+    typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      typeof value === 'object' ||
+      Array.isArray(value) ||
+      value instanceof Date ||
+      value === null,
+    `Invalid ${name}: not a valid JSON value`,
+    error,
+  );
+
+  if (Array.isArray(value)) {
+    value.map((item, index) => assertJsonValue(item, `"item" at ${index} in ${name}`, error));
+  }
+
+  if (typeof value === 'object' && value !== null && !(value instanceof Date)) {
+    Object.entries(value).map(([key, val]) => {
+      assertString(key, `"key" in ${name}`, error);
+      assertJsonValue(val, `"value" for key "${key}" in ${name}`, error);
+    });
+  }
+}
+
+/**
+ * Asserts that the given value is a valid URL string.
+ * Uses the URL constructor to validate the URL format.
+ *
+ * @param url - The value to validate as a URL
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When url is not a valid URL string (by default)
+ * @throws {Error} Custom error type when specified and url is not valid
+ */
+export function assertUrlString(
+  url: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts url is string {
+  const ctor = error ?? InvalidAssertionError;
+  assertString(url, name, ctor);
+  try {
+    new URL(url);
+  } catch {
+    throw new ctor(`Invalid ${name}: not a valid url.`);
+  }
+}
+
+/**
+ * Asserts that the given value is a valid object (non-null object type).
+ *
+ * @param value - The value to validate as an object
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not an object or is null (by default)
+ * @throws {Error} Custom error type when specified and value is not an object
+ */
+export function assertObject(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is Record<string, unknown> {
+  assert(typeof value === 'object' && value !== null, `Invalid ${name}: not a valid object`, error);
+}
+
+/**
+ * Asserts that the given value is a valid string.
+ * By default, requires non-empty strings (after trimming whitespace).
+ *
+ * @param value - The value to validate as a string
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @param options - Optional configuration object
+ * @param options.allowEmpty - If true, allows empty strings. Defaults to false
+ * @throws {InvalidAssertionError} When value is not a string or is empty when not allowed (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertString(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+  options?: {
+    allowEmpty?: boolean;
+  },
+): asserts value is string {
+  const allowEmpty = options?.allowEmpty ?? false;
+
+  assert(typeof value === 'string', `Invalid ${name}: not a valid string`, error);
+  assert(allowEmpty || value.trim() !== '', `Invalid ${name}: must be a non-empty string.`, error);
+}
+
+/**
+ * Asserts that the given value is a valid finite number.
+ * By default, requires positive non-zero numbers.
+ *
+ * @param value - The value to validate as a number
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @param options - Optional configuration object
+ * @param options.allowZero - If true, allows zero as a valid value. Defaults to false
+ * @throws {InvalidAssertionError} When value is not a finite number or is negative/zero when not allowed (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertNumber(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+  options?: {
+    allowZero?: boolean;
+  },
+): asserts value is number {
+  const allowZero = options?.allowZero ?? false;
+  const ctor = error ?? InvalidAssertionError;
+
+  assert(
+    typeof value === 'number' && Number.isFinite(value),
+    `Invalid ${name}: not a valid number`,
+    error,
+  );
+
+  if (value > 0) return;
+
+  if (allowZero) {
+    if (value !== 0) {
+      throw new ctor(`Invalid ${name}: must be a non-negative number`);
+    }
+    return;
+  }
+
+  throw new ctor(`Invalid ${name}: must be a positive non-zero number`);
+}
+
+/**
+ * Asserts that the given value is a valid boolean.
+ *
+ * @param value - The value to validate as a boolean
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a boolean (by default)
+ * @throws {Error} Custom error type when specified and value is not a boolean
+ */
+export function assertBoolean(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is boolean {
+  assert(typeof value === 'boolean', `Invalid ${name}: not a valid boolean`, error);
+}
+
+/**
+ * Asserts that the given value is a valid function.
+ *
+ * @param value - The value to validate as a function
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a function (by default)
+ * @throws {Error} Custom error type when specified and value is not a function
+ */
+export function assertFunction(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is (...args: any[]) => any {
+  assert(typeof value === 'function', `Invalid ${name}: not a valid function`, error);
+}
+
+/**
+ * Asserts that the given value is a valid array.
+ *
+ * @param value - The value to validate as an array
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not an array (by default)
+ * @throws {Error} Custom error type when specified and value is not an array
+ */
+export function assertArray(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is Array<unknown> {
+  assert(Array.isArray(value), `Invalid ${name}: not a valid array`, error);
+}
+
+/**
+ * Asserts that the given value is a valid Date object.
+ * Validates that the date is not "Invalid Date".
+ *
+ * @param value - The value to validate as a Date
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid Date object (by default)
+ * @throws {Error} Custom error type when specified and value is not a valid Date
+ */
+export function assertDate(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is Date {
+  assert(
+    value instanceof Date && !isNaN(value.getTime()),
+    `Invalid ${name}: not a valid date`,
+    error,
+  );
+}
+
+/**
+ * Asserts that the given value is a valid UUID string (versions 1-5).
+ * Validates the UUID format using a regular expression.
+ *
+ * @param value - The value to validate as a UUID
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid UUID string (by default)
+ * @throws {Error} Custom error type when specified and value is not a valid UUID
+ */
+export function assertUUID(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is UUID {
+  assertString(value, name, error);
+  assert(RegExp.test(value), `Invalid ${name}: not a valid UUID`, error);
+}
+
+/**
+ * Asserts that the given value is a valid cache manager implementing ICacheManager interface.
+ * Validates that the object has required methods: save, get, and remove.
+ *
+ * @param value - The value to validate as a cache manager
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value doesn't implement ICacheManager interface (by default)
+ * @throws {Error} Custom error type when specified and value is not a valid cache manager
+ */
+export function assertCacheManager(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is ICacheManager {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertObject(value, name, ctor);
+  const requiredMethods = ['save', 'get', 'remove'];
+  for (const m of requiredMethods) {
+    assertFunction(value[m], `"${m}" in ${name}`, ctor);
+  }
+}
+
+/**
+ * Asserts that the given value is a valid DisclosureResponse.
+ * Validates all required properties: access_token, expires_in, scope, and token_type.
+ *
+ * @param response - The value to validate as a DisclosureResponse
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When response is not a valid DisclosureResponse (by default)
+ * @throws {Error} Custom error type when specified and response is not valid
+ */
+export function assertDisclosureResponse(
+  response: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts response is DisclosureResponse {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertObject(response, name, ctor);
+  assertString(response.access_token, `access_token in ${name}`, ctor);
+  assertNumber(response.expires_in, `expires_in in ${name}`, ctor);
+  assertString(response.scope, `scope in ${name}`, ctor);
+  assertString(response.token_type, `token_type in ${name}`, ctor);
+}
+
+/**
+ * Asserts that the given value is a valid AuthenticationResponse.
+ * Validates required properties: access_token, id_token, expires_in, and token_type.
+ *
+ * @param response - The value to validate as an AuthenticationResponse
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When response is not a valid AuthenticationResponse (by default)
+ * @throws {Error} Custom error type when specified and response is not valid
+ */
+export function assertAuthenticationResponse(
+  response: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts response is AuthenticationResponse {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertObject(response, name, ctor);
+  assertString(response.access_token, `access_token in ${name}`, ctor);
+  assertString(response.id_token, `id_token in ${name}`, ctor);
+  assertNumber(response.expires_in, `expires_in in ${name}`, ctor);
+  assertString(response.token_type, `token_type in ${name}`, ctor);
+}
+
+/**
+ * Asserts that the given value is a valid JWT payload.
+ * Validates standard JWT claims including iss, sub, aud, exp, and iat when present.
+ *
+ * @param value - The value to validate as a JWT payload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid JWTPayload (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is JWTPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertObject(value, name, ctor);
+
+  // Check JWTPayload properties
+  if (typeof value.iss !== 'undefined') {
+    assertString(value.iss, `"iss" in ${name}`, ctor);
+  }
+  if (typeof value.sub !== 'undefined') {
+    assertString(value.sub, `"sub" in ${name}`, ctor);
+  }
+  if (typeof value.aud !== 'undefined') {
+    if (typeof value.aud === 'string') {
+      assertString(value.aud, `"aud" in ${name}`, ctor);
+    } else if (Array.isArray(value.aud)) {
+      assertArray(value.aud, `"aud" in ${name}`, ctor);
+    } else {
+      throw new ctor(`Invalid "aud" in ${name}: must be a string or an array.`);
+    }
+  }
+  if (typeof value.exp !== 'undefined') {
+    assertNumber(value.exp, `"exp" in ${name}`, ctor);
+  }
+  if (typeof value.iat !== 'undefined') {
+    assertNumber(value.iat, `"iat" in ${name}`, ctor);
+  }
+}
+
+/**
+ * Asserts that the given value is a valid AttestedJwtPayload.
+ * Validates JWT payload with output array containing disclosure/signature data.
+ * Recursively validates all nested OutputItem and OutputData structures.
+ *
+ * @param value - The value to validate as an AttestedJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid AttestedJwtPayload (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertAttestedJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is AttestedJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  // Check output property
+  assert('output' in value, `Invalid "output" in ${name}: should be defined.`, ctor);
+  assertArray(value.output, `"output" in ${name}`, ctor);
+
+  // Validate each OutputItem
+  for (const [index, item] of value.output.entries()) {
+    assertObject(item, `OutputItem at index ${index} in ${name}`, ctor);
+    // Validate uuid
+    assertString(item.uuid, `OutputItem.uuid at index ${index} in ${name}`, ctor);
+    // Validate type
+    assert(
+      item.type === 'disclosure' || item.type === 'signature',
+      `Invalid "OutputItem.type" at index ${index} in ${name}: must be 'disclosure' or 'signature'`,
+      ctor,
+    );
+    // Validate parameter
+    assertObject(item.parameter, `"OutputItem.parameter" at index ${index} in ${name}`, ctor);
+    assertString(
+      (item.parameter as any).challenge,
+      `"OutputItem.parameter.challenge" at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate meta
+    assertObject(item.meta, `"OutputItem.meta" at index ${index} in ${name}`, ctor);
+
+    // Validate data
+    assertArray(item.data, `"OutputItem.data" at index ${index} in ${name}`, ctor);
+
+    // Validate each data item
+    for (const [dataIndex, dataItem] of (item.data as unknown[]).entries()) {
+      assertObject(
+        dataItem,
+        `"dataItem" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
+        ctor,
+      );
+
+      for (const prop of [
+        'attributeUuid',
+        'credentialUuid',
+        'issuerUuid',
+        'schemeUuid',
+        'providerUuid',
+      ]) {
+        assertUUID(
+          dataItem[prop],
+          `"dataItem.${prop}" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
+          ctor,
+        );
+      }
+
+      assertJsonValue(
+        dataItem.value,
+        `"dataItem.value" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
+        ctor,
+      );
+    }
+
+    // Validate mapping
+    assertObject(item.mapping, `"OutputItem.mapping" at index ${index} in ${name}`, ctor);
+  }
+}
+
+/**
+ * Asserts that the given value is a valid PlainJwtPayload.
+ * Validates JWT payload with plain disclosure data structure.
+ * Recursively validates nested disclosure, provider, reply, and field structures.
+ *
+ * @param value - The value to validate as a PlainJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid PlainJwtPayload (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertPlainJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is PlainJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  // Check plain property
+  assert('plain' in value, `Invalid "plain" in ${name}: should be defined.`, ctor);
+  assertObject(value.plain, `"plain" in ${name}`, ctor);
+
+  const plain = value.plain as Record<string, unknown>;
+
+  // Validate uuid
+  assertUUID(plain.uuid, `"plain.uuid" in ${name}`, ctor);
+
+  // Validate disclosures array
+  assertArray(plain.disclosures, `"plain.disclosures" in ${name}`, ctor);
+
+  // Validate each disclosure
+  for (const [index, disclosure] of (plain.disclosures as unknown[]).entries()) {
+    assertObject(disclosure, `disclosure at index ${index} in ${name}`, ctor);
+
+    // Validate disclosure uuid
+    assertUUID(
+      (disclosure as Record<string, unknown>).uuid,
+      `disclosure.uuid at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate parameter
+    assertObject(
+      (disclosure as Record<string, unknown>).parameter,
+      `disclosure.parameter at index ${index} in ${name}`,
+      ctor,
+    );
+    assertUUID(
+      ((disclosure as Record<string, unknown>).parameter as Record<string, unknown>).challenge,
+      `disclosure.parameter.challenge at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate provider
+    assertObject(
+      (disclosure as Record<string, unknown>).provider,
+      `disclosure.provider at index ${index} in ${name}`,
+      ctor,
+    );
+
+    const provider = (disclosure as Record<string, unknown>).provider as Record<string, unknown>;
+
+    // Validate providerUuid
+    assertUUID(
+      provider.providerUuid,
+      `disclosure.provider.providerUuid at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate providerOptions
+    assertObject(
+      provider.providerOptions,
+      `disclosure.provider.providerOptions at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate replies array
+    assertArray(provider.replies, `disclosure.provider.replies at index ${index} in ${name}`, ctor);
+
+    // Validate each reply
+    for (const [replyIndex, reply] of (provider.replies as unknown[]).entries()) {
+      assertObject(reply, `reply at index ${replyIndex} in disclosure ${index} in ${name}`, ctor);
+
+      const replyObj = reply as Record<string, unknown>;
+
+      // Validate UUIDs
+      for (const prop of ['schemeUuid', 'issuerUuid', 'credentialUuid']) {
+        assertUUID(
+          replyObj[prop],
+          `reply.${prop} at index ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+      }
+
+      // Validate meta
+      assertObject(
+        replyObj.meta,
+        `reply.meta at index ${replyIndex} in disclosure ${index} in ${name}`,
+        ctor,
+      );
+
+      // Validate i18n arrays in meta
+      const meta = replyObj.meta as Record<string, unknown>;
+      if (meta.i18n_name) {
+        assertArray(
+          meta.i18n_name,
+          `reply.meta.i18n_name at index ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+      }
+      if (meta.i18n_description) {
+        assertArray(
+          meta.i18n_description,
+          `reply.meta.i18n_description at index ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+      }
+
+      // Validate timestamps
+      assertNumber(
+        replyObj.issuedAt,
+        `reply.issuedAt at index ${replyIndex} in disclosure ${index} in ${name}`,
+        ctor,
+        { allowZero: true },
+      );
+      assertNumber(
+        replyObj.expiresAt,
+        `reply.expiresAt at index ${replyIndex} in disclosure ${index} in ${name}`,
+        ctor,
+        { allowZero: true },
+      );
+
+      // Validate fields array
+      assertArray(
+        replyObj.fields,
+        `reply.fields at index ${replyIndex} in disclosure ${index} in ${name}`,
+        ctor,
+      );
+
+      // Validate each field
+      for (const [fieldIndex, field] of (replyObj.fields as unknown[]).entries()) {
+        assertObject(
+          field,
+          `field at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+
+        const fieldObj = field as Record<string, unknown>;
+
+        // Validate attributeUuid
+        assertUUID(
+          fieldObj.attributeUuid,
+          `field.attributeUuid at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+
+        // Validate meta
+        assertObject(
+          fieldObj.meta,
+          `field.meta at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+
+        // Validate value
+        assertJsonValue(
+          fieldObj.value,
+          `field.value at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
+          ctor,
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Asserts that the given value is a valid OpenIdJwtPayload.
+ * Validates OpenID Connect standard claims including profile, address, company, and NIN information.
+ * All claims except 'sub' are optional but validated when present.
+ *
+ * @param value - The value to validate as an OpenIdJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid OpenIdJwtPayload (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertOpenIdJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is OpenIdJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  // Required property
+  assertString(value.sub, `sub in ${name}`, ctor);
+
+  // Optional string properties
+  if (typeof value.name !== 'undefined') assertString(value.name, `name in ${name}`, ctor);
+  if (typeof value.given_name !== 'undefined')
+    assertString(value.given_name, `given_name in ${name}`, ctor);
+  if (typeof value.middle_name !== 'undefined')
+    assertString(value.middle_name, `middle_name in ${name}`, ctor);
+  if (typeof value.family_name !== 'undefined')
+    assertString(value.family_name, `family_name in ${name}`, ctor);
+  if (typeof value.birthdate !== 'undefined')
+    assertString(value.birthdate, `birthdate in ${name}`, ctor);
+  if (typeof value.birth_country !== 'undefined')
+    assertString(value.birth_country, `birth_country in ${name}`, ctor);
+  if (typeof value.nonce !== 'undefined') assertString(value.nonce, `nonce in ${name}`, ctor);
+  if (typeof value.email !== 'undefined') assertString(value.email, `email in ${name}`, ctor);
+  if (typeof value.phone_number !== 'undefined')
+    assertString(value.phone_number, `phone_number in ${name}`, ctor);
+
+  // Optional boolean properties
+  if (typeof value.email_verified !== 'undefined')
+    assertBoolean(value.email_verified, `email_verified in ${name}`, ctor);
+  if (typeof value.phone_number_verified !== 'undefined')
+    assertBoolean(value.phone_number_verified, `phone_number_verified in ${name}`, ctor);
+
+  // Optional number properties
+  if (typeof value.updated_at !== 'undefined')
+    assertNumber(value.updated_at, `updated_at in ${name}`, ctor);
+
+  // Address object
+  if (typeof value.address !== 'undefined') {
+    assertObject(value.address, `address in ${name}`, ctor);
+    assertString(value.address.formatted, `address.formatted in ${name}`, ctor);
+    assertString(value.address.street_address, `address.street_address in ${name}`, ctor);
+    assertString(value.address.postal_code, `address.postal_code in ${name}`, ctor);
+    assertString(value.address.house_number, `address.house_number in ${name}`, ctor);
+    assertString(value.address.street, `address.street in ${name}`, ctor);
+    assertString(value.address.locality, `address.locality in ${name}`, ctor);
+    assertString(value.address.region, `address.region in ${name}`, ctor);
+    assertString(value.address.country, `address.country in ${name}`, ctor);
+  }
+
+  // Company object
+  if (typeof value.company !== 'undefined') {
+    assertObject(value.company, `company in ${name}`, ctor);
+    assertString(value.company.identifier, `company.identifier in ${name}`, ctor);
+    assertString(value.company.name, `company.name in ${name}`, ctor);
+    assert(
+      convertEnumToValues(OpenIdJwtCompanyIdentifierType).includes(value.company.identifier_type),
+      `Invalid company.identifier_type in ${name}: not a valid OpenIdJwtCompanyIdentifierType`,
+      ctor,
+    );
+    assert(
+      convertEnumToValues(OpenIdJwtCompanyType).includes(value.company.type),
+      `Invalid company.type in ${name}: not a valid OpenIdJwtCompanyType`,
+      ctor,
+    );
+  }
+
+  // NIN object
+  if (typeof value.nin !== 'undefined') {
+    assertObject(value.nin, `nin in ${name}`, ctor);
+    assertString(value.nin.identifier, `nin.identifier in ${name}`, ctor);
+    assert(
+      convertEnumToValues(OpenIdJwtNINIdentifierType).includes(value.nin.identifier_type),
+      `Invalid nin.identifier_type in ${name}: not a valid OpenIdJwtNinIdentifierType`,
+      ctor,
+    );
+  }
+}
