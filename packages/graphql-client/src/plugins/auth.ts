@@ -37,7 +37,7 @@ export const createAuthLink = (
   clientSecret: string,
 ) => {
   return new ApolloLink((operation, forward) => {
-    return new Observable((observer) => {
+    return new Observable<ApolloLink.Result>((observer) => {
       (async () => {
         try {
           const token = await getAuthorizationToken(authorizationServer, clientId, clientSecret);
