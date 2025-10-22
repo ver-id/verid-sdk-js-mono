@@ -164,9 +164,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Version & publish (GitHub Packages)
+      - name: Version affected packages
+        run: |
+          npx nx release version \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --yes
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # sufficient for GitHub Packages
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish versioned packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npx nx release publish \
