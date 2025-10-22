@@ -66,8 +66,14 @@
   "release": {
     "projects": ["packages/*"],
     "projectsRelationship": "independent",
+    "releaseTagPattern": "{projectName}@{version}",
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "git": {
+        "commit": true,
+        "commitMessage": "chore(release): publish {version}",
+        "tag": true
+      }
     },
     "changelog": {
       "projectChangelogs": {
@@ -77,13 +83,10 @@
           "commitReferences": true,
           "versionTitleDate": true
         }
+      },
+      "git": {
+        "commit": false
       }
-    },
-    "git": {
-      "commit": true,
-      "commitMessage": "chore(release): publish {version}",
-      "tag": true
-    },
-    "releaseTagPattern": "{projectName}@{version}"
+    }
   }
 }
