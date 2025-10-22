@@ -158,6 +158,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist-artifacts
+          path: .
+
+      - name: Verify build artifacts
+        run: |
+          echo "Checking dist folders:"
+          find packages -name "dist" -type d
+          echo "Contents of graphql-client dist:"
+          ls -la packages/graphql-client/dist/ || echo "No dist folder found"
 
       - name: Configure Git identity
         run: |
