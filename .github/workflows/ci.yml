@@ -164,20 +164,26 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Version and Publish packages
+      - name: Version packages
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CI: true
         run: |
           # Check if this is the first release (no tags exist for packages)
           if ! git tag -l "*@ver-id/*" | grep -q .; then
             echo "First release detected, running with --first-release"
-            npx nx release --first-release --skip-publish=false --verbose
+            npx nx release version --first-release --verbose
           else
             echo "Running regular release"
-            npx nx release --skip-publish=false --verbose
+            npx nx release version --verbose
           fi
+
+      - name: Publish packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # nx release publish doesn't prompt in CI when run separately
+          npx nx release publish --verbose
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:
