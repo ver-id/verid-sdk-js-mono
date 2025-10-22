@@ -257,15 +257,16 @@ export class VeridDisclosureClient {
    * Ensures the token payload conforms to desired structure.
    *
    * @param disclosureResponse - The disclosure response containing the ID token
+   * @param typeAssertFunc - The function to assert the token payload type
    * @returns Typed JWT with typed payload
    * @throws {OperationFailedError} When JWT verification fails
    * @throws {InvalidAssertionError} When token payload doesn't match OpenID Connect structure
    */
   async decode<T extends JWTPayload>(
     disclosureResponse: DisclosureResponse,
-    typeAssert: (payload: unknown, name: string) => asserts payload is T,
+    typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,
   ): Promise<Jwt<T>> {
-    const jwt = await this.oauthClient.decode(disclosureResponse.access_token, typeAssert);
+    const jwt = await this.oauthClient.decode(disclosureResponse.access_token, typeAssertFunc);
 
     return jwt as Jwt<T>;
   }
