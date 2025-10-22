@@ -164,37 +164,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get affected projects
-        id: affected
-        run: |
-          AFFECTED=$(npx nx show projects --affected \
-            --base=${{ needs.setup.outputs.base }} \
-            --head=${{ needs.setup.outputs.head }} \
-            --type=lib \
-            --exclude='*,!tag:type:publishable')
-          
-          if [ -z "$AFFECTED" ]; then
-            echo "No affected publishable projects"
-            echo "projects=" >> $GITHUB_OUTPUT
-          else
-            # Convert newlines to commas for --projects flag
-            PROJECTS=$(echo "$AFFECTED" | tr '\n' ',' | sed 's/,$//')
-            echo "Affected projects: $PROJECTS"
-            echo "projects=$PROJECTS" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Version affected packages
-        if: steps.affected.outputs.projects != ''
-        run: npx nx release version --projects=${{ steps.affected.outputs.projects }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish versioned packages
-        if: steps.affected.outputs.projects != ''
+      - name: Version and Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx nx release publish --projects=${{ steps.affected.outputs.projects }}
+        run: |
+          # Check if this is the first release (no tags exist for packages)
+          if ! git tag -l "*@ver-id/*" | grep -q .; then
+            echo "First release detected, running with --first-release"
+            npx nx release --first-release --verbose
+          else
+            echo "Running regular release"
+            npx nx release --verbose
+          fi
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:
