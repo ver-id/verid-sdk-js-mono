@@ -164,24 +164,37 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Version affected packages
+      - name: Get affected projects
+        id: affected
         run: |
-          npx nx release version \
+          AFFECTED=$(npx nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --yes
+            --type=lib \
+            --exclude='*,!tag:type:publishable')
+          
+          if [ -z "$AFFECTED" ]; then
+            echo "No affected publishable projects"
+            echo "projects=" >> $GITHUB_OUTPUT
+          else
+            # Convert newlines to commas for --projects flag
+            PROJECTS=$(echo "$AFFECTED" | tr '\n' ',' | sed 's/,$//')
+            echo "Affected projects: $PROJECTS"
+            echo "projects=$PROJECTS" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Version affected packages
+        if: steps.affected.outputs.projects != ''
+        run: npx nx release version --projects=${{ steps.affected.outputs.projects }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish versioned packages
+        if: steps.affected.outputs.projects != ''
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx nx release publish \
-            --base=${{ needs.setup.outputs.base }} \
-            --head=${{ needs.setup.outputs.head }} \
-            --yes
+        run: npx nx release publish --projects=${{ steps.affected.outputs.projects }}
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:
