@@ -24,22 +24,15 @@
   "nx": {
     "targets": {
       "build": {
-        "executor": "@nx/esbuild:esbuild",
+        "executor": "nx:run-commands",
         "outputs": [
-          "{options.outputPath}"
+          "{projectRoot}/dist"
         ],
         "options": {
-          "outputPath": "packages/browser-client/dist",
-          "main": "packages/browser-client/src/index.ts",
-          "tsConfig": "packages/browser-client/tsconfig.lib.json",
-          "format": [
-            "esm",
-            "cjs"
-          ],
-          "declarationRootDir": "packages/browser-client/src"
+          "command": "tsup",
+          "cwd": "packages/browser-client"
         }
       }
     }
-  },
-  "dependencies": {}
+  }
 }

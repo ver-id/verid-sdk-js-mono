@@ -14,12 +14,12 @@ export default [
             '{projectRoot}/codegen.ts',
           ],
           ignoredDependencies: [
-            'graphql',
             '@graphql-codegen/cli',
             '@graphql-codegen/typescript',
             '@graphql-codegen/typescript-operations',
             '@graphql-codegen/typed-document-node',
             '@graphql-codegen/near-operation-file-preset',
+            'tsup'
           ],
         },
       ],
