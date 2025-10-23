@@ -167,19 +167,18 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Get affected projects from packages/ directory (which are the publishable ones)
           AFFECTED="$(npx nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --type=app,lib \
-            | tr '\n' ',')"
+            --projects="packages/*" \
+            --sep=",")"
 
           if [ -z "$AFFECTED" ]; then
             echo "No affected projects. Skipping release."
             exit 0
           fi
 
-          # Remove trailing comma
-          AFFECTED="${AFFECTED%,}"
           echo "Affected projects: $AFFECTED"
 
           # -y -> non-interactive; --projects -> scope to affected
