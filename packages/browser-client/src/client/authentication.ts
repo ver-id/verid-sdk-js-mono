@@ -139,6 +139,7 @@ export class VeridAuthenticationClient {
     const { codeChallenge, codeVerifier } = await this.oauthClient.generateCodeChallenge();
     const randomState = state || this.oauthClient.generateRandomState();
     this.cacheManager.save(randomState, codeVerifier);
+    
     return { codeChallenge, state: randomState };
   }
 
