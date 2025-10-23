@@ -19,6 +19,7 @@ export function useAuthentication() {
   });
 
   // State
+  const showConfigForm = ref(true);
   const clientInitialized = ref(false);
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -34,6 +35,7 @@ export function useAuthentication() {
     try {
       authenticationClient = new VeridAuthenticationClient(clientConfig);
       clientInitialized.value = true;
+      showConfigForm.value = false;
       error.value = null;
     } catch (err) {
       handleError(err);
@@ -81,6 +83,7 @@ export function useAuthentication() {
    */
   const startOver = () => {
     authUrl.value = null;
+    showConfigForm.value = true;
     clientInitialized.value = false;
     authenticationClient = null;
     error.value = null;
@@ -88,6 +91,7 @@ export function useAuthentication() {
 
   return {
     // State
+    showConfigForm,
     clientInitialized,
     loading,
     error,

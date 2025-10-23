@@ -12,13 +12,10 @@
       <div v-if="clientInitialized" class="completed">
         <p>✓ Client has been initialized</p>
       </div>
-
-      <p v-if="!clientInitialized">
-        Configure your authentication client settings and initialize:
-      </p>
       
       <!-- Configuration Form -->
-      <form v-if="!clientInitialized" @submit.prevent="initializeClient" class="config-form">
+      <div v-if="showConfigForm" class="config-form">
+        <h3>Client Configuration</h3>
         <div class="form-group">
           <label for="apiUrl">API URL:</label>
           <input
@@ -26,47 +23,46 @@
             v-model="clientConfig.apiUrl"
             type="text"
             placeholder="https://api.ver.id"
-            required
           >
         </div>
-
         <div class="form-group">
           <label for="authenticationFlowId">Authentication Flow ID:</label>
           <input
             id="authenticationFlowId"
             v-model="clientConfig.authenticationFlowId"
             type="text"
-            placeholder="your-flow-id"
-            required
+            placeholder="authentication_flow_123"
           >
         </div>
-
         <div class="form-group">
           <label for="redirectUri">Redirect URI:</label>
           <input
             id="redirectUri"
             v-model="clientConfig.redirectUri"
             type="text"
-            placeholder="http://localhost:4200/callback"
-            required
+            placeholder="http://localhost:3000/authentication/callback"
           >
         </div>
-        <button type="submit">Initialize Client</button>
-      </form>
+      </div>
 
-      <!-- Code example - always visible to show configuration -->
+      <p v-if="!clientInitialized && !showConfigForm">
+        First, initialize the authentication client with your configuration.
+      </p>
+
       <div class="code-block-wrapper">
         <CopyButton :content="getInitCode" />
         <pre><code>{{ getInitCode }}</code></pre>
       </div>
+
+      <button v-if="!clientInitialized" @click="initializeClient">
+        Initialize Client
+      </button>
     </div>
 
-    <div v-if="clientInitialized"
-class="section">
+    <div v-if="clientInitialized" class="section">
       <h2>2. Configure Scope & Generate Authentication URL</h2>
 
-      <div v-if="authUrl"
-class="completed">
+      <div v-if="authUrl" class="completed">
         <p>✓ Authentication URL has been generated successfully</p>
       </div>
 
@@ -74,8 +70,8 @@ class="completed">
         Configure the scope and generate the authentication URL with PKCE challenge:
       </p>
 
-      <!-- Scope Configuration Form -->
-      <form v-if="!authUrl" @submit.prevent="generateAuthUrl" class="config-form">
+      <!-- Scope Configuration -->
+      <div v-if="!authUrl" class="config-form">
         <div class="form-group">
           <label for="scope">Scope:</label>
           <input
@@ -86,17 +82,17 @@ class="completed">
           >
           <small style="color: #666;">Space-separated list of scopes (e.g., "openid profile email")</small>
         </div>
-
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Generating...' : 'Generate Auth URL' }}
-        </button>
-      </form>
+      </div>
 
       <!-- Code example - always visible to show configuration -->
       <div class="code-block-wrapper">
         <CopyButton :content="getGenerateAuthUrlCode" />
         <pre><code>{{ getGenerateAuthUrlCode }}</code></pre>
       </div>
+
+      <button v-if="!authUrl" type="button" :disabled="loading" @click="generateAuthUrl">
+        {{ loading ? 'Generating...' : 'Generate Auth URL' }}
+      </button>
 
       <div v-if="authUrl"
 class="info">
@@ -156,6 +152,7 @@ import '../../assets/styles.css';
 
 // Use the authentication composable - all business logic is in a separate file
 const {
+  showConfigForm,
   clientInitialized,
   loading,
   error,

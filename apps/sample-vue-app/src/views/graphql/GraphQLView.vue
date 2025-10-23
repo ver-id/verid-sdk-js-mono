@@ -17,8 +17,8 @@
         Configure your GraphQL client settings and initialize:
       </p>
       
-      <!-- Configuration Form -->
-      <form v-if="!clientInitialized" @submit.prevent="initializeClient" class="config-form">
+      <!-- Configuration -->
+      <div v-if="!clientInitialized" class="config-form">
         <div class="form-group">
           <label for="endpoint">GraphQL Endpoint:</label>
           <input
@@ -26,7 +26,6 @@
             v-model="clientConfig.endpoint"
             type="text"
             placeholder="https://api.ver.id/graphql"
-            required
           >
         </div>
 
@@ -37,7 +36,6 @@
             v-model="clientConfig.authorizationServer"
             type="text"
             placeholder="https://auth.ver.id"
-            required
           >
         </div>
 
@@ -48,7 +46,6 @@
             v-model="clientConfig.clientId"
             type="text"
             placeholder="your-client-id"
-            required
           >
         </div>
 
@@ -59,18 +56,19 @@
             v-model="clientConfig.clientSecret"
             type="password"
             placeholder="your-client-secret"
-            required
           >
         </div>
-
-        <button type="submit">Initialize Client</button>
-      </form>
+      </div>
 
       <!-- Code example - always visible to show configuration -->
       <div class="code-block-wrapper">
         <CopyButton :content="getInitCode" />
         <pre><code>{{ getInitCode }}</code></pre>
       </div>
+
+      <button v-if="!clientInitialized" @click="initializeClient">
+        Initialize Client
+      </button>
     </div>
 
     <div v-if="clientInitialized"
@@ -623,7 +621,6 @@ const {
   queryResult,
   customQuery,
   customQueryResult,
-  showConfigForm,
   expandedSections,
   expandedCategories,
 

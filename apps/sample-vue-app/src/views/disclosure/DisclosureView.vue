@@ -7,7 +7,7 @@
     </p>
 
     <div class="section">
-      <h2>1. Initialize Client</h2>
+      <h2>1. Configure & Initialize Client</h2>
 
       <div v-if="clientInitialized" class="completed">
         <p>✓ Client has been initialized</p>
