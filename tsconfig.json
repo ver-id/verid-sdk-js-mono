@@ -11,6 +11,9 @@
     },
     {
       "path": "./packages/graphql-client"
+    },
+    {
+      "path": "./apps/sample-vue-app"
     }
   ]
 }

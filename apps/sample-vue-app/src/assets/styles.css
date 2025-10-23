@@ -1,0 +1,562 @@
+/* Shared styles for all views */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Wider container for home page */
+main .container {
+  max-width: 1200px;
+}
+
+/* Wider container for GraphQL page */
+.graphql-view .container {
+  max-width: 900px;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.section {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+h2 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  color: #2c3e50;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h4 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+/* Code blocks with copy button */
+.code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 1rem;
+  padding-right: 5rem; /* Make space for copy button */
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+button {
+  background: #42b983;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+button:hover:not(:disabled) {
+  background: #35a372;
+}
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 1rem;
+}
+
+.result h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.error h3 {
+  color: #c33;
+  margin-top: 0;
+}
+
+.error pre {
+  background: #fdd;
+  color: #800;
+}
+
+.info {
+  background: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.info h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.info pre {
+  background: white;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+}
+
+.info .note {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+.info button {
+  margin-top: 0.5rem;
+}
+
+.token-section {
+  margin-top: 1.5rem;
+}
+
+.token-section h4 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.token-section .token {
+  word-break: break-all;
+  font-size: 0.8rem;
+}
+
+.result.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.result.success h3 {
+  color: #155724;
+  margin-top: 0;
+}
+
+.completed {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.completed p {
+  color: #155724;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+}
+
+.start-over-btn {
+  background: #6c757d;
+  margin-top: 1.5rem;
+}
+
+.start-over-btn:hover {
+  background: #5a6268;
+}
+
+/* Collapsible sections */
+.collapsible-section {
+  position: relative;
+}
+
+.section-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 4px;
+}
+
+.section-header:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.section-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-icon {
+  font-size: 0.8em;
+  color: #42b983;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.section-content {
+  margin-top: 1rem;
+}
+
+/* Helper functions section */
+.helper-functions {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.helper-category {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.category-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 4px;
+}
+
+.category-header:hover {
+  background: rgba(66, 185, 131, 0.1);
+}
+
+.category-header h3 {
+  margin: 0;
+  color: #42b983;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-content {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.helper-function {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.helper-function h4 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.helper-function h5 {
+  margin-top: 1rem;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #42b983;
+}
+
+.input-group button {
+  white-space: nowrap;
+}
+
+.error-section {
+  background: #fff5f5;
+  border: 2px solid #fc8181;
+}
+
+.error-section h2 {
+  color: #c53030;
+  margin-bottom: 1rem;
+}
+
+.error-section .error {
+  margin-bottom: 1rem;
+}
+
+/* Spinner for buttons */
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Home page specific styles */
+.hero {
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 3rem;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #666;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.card {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.card p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  display: inline-block;
+  background: #42b983;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background: #35a372;
+}
+
+/* Common text styles */
+p {
+  color: #666;
+  line-height: 1.6;
+}
+
+ol, ul {
+  color: #666;
+  line-height: 1.8;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+a {
+  color: #42b983;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+strong {
+  color: #2c3e50;
+}
+
+/* Form elements */
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  resize: vertical;
+}
+
+/* Configuration form styles */
+.config-section {
+  background: #fff;
+  border: 2px solid #42b983;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.config-form button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #42b983;
+  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+}
+
+.primary-btn {
+  background: #42b983;
+  margin-top: 0.5rem;
+}
+
+.primary-btn:hover {
+  background: #35a372;
+}
+
+.secondary-btn {
+  background: #6c757d;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.secondary-btn:hover {
+  background: #5a6268;
+}
+
+/* About page */
+.about {
+  max-width: 768px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
+/* App layout */
+header {
+  line-height: 1.5;
+  max-width: 100vw;
+}
+
+nav > a {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  header {
+    display: flex;
+    place-items: center;
+    padding-right: calc(var(--section-gap) / 2);
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 768px;
+  }
+
+  nav {
+    text-align: left;
+    font-size: 1rem;
+    padding: 1rem 0;
+    margin-top: 1rem;
+  }
+}

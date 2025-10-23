@@ -91,11 +91,17 @@ const disclosureResponse = await disclosureClient.finalize();
 const disclosureDecodedToken = await disclosureClient.decode(disclosureResponse);
 ```
 
-For other comprehensive configurations and examples, see the [DISCLOSURE.md](packages/browser-client/DISCLOSURE.md) document.
+For other comprehensive configurations and examples, see the [VERIFICATION.md](packages/browser-client/VERIFICATION.md) document.
 
 ## Examples
 
 See the [examples](./examples) directory for complete usage examples.
+
+## Acknowledgments
+
+- Built with TypeScript
+- Powered by [oauth4webapi](https://github.com/panva/oauth4webapi)
+- Uses [jose](https://www.npmjs.com/package/jose) for JWT handling
 
 ## License
 

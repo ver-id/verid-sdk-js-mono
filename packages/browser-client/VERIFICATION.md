@@ -1,6 +1,6 @@
 ## Verification
 
-Execute a disclosure flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes.
+Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes.
 
 ### Create a Disclosure client
 

@@ -227,6 +227,11 @@ Raw GraphQL types are also exported:
 
 See the [examples](./examples) directory.
 
+## Acknowledgments
+
+- Built with TypeScript
+- Powered by [apollo](https://github.com/apollographql/apollo-client)
+
 ## License
 
 MIT

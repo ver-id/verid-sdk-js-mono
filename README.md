@@ -137,10 +137,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and commit mes
 
 MIT
 
-## Acknowledgments
-
-- Built with TypeScript
-- Powered by [oauth4webapi](https://github.com/panva/oauth4webapi)
-- Uses [jose](https://www.npmjs.com/package/jose) for JWT handling
-
 Made with ❤️ by the Ver.iD Team
