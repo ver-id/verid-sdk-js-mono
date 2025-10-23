@@ -167,16 +167,20 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          AFFECTED="$(npx nx print-affected \
+          AFFECTED="$(npx nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --target=build \
-            --select=projects)"
+            --type=app,lib \
+            | tr '\n' ',')"
 
           if [ -z "$AFFECTED" ]; then
             echo "No affected projects. Skipping release."
             exit 0
           fi
+
+          # Remove trailing comma
+          AFFECTED="${AFFECTED%,}"
+          echo "Affected projects: $AFFECTED"
 
           # -y -> non-interactive; --projects -> scope to affected
           npx nx release -y --projects="$AFFECTED" --verbose

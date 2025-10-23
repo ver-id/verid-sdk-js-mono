@@ -1,90 +1,146 @@
-# VeridSdkJsMono
+# Ver.iD SDK for JavaScript
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+The Ver.iD SDK for javascript which enables you to easily work with Ver.iD services.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Packages
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+### [@ver-id/browser-client](./packages/browser-client)
 
-## Finish your CI setup
+The JavaScript SDK for browser applications to perform authentication and verification flows.
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/bp1EEqQ1uj)
+**Features:**
 
+- OAuth 2.1 Authentication
+- Verification for KYC/KYB flows
+- Default PKCE support
+- Automatic token management with session/local storage caching
+- JWT token decoding and validation
 
-## Generate a library
+**Use Cases:**
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+- Implementing password-less login in web applications
+- Adding identity verification (KYC/KYB) to your platform
+- Accessing verified user credentials and attributes
+- Building decentralized identity flows
+
+### Authentication flow
+
+```ts
+import { VeridAuthenticationClient } from '@ver-id/browser-client';
+
+// Create authentication client
+const authenticationClient = new VeridAuthenticationClient({
+  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+});
+
+// Generate authentication url
+const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
+  scope: '<SCOPES_TO_REQUEST>',
+});
+
+// Redirects the user to the Ver.iD authentication flow
+window.location.href = authenticationUrl;
+
+// Finalize the flow to get the response
+const authenticationResponse = await authenticationClient.finalize();
+
+// Decode the token
+const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
 ```
 
-## Run tasks
+For comprehensive configurations and examples, see the [browser-client.](./packages/browser-client/README.md)
 
-To build the library use:
+### [@ver-id/graphql-client](./packages/graphql-client)
 
-```sh
-npx nx build pkg1
+Apollo Client-based GraphQL SDK for querying Ver.iD GraphQL APIs.
+
+**Features:**
+
+- Type-safe GraphQL queries with TypeScript
+- Built on Apollo Client v4 with caching
+- Pre-built helper functions for common queries
+- Custom query support with TypedDocumentNode
+
+**Use Cases:**
+
+- Fetching metadata about available credentials and attributes
+- Custom GraphQL queries for advanced use cases
+
+### GraphQL Operation
+
+```ts
+import { createVeridGraphQLClient, getAttribute } from '@ver-id/graphql-client';
+
+// Create GraphQL client
+const client = createVeridGraphQLClient({
+  uri: '<VERID_GRAPHQL_API_URL>',
+  getAccessToken: async () => {
+    // Return OAuth access token
+    return 'your-access-token';
+  },
+});
+
+// Query attribute metadata
+const attribute = await getAttribute(client, '<ATTRIBUTE_UUID>');
+
+console.log('Attribute:', attribute.name);
 ```
 
-To run any task with Nx use:
+For comprehensive configurations and examples, see the [graphql-client](packages/graphql-client/README.md).
 
-```sh
-npx nx <target> <project-name>
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+
+## Example Application
+
+Want to see the SDKs in action? Check out the [Vue 3 Example App](./apps/sample-app-vue) that demonstrates:
+
+- Complete OAuth authentication flow with PKCE
+- Token exchange and JWT decoding
+- GraphQL queries
+- Interactive code examples
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/ver-id/verid-sdk-js.git
+cd verid-sdk-js
+
+# Install dependencies and build
+npm install
+npm run build
+
+# Configure your Ver.iD credentials
+cd apps/sample-app-vue
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run the example app
+cd ../..
+npm run dev
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Visit `http://localhost:4200` to explore the examples.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+For detailed instructions, see [apps/sample-app-vue/README.md](./apps/sample-app-vue/README.md)
 
-## Versioning and releasing
+## Contributing
 
-To version and release the library use
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and commit message format.
 
-```
-npx nx release
-```
+## License
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+MIT
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Acknowledgments
 
-## Keep TypeScript project references up to date
+- Built with TypeScript
+- Powered by [oauth4webapi](https://github.com/panva/oauth4webapi)
+- Uses [jose](https://www.npmjs.com/package/jose) for JWT handling
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Made with ❤️ by the Ver.iD Team
