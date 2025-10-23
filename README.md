@@ -97,7 +97,7 @@ For comprehensive configurations and examples, see the [graphql-client](packages
 
 ## Example Application
 
-Want to see the SDKs in action? Check out the [Vue 3 Example App](./apps/sample-app-vue) that demonstrates:
+Want to see the SDKs in action? Check out the [Vue 3 Example App](./apps/sample-vue-app) that demonstrates:
 
 - Complete OAuth authentication flow with PKCE
 - Token exchange and JWT decoding
@@ -108,26 +108,26 @@ Want to see the SDKs in action? Check out the [Vue 3 Example App](./apps/sample-
 
 ```bash
 # Clone the repository
-git clone https://github.com/ver-id/verid-sdk-js.git
-cd verid-sdk-js
+git clone https://github.com/ver-id/verid-sdk-js-mono
+cd verid-sdk-js-mono
 
 # Install dependencies and build
 npm install
-npm run build
+npx nx run-many -t build
 
 # Configure your Ver.iD credentials
-cd apps/sample-app-vue
+cd apps/sample-vue-app
 cp .env.example .env
 # Edit .env with your credentials
 
 # Run the example app
 cd ../..
-npm run dev
+npx nx serve sample-vue-app 
 ```
 
 Visit `http://localhost:4200` to explore the examples.
 
-For detailed instructions, see [apps/sample-app-vue/README.md](./apps/sample-app-vue/README.md)
+For detailed instructions, see [apps/sample-vue-app/README.md](./apps/sample-vue-app/README.md)
 
 ## Contributing
 
