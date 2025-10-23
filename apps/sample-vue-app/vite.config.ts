@@ -9,6 +9,9 @@ export default defineConfig(() => ({
     // Use source files from workspace packages for instant HMR without rebuilds
     conditions: ['@verid-sdk-js-mono/source', 'import'],
   },
+  optimizeDeps: {
+    include: ['rxjs'],
+  },
   server: {
     port: 4200,
     host: 'localhost',
