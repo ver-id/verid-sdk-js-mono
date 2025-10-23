@@ -244,6 +244,7 @@ export class VeridAuthenticationClient {
 
     const state = callbackParams.get('state') || '';
     assertString(state, 'state', InvalidAssertionError);
+    
     const codeVerifier = this.cacheManager.get(state);
     if (!codeVerifier) {
       throw new OperationFailedError(
