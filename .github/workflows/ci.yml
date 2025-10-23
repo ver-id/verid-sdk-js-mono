@@ -128,9 +128,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      contents: write        # push tags/commits if release does so
-      packages: write        # publish to GitHub Packages
-      pull-requests: write   # optional: if your release tool opens PRs
+      contents: write
+      packages: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -152,19 +152,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Version packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Check if this is the first release (no tags exist for packages)
-          if ! git tag -l "*@ver-id/*" | grep -q .; then
-            echo "First release detected, running with --first-release"
-            npx nx release version --first-release --verbose
-          else
-            echo "Running regular release"
-            npx nx release version --verbose
-          fi
-
+      # Keep building before releasing so publish has fresh artifacts
       - name: Build affected projects
         run: |
           npx nx affected -t build \
@@ -172,24 +160,27 @@ jobs:
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
 
-      - name: Generate changelog and create GitHub releases
+      # version + changelog + publish (only affected)
+      - name: Release affected (version, changelog, publish)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get the version from the latest tag
-          LATEST_VERSION=$(git describe --tags --abbrev=0 | sed 's/.*@//')
-          echo "Latest version: $LATEST_VERSION"
-          
-          # Generate changelog and create GitHub release (skip git operations since version command already handled them)
-          npx nx release changelog "$LATEST_VERSION" --git-commit=false --git-tag=false --verbose
-
-      - name: Publish packages
-        env:
+          # GitHub Packages auth for npm publish
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # nx release publish doesn't prompt in CI when run separately
-          npx nx release publish --verbose
+          AFFECTED="$(npx nx print-affected \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --target=build \
+            --select=projects)"
+
+          if [ -z "$AFFECTED" ]; then
+            echo "No affected projects. Skipping release."
+            exit 0
+          fi
+
+          # -y -> non-interactive; --projects -> scope to affected
+          npx nx release -y --projects="$AFFECTED" --verbose
+
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:

@@ -67,14 +67,14 @@
     "projects": ["packages/*"],
     "projectsRelationship": "independent",
     "releaseTagPattern": "{projectName}@{version}",
+    "git": {
+      "commit": true,
+      "commitMessage": "chore(release): publish {version}",
+      "tag": true,
+      "push": true
+    },
     "version": {
-      "conventionalCommits": true,
-      "git": {
-        "commit": true,
-        "commitMessage": "chore(release): publish {version}",
-        "tag": true,
-        "push": true
-      }
+      "conventionalCommits": true
     },
     "changelog": {
       "automaticFromRef": true,
