@@ -60,7 +60,7 @@ const authenticationResponse = await authenticationClient.finalize();
 const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
 ```
 
-For other comprehensive configurations and examples, see the [AUTHENTICATION.md](packages/browser-client/AUTHENTICATION.md) document.
+For other comprehensive configurations and examples, see the [AUTHENTICATION.md](./AUTHENTICATION.md) document.
 
 ### Verification
 
@@ -91,7 +91,7 @@ const disclosureResponse = await disclosureClient.finalize();
 const disclosureDecodedToken = await disclosureClient.decode(disclosureResponse);
 ```
 
-For other comprehensive configurations and examples, see the [VERIFICATION.md](packages/browser-client/VERIFICATION.md) document.
+For other comprehensive configurations and examples, see the [VERIFICATION.md](./VERIFICATION.md) document.
 
 ## Examples
 

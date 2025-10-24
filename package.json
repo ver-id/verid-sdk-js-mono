@@ -52,10 +52,5 @@
     "packages/*",
     "libs/*",
     "apps/sample-vue-app"
-  ],
-  "dependencies": {
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
-    "rxjs": "^7.8.1"
-  }
+  ]
 }
