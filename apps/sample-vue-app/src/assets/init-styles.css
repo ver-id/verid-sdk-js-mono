@@ -1,0 +1,364 @@
+/* Shared authentication view styles */
+
+.auth-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.auth-container h1 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.auth-container .description {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.auth-container .section {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.auth-container h2 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.auth-container h3 {
+  color: #2c3e50;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Completed state */
+.auth-container .completed {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-container .completed p {
+  color: #155724;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Configuration form */
+.auth-container .config-form {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.auth-container .config-form h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.auth-container .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.auth-container .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.auth-container .form-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.auth-container .form-group input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.auth-container .form-group input:focus {
+  outline: none;
+  border-color: #42b983;
+  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+}
+
+.auth-container .form-group small {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* Code block with copy button */
+.auth-container .code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.auth-container .code-block-wrapper pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 1rem;
+  padding-right: 5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.auth-container .code-block-wrapper code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+/* Code example section */
+.auth-container .code-example {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-container .code-example h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.auth-container .code-example pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.auth-container .code-example code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+/* Info boxes */
+.auth-container .info {
+  background: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-container .info h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.auth-container .info pre {
+  background: white;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+.auth-container .info .note {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+/* URL display */
+.auth-container .url-display {
+  background: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-container .url-display h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.auth-container .url-display pre {
+  background: white;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+/* Token display */
+.auth-container .token-display {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-container .token-display h3 {
+  color: #155724;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.auth-container .token-display pre {
+  background: white;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  max-height: 400px;
+}
+
+/* Error display */
+.auth-container .error {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-container .error strong {
+  color: #c33;
+}
+
+.auth-container .error pre {
+  background: #fdd;
+  color: #800;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0.5rem 0 0 0;
+}
+
+.auth-container .section.error-section {
+  background: #fff5f5;
+  border: 2px solid #fc8181;
+}
+
+.auth-container .section.error-section h2 {
+  color: #c53030;
+  margin-bottom: 1rem;
+}
+
+/* Buttons */
+.auth-container button {
+  background: #42b983;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-container button:hover:not(:disabled) {
+  background: #35a372;
+}
+
+.auth-container button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.auth-container .btn-primary {
+  background: #42b983;
+}
+
+.auth-container .btn-primary:hover:not(:disabled) {
+  background: #35a372;
+}
+
+.auth-container .btn-secondary {
+  background: #6c757d;
+}
+
+.auth-container .btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.auth-container .start-over-btn {
+  background: #6c757d;
+  margin-top: 1rem;
+}
+
+.auth-container .start-over-btn:hover {
+  background: #5a6268;
+}
+
+/* Auth options form */
+.auth-container .auth-options {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.auth-container .auth-options h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* Instructions/How it works */
+.auth-container .section ol {
+  color: #666;
+  line-height: 1.8;
+  padding-left: 1.5rem;
+}
+
+.auth-container .section li {
+  margin-bottom: 0.75rem;
+}
+
+.auth-container .section li strong {
+  color: #2c3e50;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem;
+  }
+
+  .auth-container h1 {
+    font-size: 1.75rem;
+  }
+
+  .auth-container .section {
+    padding: 1rem;
+  }
+}

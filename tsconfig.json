@@ -17,6 +17,9 @@
     },
     {
       "path": "./packages/node-client"
+    },
+    {
+      "path": "./apps/sample-node-server"
     }
   ]
 }

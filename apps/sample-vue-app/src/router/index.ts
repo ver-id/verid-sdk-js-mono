@@ -12,22 +12,52 @@ const router = createRouter({
     {
       path: '/authentication',
       name: 'authentication',
-      component: () => import('../views/authentication/AuthenticationView.vue'),
+      component: () => import('../views/authentication/AuthenticationSelectionView.vue'),
     },
     {
-      path: '/authentication/callback',
-      name: 'authentication-callback',
-      component: () => import('../views/authentication/CallbackView.vue'),
+      path: '/authentication/browser',
+      name: 'authentication-browser',
+      component: () => import('../views/authentication/browser/BrowserAuthenticationView.vue'),
+    },
+    {
+      path: '/authentication/browser/callback',
+      name: 'authentication-browser-callback',
+      component: () => import('../views/authentication/browser/BrowserCallbackView.vue'),
+    },
+    {
+      path: '/authentication/node',
+      name: 'authentication-node',
+      component: () => import('../views/authentication/server/NodeAuthenticationView.vue'),
+    },
+    {
+      path: '/authentication/node/callback',
+      name: 'authentication-node-callback',
+      component: () => import('../views/authentication/server/NodeCallbackView.vue'),
     },
     {
       path: '/disclosure',
       name: 'disclosure',
-      component: () => import('../views/disclosure/DisclosureView.vue'),
+      component: () => import('../views/disclosure/DisclosureSelectionView.vue'),
     },
     {
-      path: '/disclosure/callback',
-      name: 'disclosure-callback',
-      component: () => import('../views/disclosure/CallbackView.vue'),
+      path: '/disclosure/browser',
+      name: 'disclosure-browser',
+      component: () => import('../views/disclosure/browser/BrowserDisclosureView.vue'),
+    },
+    {
+      path: '/disclosure/browser/callback',
+      name: 'disclosure-browser-callback',
+      component: () => import('../views/disclosure/browser/BrowserCallbackView.vue'),
+    },
+    {
+      path: '/disclosure/node',
+      name: 'disclosure-node',
+      component: () => import('../views/disclosure/server/NodeDisclosureView.vue'),
+    },
+    {
+      path: '/disclosure/node/callback',
+      name: 'disclosure-node-callback',
+      component: () => import('../views/disclosure/server/NodeCallbackView.vue'),
     },
     {
       path: '/graphql',

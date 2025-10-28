@@ -1,0 +1,111 @@
+/* Shared callback view styles */
+
+.callback-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.callback-container h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.callback-container p {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* Loading state */
+.loading {
+  padding: 3rem;
+}
+
+.loading h2 {
+  color: #2c3e50;
+}
+
+.loading p {
+  color: #666;
+}
+
+.spinner {
+  margin: 2rem auto;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #42b983;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success state */
+.success-container {
+  padding: 3rem;
+}
+
+.success-container h2 {
+  color: #42b983;
+}
+
+.success-container p {
+  color: #666;
+}
+
+/* Error state */
+.error-container {
+  padding: 3rem;
+}
+
+.error-container h2 {
+  color: #e74c3c;
+}
+
+.error-message {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #fee;
+  border-radius: 8px;
+  border: 1px solid #fcc;
+  word-break: break-word;
+}
+
+.error-container button {
+  background-color: #42b983;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.error-container button:hover {
+  background-color: #35a372;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .callback-container {
+    padding: 2rem 1rem;
+  }
+
+  .callback-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .callback-container p {
+    font-size: 1rem;
+  }
+}

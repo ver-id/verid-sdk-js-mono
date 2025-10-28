@@ -146,9 +146,9 @@ class="start-over-btn" @click="goBack">🔄 Start Over</button>
 </template>
 
 <script setup lang="ts">
-import CopyButton from '../../components/CopyButton.vue';
-import { useAuthenticationCallback } from '../../composables/useAuthenticationCallback';
-import '../../assets/styles.css';
+import CopyButton from '../../../components/CopyButton.vue';
+import { useAuthenticationCallback } from '../../../composables/useAuthenticationCallback';
+import '../../../assets/styles.css';
 
 // Use the authentication callback composable - all business logic is in a separate file
 const {

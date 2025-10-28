@@ -1,9 +1,8 @@
 <template>
-  <div class="container">
-    <h1>Disclosure Examples</h1>
+  <div class="auth-container">
+    <h1>Browser Disclosure</h1>
     <p class="description">
-      This page demonstrates how to use the @ver-id/browser-client SDK for OpenID Connect
-      disclosure.
+      This page demonstrates how to use the @ver-id/browser-client SDK for OpenID Connect disclosure.
     </p>
 
     <div class="section">
@@ -12,7 +11,7 @@
       <div v-if="clientInitialized" class="completed">
         <p>✓ Client has been initialized</p>
       </div>
-
+      
       <!-- Configuration Form -->
       <div v-if="showConfigForm" class="config-form">
         <h3>Client Configuration</h3>
@@ -62,54 +61,54 @@
     <div v-if="clientInitialized" class="section">
       <h2>2. Generate Disclosure URL</h2>
 
-      <div v-if="authUrl" class="completed">
+      <div v-if="disclosureUrl" class="completed">
         <p>✓ Disclosure URL has been generated successfully</p>
       </div>
-      <p v-else>
-        Generate the disclosure URL with PKCE challenge.
-      </p>
 
+      <!-- Code example - always visible to show configuration -->
       <div class="code-block-wrapper">
-        <CopyButton :content="getGenerateAuthUrlCode()" />
-        <pre><code>{{ getGenerateAuthUrlCode() }}</code></pre>
+        <CopyButton :content="getGenerateDisclosureUrlCode" />
+        <pre><code>{{ getGenerateDisclosureUrlCode }}</code></pre>
       </div>
 
-      <button v-if="!authUrl" :disabled="loading" @click="generateAuthUrl">
-        Generate Auth URL
+      <button v-if="!disclosureUrl" type="button" :disabled="loading" @click="generateDisclosureUrl">
+        {{ loading ? 'Generating...' : 'Generate Auth URL' }}
       </button>
 
-      <div v-if="authUrl" class="info">
+      <div v-if="disclosureUrl"
+class="info">
         <h3>Generated Auth URL:</h3>
         <div class="code-block-wrapper">
-          <CopyButton :content="authUrl" />
-          <pre>{{ authUrl }}</pre>
+          <CopyButton :content="disclosureUrl" />
+          <pre>{{ disclosureUrl }}</pre>
         </div>
         <p class="note">
           This URL contains the PKCE code challenge and state parameter. Click below to redirect to
           the authorization server.
         </p>
-        <button @click="redirectToAuthServer">
-          Redirect to Authorization Server →
-        </button>
+        <button @click="redirectToDisclosureServer">Redirect to Authorization Server →</button>
       </div>
     </div>
 
-    <div v-if="error" class="section error-section">
+    <div v-if="error"
+class="section error-section">
       <h2>❌ Disclosure Error</h2>
       <div class="error">
         <pre>{{ error }}</pre>
       </div>
-      <button class="start-over-btn" @click="startOver">
-        Try Again
-      </button>
+      <button
+class="start-over-btn" @click="startOver">Try Again</button>
     </div>
 
     <div class="section">
       <h2>How it Works</h2>
       <ol>
-        <li><strong>Initialize:</strong> Create a VeridDisclosureClient with your configuration</li>
         <li>
-          <strong>Authenticate:</strong> Generate an disclosure URL with PKCE and redirect the user
+          <strong>Initialize:</strong> Create a VeridDisclosureClient with your configuration
+        </li>
+        <li>
+          <strong>Authenticate:</strong> Generate an disclosure URL with PKCE and redirect the
+          user
         </li>
         <li><strong>Callback:</strong> Handle the redirect back from the authorization server</li>
         <li><strong>Finalize:</strong> Exchange the authorization code for tokens</li>
@@ -118,21 +117,21 @@
     </div>
 
     <!-- Always visible Start Over button -->
-    <div v-if="clientInitialized || authUrl" class="section" style="text-align: center">
-      <button class="start-over-btn" @click="startOver">
-        🔄 Start Over
-      </button>
+    <div v-if="clientInitialized || disclosureUrl"
+class="section" style="text-align: center">
+      <button
+class="start-over-btn" @click="startOver">🔄 Start Over</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useDisclosure } from '../../composables/useDisclosure.js';
-import CopyButton from '../../components/CopyButton.vue';
-import '../../assets/styles.css';
+import CopyButton from '../../../components/CopyButton.vue';
+import { useDisclosure } from '../../../composables/useDisclosure';
+import '../../../assets/init-styles.css';
 
-// Use the disclosure composable
+// Use the disclosure composable - all business logic is in a separate file
 const {
   showConfigForm,
   clientInitialized,
@@ -146,12 +145,7 @@ const {
   startOver,
 } = useDisclosure();
 
-// Alias for template compatibility
-const authUrl = disclosureUrl;
-const generateAuthUrl = generateDisclosureUrl;
-const redirectToAuthServer = redirectToDisclosureServer;
-
-// Generate code examples dynamically - reactively reflects clientConfig changes
+// Code generation functions for UI display only - computed for reactive updates
 const getInitCode = computed(() => {
   const configEntries = Object.entries(clientConfig)
     .map(([key, value]) => `  ${key}: '${value}'`)
@@ -164,12 +158,9 @@ ${configEntries}
 });`;
 });
 
-const getGenerateAuthUrlCode = () => {
+const getGenerateDisclosureUrlCode = computed(() => {
   return `// Generate disclosure URL with PKCE
-const { disclosureUrl } = 
-  await disclosureClient.generateDisclosureUrl();
-
-// Redirect to disclosure server
-window.location.href = disclosureUrl;`;
-};
+const { disclosureUrl, state } = 
+  await disclosureClient.generateDisclosureUrl();`;
+});
 </script>

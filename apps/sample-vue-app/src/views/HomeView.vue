@@ -5,9 +5,9 @@ import '../assets/styles.css';
 <template>
   <main class="container">
     <div class="hero">
-      <h1>Ver-ID SDK Examples</h1>
+      <h1>Ver.iD SDK Examples</h1>
       <p class="subtitle">
-        Interactive examples demonstrating how to use the Ver-ID JavaScript SDKs
+        Interactive examples demonstrating how to use the Ver.iD JavaScript SDKs
       </p>
     </div>
 

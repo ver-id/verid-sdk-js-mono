@@ -1,9 +1,8 @@
 <template>
-  <div class="container">
-    <h1>Authentication Examples</h1>
+  <div class="auth-container">
+    <h1>Browser Authentication</h1>
     <p class="description">
-      This page demonstrates how to use the @ver-id/browser-client SDK for OpenID Connect
-      authentication.
+      This page demonstrates how to use the @ver-id/browser-client SDK for OpenID Connect authentication.
     </p>
 
     <div class="section">
@@ -78,9 +77,9 @@
             id="scope"
             v-model="authOptions.scope"
             type="text"
-            placeholder="openid profile email"
+            placeholder="profile"
           >
-          <small style="color: #666;">Space-separated list of scopes (e.g., "openid profile email")</small>
+          <small style="color: #666;">Space-separated list of scopes (e.g., "profile email etc.")</small>
         </div>
       </div>
 
@@ -146,9 +145,9 @@ class="start-over-btn" @click="startOver">🔄 Start Over</button>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import CopyButton from '../../components/CopyButton.vue';
-import { useAuthentication } from '../../composables/useAuthentication';
-import '../../assets/styles.css';
+import CopyButton from '../../../components/CopyButton.vue';
+import { useAuthentication } from '../../../composables/useAuthentication';
+import '../../../assets/init-styles.css';
 
 // Use the authentication composable - all business logic is in a separate file
 const {

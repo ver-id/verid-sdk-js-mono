@@ -255,6 +255,7 @@ export class VeridOAuthClient {
     const authorizationServer = await this.provider.discover(this.issuer);
     const clientConfig: ClientConfig = {
       client_id: this.client_id,
+      id_token_signed_response_alg: 'ES384',
     };
 
     const callbackParams = this.provider.validateAuthResponse(
@@ -275,7 +276,8 @@ export class VeridOAuthClient {
 
     const result = await this.provider.processAuthorizationCodeResponse(
       authorizationServer,
-      clientConfig,
+      {
+        ...clientConfig,},
       authorizationCodeGrantResponse,
     );
 

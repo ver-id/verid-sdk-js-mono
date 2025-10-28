@@ -722,90 +722,70 @@ const getProviderCode = `import { getProvider } from '@ver-id/graphql-client';
 const provider = await getProvider(
   graphqlClient,
   'provider-uuid-here'
-);
-
-console.log(provider);`;
+);`;
 
 const getProvidersCode = `import { getProviders } from '@ver-id/graphql-client';
 
 const providers = await getProviders(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(providers);`;
+);`;
 
 const getSchemeCode = `import { getScheme } from '@ver-id/graphql-client';
 
 const scheme = await getScheme(
   graphqlClient,
   'scheme-uuid-here'
-);
-
-console.log(scheme);`;
+);`;
 
 const getSchemesCode = `import { getSchemes } from '@ver-id/graphql-client';
 
 const schemes = await getSchemes(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(schemes);`;
+);`;
 
 const getIssuerCode = `import { getIssuer } from '@ver-id/graphql-client';
 
 const issuer = await getIssuer(
   graphqlClient,
   'issuer-uuid-here'
-);
-
-console.log(issuer);`;
+);`;
 
 const getIssuersCode = `import { getIssuers } from '@ver-id/graphql-client';
 
 const issuers = await getIssuers(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(issuers);`;
+);`;
 
 const getCredentialCode = `import { getCredential } from '@ver-id/graphql-client';
 
 const credential = await getCredential(
   graphqlClient,
   'credential-uuid-here'
-);
-
-console.log(credential);`;
+);`;
 
 const getCredentialsCode = `import { getCredentials } from '@ver-id/graphql-client';
 
 const credentials = await getCredentials(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(credentials);`;
+);`;
 
 const getAttributeCode = `import { getAttribute } from '@ver-id/graphql-client';
 
 const attribute = await getAttribute(
   graphqlClient,
   'attribute-uuid-here'
-);
-
-console.log(attribute);`;
+);`;
 
 const getAttributesCode = `import { getAttributes } from '@ver-id/graphql-client';
 
 const attributes = await getAttributes(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(attributes);`;
+);`;
 
 const getAttributesWithHierarchyCode = `import { getAttributesWithHierarchy } from '@ver-id/graphql-client';
 
@@ -814,7 +794,5 @@ const getAttributesWithHierarchyCode = `import { getAttributesWithHierarchy } fr
 const attributesDeep = await getAttributesWithHierarchy(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);
-
-console.log(attributesDeep);`;
+);`
 </script>

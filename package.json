@@ -6,10 +6,12 @@
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
+    "@nx/esbuild": "22.0.1",
     "@nx/eslint": "21.6.5",
     "@nx/eslint-plugin": "21.6.5",
     "@nx/jest": "21.6.5",
     "@nx/js": "22.0.1",
+    "@nx/node": "^22.0.1",
     "@nx/vite": "22.0.1",
     "@nx/vue": "^22.0.1",
     "@nx/web": "22.0.1",
@@ -17,6 +19,7 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@swc/jest": "~0.2.38",
+    "@types/express": "^4.17.21",
     "@types/jest": "^30.0.0",
     "@types/node": "20.19.9",
     "@typescript-eslint/parser": "^8.40.0",
@@ -51,6 +54,15 @@
   "workspaces": [
     "packages/*",
     "libs/*",
-    "apps/sample-vue-app"
-  ]
+    "apps/sample-vue-app",
+    "apps/*"
+  ],
+  "dependencies": {
+    "rxjs": "^7.8.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "express": "^4.21.2",
+    "@types/cors": "^2.8.19",
+    "cors": "^2.8.5"
+  }
 }

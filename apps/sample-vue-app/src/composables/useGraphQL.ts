@@ -169,14 +169,10 @@ export function useGraphQL() {
     error.value = null;
     errorSource.value = null;
     providerResult.value = null;
-
-    console.log('Fetching provider with UUID:', providerUuid.value);
-
     try {
       const result = await getProvider(graphqlClient, providerUuid.value);
       providerResult.value = result;
     } catch (err) {
-      console.log('Error fetching provider with UUID:', providerUuid.value);
       handleError(err);
       errorSource.value = 'getProvider';
     } finally {

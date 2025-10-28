@@ -146,40 +146,29 @@ class="start-over-btn" @click="goBack">🔄 Start Over</button>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { assertAttestedJwtPayload, VeridDisclosureClient } from '@ver-id/browser-client';
-import CopyButton from '../../components/CopyButton.vue';
-import '../../assets/styles.css';
+import CopyButton from '../../../components/CopyButton.vue';
+import { useDisclosureCallback } from '../../../composables/useDisclosureCallback';
+import '../../../assets/styles.css';
 
-const router = useRouter();
-const route = useRoute();
+// Use the disclosure callback composable - all business logic is in a separate file
+const {
+  finalizing,
+  decoding,
+  error,
+  currentUrl,
+  urlParams,
+  disclosureResponse,
+  tokenResponse,
+  decodedJwt,
+  jwtHeader,
+  jwtPayload,
+  CLIENT_CONFIG,
+  finalize,
+  decode,
+  startOver: goBack,
+} = useDisclosureCallback();
 
-const error = ref<string | null>(null);
-const finalizing = ref(false);
-const decoding = ref(false);
-
-// Data to display
-const currentUrl = ref('');
-const urlParams = ref('');
-const disclosureResponse = ref<any>(null);
-const tokenResponse = ref('');
-const decodedJwt = ref<any>(null);
-const jwtHeader = ref('');
-const jwtPayload = ref('');
-
-// Store the auth client and response
-let disclosureClient: VeridDisclosureClient;
-let rawAuthResponse: any;
-
-// Shared configuration - single source of truth
-const CLIENT_CONFIG = {
-  apiUrl: import.meta.env.VITE_VERID_DISCLOSURE_API_URL,
-  disclosureFlowId: import.meta.env.VITE_VERID_DISCLOSURE_FLOW_ID,
-  redirectUri: import.meta.env.VITE_VERID_DISCLOSURE_REDIRECT_URI,
-};
-
-// Generate code examples dynamically
+// Code generation functions for UI display only
 const getFinalizeCode = () => {
   const configEntries = Object.entries(CLIENT_CONFIG)
     .map(([key, value]) => `  ${key}: '${value}'`)
@@ -196,83 +185,10 @@ const response = await disclosureClient.finalize();`;
 
 const getDecodeCode = () => {
   return `// Decode and verify the ID token
-const jwt = await disclosureClient.decode(response, assertAttestedJwtPayload);
-Note: assertAttestedJwtPayload can be used for the flow who are configured to return an attested JWT.
+const jwt = await disclosureClient.decode(response);
 
 // JWT contains:
 // - header: Algorithm, token type
-// - payload: Disclosed attributes`;
+// - payload: User claims (sub, iss, exp, etc.)`;
 };
-
-onMounted(() => {
-  try {
-    // Display the callback URL and parameters
-    currentUrl.value = window.location.href;
-
-    const params: Record<string, string> = {};
-    if (route.query) {
-      Object.entries(route.query).forEach(([key, value]) => {
-        params[key] = String(value);
-      });
-    }
-    urlParams.value = JSON.stringify(params, null, 2);
-
-    // Initialize the auth client
-    disclosureClient = new VeridDisclosureClient(CLIENT_CONFIG);
-  } catch (err) {
-    handleError(err);
-  }
-});
-
-// Step 2: Finalize - Exchange authorization code for tokens
-async function finalize() {
-  finalizing.value = true;
-  try {
-    rawAuthResponse = await disclosureClient.finalize();
-
-    // Store for later use in decode
-    disclosureResponse.value = rawAuthResponse;
-    tokenResponse.value = JSON.stringify(rawAuthResponse, null, 2);
-  } catch (err) {
-    handleError(err);
-  } finally {
-    finalizing.value = false;
-  }
-}
-
-// Step 3: Decode - Decode and verify the ID token
-async function decode() {
-  decoding.value = true;
-  try {
-    const jwt = await disclosureClient.decode(rawAuthResponse, assertAttestedJwtPayload);
-
-    decodedJwt.value = jwt;
-    // Note: jwt object from Ver.iD SDK may not have header exposed
-    // If header is available, display it, otherwise show a note
-    jwtHeader.value = JSON.stringify(jwt.protectedHeader, null, 2);
-    jwtPayload.value = JSON.stringify(jwt.payload, null, 2);
-  } catch (err) {
-    handleError(err);
-  } finally {
-    decoding.value = false;
-  }
-}
-
-function handleError(err: unknown) {
-  console.error('Disclosure error:', err);
-
-  // Serialize the full error object with all details
-  const errorDetails = {
-    message: err instanceof Error ? err.message : String(err),
-    stack: err instanceof Error ? err.stack : undefined,
-    ...(err && typeof err === 'object' ? err : {}),
-  };
-
-  error.value = JSON.stringify(errorDetails, null, 2);
-}
-
-function goBack() {
-  // Simply navigate back to disclosure page
-  router.push('/disclosure');
-}
 </script>

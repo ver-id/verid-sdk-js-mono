@@ -58,7 +58,6 @@ import { getAttribute, getAttributes, getAttributesWithHierarchy } from '@ver-id
 
 // Fetch a single attribute
 const attribute = await getAttribute(client, 'attribute-uuid');
-console.log(attribute.name); // Type-safe!
 
 // Fetch multiple attributes
 const attributes = await getAttributes(client, ['uuid1', 'uuid2']);

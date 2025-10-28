@@ -84,8 +84,6 @@ const client = createVeridGraphQLClient({
 
 // Query attribute metadata
 const attribute = await getAttribute(client, '<ATTRIBUTE_UUID>');
-
-console.log('Attribute:', attribute.name);
 ```
 
 For comprehensive configurations and examples, see the [graphql-client](packages/graphql-client/README.md).
