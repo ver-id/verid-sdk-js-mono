@@ -43,6 +43,7 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
 // Redirects the user to the Ver.iD authentication flow
 window.location.href = authenticationUrl;
 
+// User authenticates and is redirected back to your callback URL
 // Finalize the flow to get the response
 const authenticationResponse = await authenticationClient.finalize();
 
@@ -88,7 +89,7 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
   scope: '<SCOPES_TO_REQUEST>',
 });
 
-// Redirect the user to the Ver.iD authentication flow
+// Redirect the user to the Ver.iD authentication flow. It can be done via browser or backend based on your system architecture.
 // User authenticates and is redirected back to your callback URL
 
 // In your callback handler, finalize the flow to get the response
