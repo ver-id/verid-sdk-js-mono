@@ -113,19 +113,29 @@ cd verid-sdk-js-mono
 npm install
 npx nx run-many -t build
 
-# Configure your Ver.iD credentials
+# Configure your Ver.iD credentials for the Vue app
 cd apps/sample-vue-app
+cp .env.example .env
+# Edit .env with your credentials
+
+# Configure your Ver.iD credentials for the Node server (required for Node.js flow)
+cd ../sample-node-server
 cp .env.example .env
 # Edit .env with your credentials
 
 # Run the example app
 cd ../..
 npx nx serve sample-vue-app 
+
+# In a separate terminal, run the Node.js backend server (required for Node.js flow)
+npx nx serve sample-node-server
 ```
 
 Visit `http://localhost:4200` to explore the examples.
 
-For detailed instructions, see [apps/sample-vue-app/README.md](./apps/sample-vue-app/README.md)
+**Note:** The Node.js flow requires both the Vue app and the Node server to be running:
+- Vue app: `http://localhost:4200` (frontend)
+- Node server: `http://localhost:3000` (backend API for server-side OAuth flow)
 
 ## Contributing
 
