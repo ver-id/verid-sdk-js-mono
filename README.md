@@ -52,6 +52,57 @@ const authenticationDecodedToken = await authenticationClient.decode(authenticat
 
 For comprehensive configurations and examples, see the [browser-client.](./packages/browser-client/README.md)
 
+### [@ver-id/node-client](./packages/node-client)
+
+The JavaScript SDK for Node.js server applications to perform authentication and verification flows.
+
+**Features:**
+
+- OAuth 2.1 Authentication (Server-side)
+- Verification for KYC/KYB flows
+- Default PKCE support
+- JWT token decoding and validation
+- Secure server-side token handling
+
+**Use Cases:**
+
+- Implementing password-less login with server-side OAuth flow
+- Adding identity verification (KYC/KYB) to your platform
+- Accessing verified user credentials and attributes
+- Building secure backend authentication services
+
+### Authentication flow
+
+```ts
+import { VeridAuthenticationClient } from '@ver-id/node-client';
+
+// Create authentication client
+const authenticationClient = new VeridAuthenticationClient({
+  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+});
+
+// Generate authentication url
+const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
+  scope: '<SCOPES_TO_REQUEST>',
+});
+
+// Redirect the user to the Ver.iD authentication flow
+// User authenticates and is redirected back to your callback URL
+
+// In your callback handler, finalize the flow to get the response
+const authenticationResponse = await authenticationClient.finalize({
+  clientAuth: { client_secret: 'YOUR_CLIENT_SECRET' },
+  callbackParams: callbackUrl.searchParams,
+});
+
+// Decode the token
+const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+```
+
+For comprehensive configurations and examples, see the [node-client.](./packages/node-client/README.md)
+
 ### [@ver-id/graphql-client](./packages/graphql-client)
 
 Apollo Client-based GraphQL SDK for querying Ver.iD GraphQL APIs.
