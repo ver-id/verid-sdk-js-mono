@@ -175,7 +175,7 @@ let rawAuthResponse: any;
 
 // Shared configuration - single source of truth
 const CLIENT_CONFIG = {
-  apiUrl: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL,
+  issuerUri: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL,
   authenticationFlowId: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID,
   redirectUri: import.meta.env.VITE_VERID_AUTHENTICATION_REDIRECT_URI,
 };

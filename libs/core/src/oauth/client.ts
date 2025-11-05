@@ -8,10 +8,11 @@ import {
   assertUrlString,
   assertUUID,
 } from '../utils/assert.js';
-import { InvalidArgumentError, OperationFailedError } from '../error/index.js';
+import { InvalidArgumentError, InvalidAssertionError, OperationFailedError } from '../error/index.js';
 import { OAuth4WebApiProvider } from './provider/index.js';
 import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
+import { BaseIntent } from '../types/intent/base.js';
 
 /**
  * Configuration options for the OAuth client.
@@ -132,6 +133,13 @@ export class VeridOAuthClient {
   }
 
   /**
+   * Getter for the client ID.
+   */
+  clientId() {
+    return this.client_id;
+  }
+
+  /**
    * Generates a PKCE code verifier and code challenge for secure authorization.
    *
    * @returns Object containing the code verifier and code challenge
@@ -148,6 +156,48 @@ export class VeridOAuthClient {
       codeVerifier,
       codeChallenge,
     };
+  }
+
+  /**
+   * Creates a new intent.
+   * @param intent The intent of type BaseIntent.
+   * @returns The ID of the created intent.
+   * @example
+   * ```typescript
+   * const intentId = await client.createIntent({
+   *   type: 'authentication',
+   *   codeChallenge: '<code_challenge>',
+   *   clientId: '<client_id>'
+   *   brandUuid: '<brand_uuid>',
+   *   requireExplicitConsent: true
+   * });
+   * ```
+   */
+  async createIntent(intent: BaseIntent): Promise<string> {
+    const authorizationServer = await this.provider.discover(this.issuer);
+    assertUrlString(
+      authorizationServer.intent_endpoint,
+      'intent_endpoint in authorization server metadata',
+      InvalidAssertionError
+    );
+    const url = new URL(authorizationServer.intent_endpoint);
+
+    try {
+    // Call intent endpoint
+    const intentResponse = await fetch(`${url}`, {
+      method: 'POST',
+      body: JSON.stringify(intent),
+    });
+
+    if (!intentResponse.ok) {
+      throw new OperationFailedError(`Error occurred while calling intent endpoint: ${intentResponse.status}`, await intentResponse.text());
+    }
+
+    const intentData = await intentResponse.json() as { intent_id: string };
+    return intentData.intent_id;
+  } catch (error) {
+    throw new OperationFailedError('Unknown error occurred while creating intent', error);
+  }
   }
 
   /**
@@ -182,7 +232,13 @@ export class VeridOAuthClient {
     additionalParams?: Record<string, string>,
   ) {
     const authorizationServer = await this.provider.discover(this.issuer);
-    const url = new URL(authorizationServer.authorization_endpoint || '');
+    assertUrlString(
+      authorizationServer.authorization_endpoint,
+      'authorization_endpoint in authorization server metadata',
+      InvalidAssertionError
+    );
+
+    const url = new URL(authorizationServer.authorization_endpoint);
 
     if (params.redirect_uri) {
       assertUrlString(params.redirect_uri, 'redirect_uri', InvalidArgumentError);

@@ -7,7 +7,7 @@ export function generateInitCodeSnippet(config: DisclosureClientConfig): string 
   return `import { VeridDisclosureClient } from '@ver-id/node-client';
 
 const authClient = new VeridDisclosureClient({
-  apiUrl: '${config.apiUrl}',
+  issuerUri: '${config.issuerUri}',
   disclosureFlowId: '${config.disclosureFlowId}',
   redirectUri: '${config.redirectUri}',
 });`;

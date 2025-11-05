@@ -8,7 +8,7 @@ Execute a verification flow to use decentralized identity apps to collect variou
 import { VeridDisclosureClient } from '@ver-id/node-client';
 
 const disclosureClient = new VeridDisclosureClient({
-  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   disclosureFlowId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
@@ -24,7 +24,7 @@ To use the default file storage, no additional options are required. To configur
 import { VeridDisclosureClient, FileStorageCacheManager } from '@ver-id/node-client';
 
 const disclosureClient = new VeridDisclosureClient({
-  apiUrl: '<VERID_OAUTH_API_URL>',
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   disclosureFlowId: '<VERID_DISCLOSURE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
@@ -76,7 +76,7 @@ const CustomMemoryCache = {
 }
 
 const disclosureClient = new VeridDisclosureClient({
-  apiUrl: '<VERID_OAUTH_API_URL>',
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   disclosureFlowId: '<VERID_DISCLOSURE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {

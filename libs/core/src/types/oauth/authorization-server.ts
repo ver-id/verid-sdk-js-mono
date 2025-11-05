@@ -70,6 +70,11 @@ export interface AuthorizationServer {
   readonly token_endpoint_auth_methods_supported?: string[];
 
   /**
+   * URL of the authorization server's intent endpoint.
+   */
+  readonly intent_endpoint?: string;
+
+  /**
    * Additional metadata about the authorization server.
    */
   readonly [metadata: string]: JSONValue | undefined;

@@ -24,10 +24,10 @@
       >
         <h3>Client Configuration</h3>
         <div class="form-group">
-          <label for="apiUrl">API URL:</label>
+          <label for="issuerUri">API URL:</label>
           <input
-            id="apiUrl"
-            v-model="clientConfig.apiUrl"
+            id="issuerUri"
+            v-model="clientConfig.issuerUri"
             type="text"
             placeholder="https://api.ver.id"
           >
@@ -203,7 +203,7 @@ const disclosureUrl = ref('');
 const error = ref('');
 
 const clientConfig = ref({
-  apiUrl: '',
+  issuerUri: '',
   disclosureFlowId: '',
   redirectUri: '',
 });
@@ -292,7 +292,7 @@ const resetClient = () => {
   
   // Reset config to defaults
   clientConfig.value = {
-    apiUrl: '',
+    issuerUri: '',
     disclosureFlowId: '',
     redirectUri: '',
   };

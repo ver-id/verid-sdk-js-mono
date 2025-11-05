@@ -37,9 +37,9 @@ export interface DisclosureClientConfigOptions {
  */
 export interface DisclosureClientConfig {
   /**
-   * Ver.iD API URL
+   * Ver.iD OAuth Issuer URI
    */
-  apiUrl: string;
+  issuerUri: string;
   /**
    * The Disclosure flow identifier
    */
@@ -107,11 +107,11 @@ export class VeridDisclosureClient {
    */
   private cacheManager: ICacheManager;
   constructor(config: DisclosureClientConfig) {
-    assertUrlString(config.apiUrl, 'apiUrl');
+    assertUrlString(config.issuerUri, 'issuerUri');
 
     this.oauthClient = new VeridOAuthClient({
       client_id: config.disclosureFlowId,
-      issuer: config.apiUrl,
+      issuer: config.issuerUri,
     });
 
     assertUrlString(config.redirectUri, 'redirectUri');

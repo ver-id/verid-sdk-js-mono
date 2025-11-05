@@ -16,10 +16,10 @@
       <div v-if="showConfigForm" class="config-form">
         <h3>Client Configuration</h3>
         <div class="form-group">
-          <label for="apiUrl">API URL:</label>
+          <label for="issuerUri">API URL:</label>
           <input
-            id="apiUrl"
-            v-model="clientConfig.apiUrl"
+            id="issuerUri"
+            v-model="clientConfig.issuerUri"
             type="text"
             placeholder="https://api.ver.id"
           >

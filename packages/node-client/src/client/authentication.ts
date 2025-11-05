@@ -32,9 +32,9 @@ export interface AuthenticationClientConfigOptions {
  */
 export interface AuthenticationClientConfig {
   /**
-   * Ver.iD API URL
+   * Ver.iD OAuth Issuer URI
    */
-  apiUrl: string;
+  issuerUri: string;
   /**
    * The Authentication flow identifier
    */
@@ -107,11 +107,11 @@ export class VeridAuthenticationClient {
    */
   private cacheManager: ICacheManager;
   constructor(config: AuthenticationClientConfig) {
-    assertUrlString(config.apiUrl, 'apiUrl');
+    assertUrlString(config.issuerUri, 'issuerUri');
 
     this.oauthClient = new VeridOAuthClient({
       client_id: config.authenticationFlowId,
-      issuer: config.apiUrl,
+      issuer: config.issuerUri,
     });
 
     assertUrlString(config.redirectUri, 'redirectUri');

@@ -8,7 +8,7 @@ Execute an authentication flow to use decentralized identity apps for shifting f
 import { VeridAuthenticationClient } from '@ver-id/browser-client';
 
 const authenticationClient = new VeridAuthenticationClient({
-  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
@@ -25,7 +25,7 @@ import { VeridAuthenticationClient } from '@ver-id/browser-client';
 import { LocalStorageCacheManager } from '@ver-id/browser-client';
 
 const authenticationClient = new VeridAuthenticationClient({
-  apiUrl: '<VERID_OAUTH_API_URL>',
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
@@ -76,7 +76,7 @@ const CustomSessionStorageCache = {
 }
 
 const authenticationClient = new VeridAuthenticationClient({
-  apiUrl: '<VERID_OAUTH_API_URL>',
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {

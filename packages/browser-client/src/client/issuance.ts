@@ -1,10 +1,10 @@
 import {
   ICacheManager,
   Jwt,
-  assertDisclosureResponse,
+  assertIssuanceResponse,
   assertUrlString,
   InvalidResponseError,
-  DisclosureResponse,
+  IssuanceResponse,
   ClientAuth,
   VeridOAuthClient,
   assertCacheManager,
@@ -13,63 +13,74 @@ import {
   InvalidAssertionError,
   OperationFailedError,
   JWTPayload,
-  VerificationIntent,
+  IssuanceIntent,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 /**
- * Default OAuth scope for disclosure requests.
+ * Default OAuth scope for issuance requests.
  * @constant
  */
-const DISCLOSURE_SCOPE = 'disclosure';
+const ISSUANCE_SCOPE = 'issuance';
 
 /**
- * Payload for creating an disclosure intent.
+ * Payload for creating an issuance intent.
  */
-export interface DisclosureIntentPayload {
+export interface IssuanceIntentPayload {
+  payload: {
+    mapping: Record<string, unknown>;
+    data: {
+      attributeUuid: string;
+      credentialUuid: string;
+      issuerUuid: string;
+      schemeUuid: string;
+      providerUuid: string;
+      value: unknown;
+    };
+  };
   challenge?: string;
   brandUuid?: string;
   requireExplicitConsent?: boolean;
 }
 
 /**
- * Optional configuration settings for the Disclosure client.
+ * Optional configuration settings for the Issuance client.
  */
-export interface DisclosureClientConfigOptions {
+export interface IssuanceClientConfigOptions {
   /**
-   * Custom cache manager for storing disclosure state and code verifiers.
+   * Custom cache manager for storing issuance state and code verifiers.
    * Defaults to SessionStorageCacheManager if not provided.
    */
   cacheManager?: ICacheManager;
 }
 
 /**
- * Configuration options for the Disclosure client.
+ * Configuration options for the Issuance client.
  */
-export interface DisclosureClientConfig {
+export interface IssuanceClientConfig {
   /**
    * Ver.iD OAuth Issuer URI
    */
   issuerUri: string;
   /**
-   * The Disclosure flow identifier
+   * The Issuance flow identifier
    */
-  disclosureFlowId: string;
+  issuanceFlowId: string;
   /**
-   * The registered redirect URI for the Disclosure flow.
+   * The registered redirect URI for the Issuance flow.
    */
   redirectUri: string;
 
   /**
    * Options
    */
-  options?: DisclosureClientConfigOptions;
+  options?: IssuanceClientConfigOptions;
 }
 
 /**
- * Parameters for Disclosure flow request.
+ * Parameters for Issuance flow request.
  */
-export interface DisclosureRequestParams {
+export interface IssuanceRequestParams {
   /**
    * The state for the oauth flow, if external state must be used
    */
@@ -85,11 +96,11 @@ export interface DisclosureRequestParams {
 }
 
 /**
- * Parameters to Disclosure finalize.
+ * Parameters to Issuance finalize.
  */
-export interface DisclosureFinalizeParams {
+export interface IssuanceFinalizeParams {
   /**
-   * The client disclosure details to use for the token request.
+   * The client issuance details to use for the token request.
    */
   clientAuth?: ClientAuth;
   /**
@@ -100,11 +111,11 @@ export interface DisclosureFinalizeParams {
 }
 
 /**
- * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles user disclosure and retrieves ID tokens with user identity information.
+ * Ver.iD Issuance client for OpenID Connect issuance flows.
+ * Handles user issuance and retrieves ID tokens with user identity information.
  * @public
  */
-export class VeridDisclosureClient {
+export class VeridIssuanceClient {
   /**
    * Underlying OAuth client for handling authorization flows.
    * @private
@@ -121,11 +132,11 @@ export class VeridDisclosureClient {
    * @private
    */
   private cacheManager: ICacheManager;
-  constructor(config: DisclosureClientConfig) {
+  constructor(config: IssuanceClientConfig) {
     assertUrlString(config.issuerUri, 'issuerUri');
 
     this.oauthClient = new VeridOAuthClient({
-      client_id: config.disclosureFlowId,
+      client_id: config.issuanceFlowId,
       issuer: config.issuerUri,
     });
 
@@ -141,7 +152,7 @@ export class VeridDisclosureClient {
   }
 
   /**
-   * Generates a PKCE code challenge and state for secure disclosure.
+   * Generates a PKCE code challenge and state for secure issuance.
    *
    * @param state - Optional state parameter. If not provided, a random state will be generated
    * @returns Object containing the code challenge and state
@@ -155,26 +166,26 @@ export class VeridDisclosureClient {
   }
 
   /**
-   * Creates a new disclosure intent.
-   * @param intent The intent of type DisclosureIntentPayload.
+   * Creates a new issuance intent.
+   * @param intent The intent of type IssuanceIntentPayload.
    * @returns The ID of the created intent.
    * @example
    * ```typescript
    * const { codeChallenge } = await client.generateCodeChallenge();
-   * const intentId = await client.createDisclosureIntent({
+   * const intentId = await client.createIssuanceIntent({
    *   challenge: 'your-challenge-string',
    *   brandUuid: 'your-brand-uuid',
    *   requireExplicitConsent: true,
    * }, codeChallenge);
    * ```
    */
-  async createDisclosureIntent(disclosureIntent: DisclosureIntentPayload, codeChallenge: string): Promise<string> {
-    // Construct VerificationIntent from DisclosureIntentPayload
-    const intent: VerificationIntent = {
-      type: 'disclosure',
+  async createIssuanceIntent(issuanceIntent: IssuanceIntentPayload, codeChallenge: string): Promise<string> {
+    // Construct IssuanceIntent from IssuanceIntentPayload
+    const intent: IssuanceIntent = {
+      type: 'issuance',
       clientId: this.oauthClient.clientId(),
       codeChallenge: codeChallenge,
-      ...disclosureIntent
+      ...issuanceIntent
     };
 
     // Create intent
@@ -182,22 +193,22 @@ export class VeridDisclosureClient {
   }
 
   /**
-   * Generates an disclosure URL for initiating the OpenID Connect flow.
+   * Generates an issuance URL for initiating the OpenID Connect flow.
    * Automatically includes 'openid' scope if not already present.
    *
-   * @param params - Parameters for the disclosure request including scope and optional PKCE options
-   * @param additionalParams - Additional query parameters to append to the disclosure URL
-   * @returns Object containing the disclosure URL and state
+   * @param params - Parameters for the issuance request including scope and optional PKCE options
+   * @param additionalParams - Additional query parameters to append to the issuance URL
+   * @returns Object containing the issuance URL and state
    * @example
    * ```typescript
-   * const { disclosureUrl, state } = await client.generateDisclosureUrl({
+   * const { issuanceUrl, state } = await client.generateIssuanceUrl({
    *   scope: 'profile email'
    * });
-   * window.location.href = disclosureUrl;
+   * window.location.href = issuanceUrl;
    * ```
    */
-  async generateDisclosureUrl(
-    params?: DisclosureRequestParams,
+  async generateIssuanceUrl(
+    params?: IssuanceRequestParams,
     additionalParams?: Record<string, string>,
   ) {
     let codeChallenge, state;
@@ -224,7 +235,7 @@ export class VeridDisclosureClient {
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
       {
         redirect_uri: this.redirectUri,
-        scope: DISCLOSURE_SCOPE,
+        scope: ISSUANCE_SCOPE,
         state,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
@@ -235,21 +246,21 @@ export class VeridDisclosureClient {
     );
 
     return {
-      disclosureUrl: authorizationUrl,
+      issuanceUrl: authorizationUrl,
       state,
     };
   }
 
   /**
-   * Finalizes the disclosure flow and retrieves the disclosure response.
+   * Finalizes the issuance flow and retrieves the issuance response.
    * Exchanges the authorization code for tokens including the ID token.
    *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token, id_token, and token metadata
-   * @throws {InvalidResponseError} When the response is not a valid disclosure response
+   * @param params - Parameters for finalizing the issuance flow
+   * @returns The issuance response containing access_token, id_token, and token metadata
+   * @throws {InvalidResponseError} When the response is not a valid issuance response
    * @throws {OperationFailedError} When code verifier is missing or token exchange fails
    */
-  async finalize(params?: DisclosureFinalizeParams): Promise<DisclosureResponse> {
+  async finalize(params?: IssuanceFinalizeParams): Promise<IssuanceResponse> {
     let callbackParams: URLSearchParams;
     if (params?.callbackParams) {
       switch (typeof params.callbackParams) {
@@ -292,27 +303,27 @@ export class VeridDisclosureClient {
       state,
       code_verifier: codeVerifier,
     });
-    assertDisclosureResponse(response, 'disclosure response', InvalidResponseError);
+    assertIssuanceResponse(response, 'issuance response', InvalidResponseError);
 
     return response;
   }
 
   /**
-   * Verifies and decodes the ID token from the disclosure response.
+   * Verifies and decodes the ID token from the issuance response.
    * Also, validates and typecasts the decoded token to a specific payload type.
    * Ensures the token payload conforms to desired structure.
    *
-   * @param disclosureResponse - The disclosure response containing the ID token
+   * @param issuanceResponse - The issuance response containing the ID token
    * @param typeAssertFunc - The function to assert the token payload type
    * @returns Typed JWT with typed payload
    * @throws {OperationFailedError} When JWT verification fails
    * @throws {InvalidAssertionError} When token payload doesn't match OpenID Connect structure
    */
   async decode<T extends JWTPayload>(
-    disclosureResponse: DisclosureResponse,
+    issuanceResponse: IssuanceResponse,
     typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,
   ): Promise<Jwt<T>> {
-    const jwt = await this.oauthClient.decode(disclosureResponse.access_token, typeAssertFunc);
+    const jwt = await this.oauthClient.decode(issuanceResponse.access_token, typeAssertFunc);
 
     return jwt as Jwt<T>;
   }

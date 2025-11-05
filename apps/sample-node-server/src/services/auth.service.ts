@@ -7,7 +7,7 @@ export function generateInitCodeSnippet(config: AuthenticationClientConfig): str
   return `import { VeridAuthenticationClient } from '@ver-id/node-client';
 
 const authClient = new VeridAuthenticationClient({
-  apiUrl: '${config.apiUrl}',
+  issuerUri: '${config.issuerUri}',
   authenticationFlowId: '${config.authenticationFlowId}',
   redirectUri: '${config.redirectUri}',
 });`;

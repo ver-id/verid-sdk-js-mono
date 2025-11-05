@@ -1,5 +1,5 @@
 export interface InitializeRequest {
-  apiUrl?: string;
+  issuerUri?: string;
   flowId?: string;
   redirectUri?: string;
 }

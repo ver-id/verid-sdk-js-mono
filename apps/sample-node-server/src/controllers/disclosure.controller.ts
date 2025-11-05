@@ -12,16 +12,16 @@ export async function initializeDisclosureClient(
   res: Response
 ): Promise<Response> {
   try {
-    const apiUrl = req.body.apiUrl || process.env.VERID_DISCLOSURE_API_URL;
+    const issuerUri = req.body.issuerUri || process.env.VERID_DISCLOSURE_API_URL;
     const disclosureFlowId = req.body.flowId || process.env.VERID_DISCLOSURE_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_DISCLOSURE_REDIRECT_URI;
 
-    assert(apiUrl, 'API URL is required', InvalidArgumentError);
+    assert(issuerUri, 'API URL is required', InvalidArgumentError);
     assert(disclosureFlowId, 'Disclosure Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: DisclosureClientConfig = {
-      apiUrl,
+      issuerUri,
       disclosureFlowId,
       redirectUri,
     };

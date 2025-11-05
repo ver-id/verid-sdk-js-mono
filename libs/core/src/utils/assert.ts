@@ -6,6 +6,7 @@ import {
   AttestedJwtPayload,
   AuthenticationResponse,
   DisclosureResponse,
+  IssuanceResponse,
   OpenIdJwtCompanyIdentifierType,
   OpenIdJwtCompanyType,
   OpenIdJwtNINIdentifierType,
@@ -347,6 +348,30 @@ export function assertDisclosureResponse(
   name: string,
   error?: ErrorConstructorType,
 ): asserts response is DisclosureResponse {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertObject(response, name, ctor);
+  assertString(response.access_token, `access_token in ${name}`, ctor);
+  assertNumber(response.expires_in, `expires_in in ${name}`, ctor);
+  assertString(response.scope, `scope in ${name}`, ctor);
+  assertString(response.token_type, `token_type in ${name}`, ctor);
+}
+
+/**
+ * Asserts that the given value is a valid IssuanceResponse.
+ * Validates all required properties: access_token, expires_in, scope, and token_type.
+ *
+ * @param response - The value to validate as a IssuanceResponse
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When response is not a valid IssuanceResponse (by default)
+ * @throws {Error} Custom error type when specified and response is not valid
+ */
+export function assertIssuanceResponse(
+  response: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts response is IssuanceResponse {
   const ctor = error ?? InvalidAssertionError;
 
   assertObject(response, name, ctor);

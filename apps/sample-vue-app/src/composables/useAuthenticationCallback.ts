@@ -12,7 +12,7 @@ export function useAuthenticationCallback() {
 
   // Configuration from environment variables
   const CLIENT_CONFIG = {
-    apiUrl: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL,
+    issuerUri: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL,
     authenticationFlowId: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID,
     redirectUri: import.meta.env.VITE_VERID_AUTHENTICATION_REDIRECT_URI,
   };

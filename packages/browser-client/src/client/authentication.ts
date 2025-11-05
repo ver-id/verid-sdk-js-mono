@@ -14,8 +14,17 @@ import {
   assertString,
   InvalidAssertionError,
   OperationFailedError,
+  VerificationIntent,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
+
+/**
+ * Payload for creating an authentication intent.
+ */
+export interface AuthenticationIntentPayload {
+  challenge?: string;
+  brandUuid?: string;
+}
 
 /**
  * Optional configuration settings for the Authentication client.
@@ -33,9 +42,9 @@ export interface AuthenticationClientConfigOptions {
  */
 export interface AuthenticationClientConfig {
   /**
-   * Ver.iD API URL
+   * Ver.iD OAuth Issuer URI
    */
-  apiUrl: string;
+  issuerUri: string;
   /**
    * The Authentication flow identifier
    */
@@ -59,7 +68,6 @@ export interface AuthenticationRequestParams {
    * The authentication scopes
    */
   scope: string;
-
   /**
    * The state for the oauth flow, if external state must be used
    */
@@ -68,6 +76,10 @@ export interface AuthenticationRequestParams {
    * The code challenge for PKCE flow, if external code challenge must be used
    */
   codeChallenge?: string;
+  /**
+   * Intent Id to associate with the authentication request
+   */
+  intentId?: string;
 }
 
 /**
@@ -108,11 +120,11 @@ export class VeridAuthenticationClient {
    */
   private cacheManager: ICacheManager;
   constructor(config: AuthenticationClientConfig) {
-    assertUrlString(config.apiUrl, 'apiUrl');
+    assertUrlString(config.issuerUri, 'issuerUri');
 
     this.oauthClient = new VeridOAuthClient({
       client_id: config.authenticationFlowId,
-      issuer: config.apiUrl,
+      issuer: config.issuerUri,
     });
 
     assertUrlString(config.redirectUri, 'redirectUri');
@@ -144,6 +156,30 @@ export class VeridAuthenticationClient {
   }
 
   /**
+   * Creates a new authentication intent.
+   * @param intent The intent of type AuthenticationIntentPayload.
+   * @returns The ID of the created intent.
+   * ```typescript
+   * const { codeChallenge } = await client.generateCodeChallenge();
+   * const intentId = await client.createAuthenticationIntent({
+   *   challenge: 'your-challenge-string',
+   *   brandUuid: 'your-brand-uuid',
+   * }, codeChallenge);
+   */
+  async createAuthenticationIntent(authenticationIntent: AuthenticationIntentPayload, codeChallenge: string): Promise<string> {
+    // Construct VerificationIntent from AuthenticationIntentPayload
+    const intent: VerificationIntent = {
+      type: 'authentication',
+      clientId: this.oauthClient.clientId(),
+      codeChallenge: codeChallenge,
+      ...authenticationIntent,
+    };
+
+    // Create intent
+    return this.oauthClient.createIntent(intent);
+  }
+
+  /**
    * Generates an authentication URL for initiating the OpenID Connect flow.
    * Automatically includes 'openid' scope if not already present.
    *
@@ -172,11 +208,15 @@ export class VeridAuthenticationClient {
     }
 
     let codeChallenge, state;
+    if (params.intentId && !params.codeChallenge) {
+      throw new InvalidArgumentError('Code challenge must be provided when using intentId.');
+    }
 
-    if (params.codeChallenge) {
-      if (!params.state) {
-        throw new InvalidArgumentError('State must be provided when using external code challenge');
-      }
+    if (params.codeChallenge && !params.state) {
+      throw new InvalidArgumentError('State must be provided when using external code challenge.');
+    }
+
+    if (params.codeChallenge && params.state) {
       codeChallenge = params.codeChallenge;
       state = params.state;
     } else {

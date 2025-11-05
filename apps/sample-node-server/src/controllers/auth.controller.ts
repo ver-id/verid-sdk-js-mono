@@ -12,16 +12,16 @@ export async function initializeAuthClient(
   res: Response
 ): Promise<Response> {
   try {
-    const apiUrl = req.body.apiUrl || process.env.VERID_AUTHENTICATION_API_URL;
+    const issuerUri = req.body.issuerUri || process.env.VERID_AUTHENTICATION_API_URL;
     const authenticationFlowId = req.body.flowId || process.env.VERID_AUTHENTICATION_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_AUTHENTICATION_REDIRECT_URI;
 
-    assert(apiUrl, 'API URL is required', InvalidArgumentError);
+    assert(issuerUri, 'API URL is required', InvalidArgumentError);
     assert(authenticationFlowId, 'Authentication Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: AuthenticationClientConfig = {
-      apiUrl,
+      issuerUri,
       authenticationFlowId,
       redirectUri,
     };

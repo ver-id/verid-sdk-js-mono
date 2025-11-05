@@ -40,7 +40,7 @@ import { VeridAuthenticationClient } from '@ver-id/node-client';
 
 // Create authentication client
 const authenticationClient = new VeridAuthenticationClient({
-  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
@@ -80,7 +80,7 @@ import { VeridDisclosureClient } from '@ver-id/node-client';
 
 // Create disclosure client
 const disclosureClient = new VeridDisclosureClient({
-  apiUrl: '<VERID_OAUTH_API_URL>', // Ver.iD OAuth API url
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   disclosureFlowId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });

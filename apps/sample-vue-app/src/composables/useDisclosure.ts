@@ -9,7 +9,7 @@ import { formatError } from '../utils/errorHandler.js';
 export function useDisclosure() {
   // Reactive configuration that can be edited by the user
   const clientConfig = reactive({
-    apiUrl: import.meta.env.VITE_VERID_DISCLOSURE_API_URL || '',
+    issuerUri: import.meta.env.VITE_VERID_DISCLOSURE_API_URL || '',
     disclosureFlowId: import.meta.env.VITE_VERID_DISCLOSURE_FLOW_ID || '',
     redirectUri: import.meta.env.VITE_VERID_DISCLOSURE_REDIRECT_URI || '',
   });
