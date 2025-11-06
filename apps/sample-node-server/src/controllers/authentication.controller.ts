@@ -4,7 +4,7 @@ import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
 import { assert, AuthenticationClientConfig, VeridAuthenticationClient, InvalidArgumentError } from '@ver-id/node-client';
 
 /**
- * POST /api/auth/initialize
+ * POST /api/authentication/initialize
  * Initialize an authentication client with optional params or env variables
  */
 export async function initializeAuthClient(
@@ -13,16 +13,16 @@ export async function initializeAuthClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_AUTHENTICATION_API_URL;
-    const authenticationFlowId = req.body.flowId || process.env.VERID_AUTHENTICATION_FLOW_ID;
+    const client_id = req.body.flowId || process.env.VERID_AUTHENTICATION_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_AUTHENTICATION_REDIRECT_URI;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(authenticationFlowId, 'Authentication Flow ID is required', InvalidArgumentError);
+    assert(client_id, 'Authentication Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: AuthenticationClientConfig = {
       issuerUri,
-      authenticationFlowId,
+      client_id: client_id,
       redirectUri,
     };
 
@@ -50,7 +50,7 @@ export async function initializeAuthClient(
 }
 
 /**
- * POST /api/auth/generate-url
+ * POST /api/authentication/generate-url
  * Generate authentication URL
  */
 export async function generateAuthUrl(
@@ -101,7 +101,7 @@ const { authenticationUrl, state } = await authClient.generateAuthenticationUrl(
 }
 
 /**
- * GET /api/auth/callback
+ * GET /api/authentication/callback
  * Handle OAuth callback from authorization server
  */
 export async function handleAuthCallback(
@@ -117,7 +117,7 @@ export async function handleAuthCallback(
 }
 
 /**
- * POST /api/auth/finalize
+ * POST /api/authentication/finalize
  * Finalize the OAuth flow (exchange code for tokens)
  */
 export async function finalizeAuth(
@@ -160,7 +160,7 @@ export async function finalizeAuth(
 }
 
 /**
- * GET /api/auth/callback-info
+ * GET /api/authentication/callback-info
  * Get the stored callback URL and params (no authResponse)
  */
 export async function getCallbackInfo(
@@ -195,7 +195,7 @@ export async function getCallbackInfo(
 }
 
 /**
- * POST /api/auth/decode
+ * POST /api/authentication/decode
  * Decode the ID token from the auth response
  */
 export async function decodeToken(

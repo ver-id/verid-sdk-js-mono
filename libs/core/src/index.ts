@@ -1,15 +1,15 @@
+// Re-export from sub-paths for convenience
+// Users can import from '@verid-sdk-js-mono/core' (all exports)
+// or from specific paths like '@verid-sdk-js-mono/core/flow'
+
 // Interface exports
 export type { ICacheManager } from './interface/ICacheManager.js';
-export type { IOAuthProvider } from './interface/IOAuthProvider.js';
+
+// Flow client exports
+export * from './flow/index.js';
 
 // OAuth client exports
-export { VeridOAuthClient } from './oauth/client.js';
-export type {
-  OAuthClientConfig,
-  OAuthRequestParams,
-  OAuthAuthorizationCodeGrantParams,
-  OAuthClientCredentialsGrantParams,
-} from './oauth/client.js';
+export * from './oauth/index.js';
 
 // Error exports
 export * from './error/index.js';
@@ -18,5 +18,4 @@ export * from './error/index.js';
 export * from './types/index.js';
 
 // Utility exports
-export * from './utils/assert.js';
-export * from './utils/generic.js';
+export * from './utils/index.js';

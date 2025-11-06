@@ -8,7 +8,7 @@ export function generateInitCodeSnippet(config: AuthenticationClientConfig): str
 
 const authClient = new VeridAuthenticationClient({
   issuerUri: '${config.issuerUri}',
-  authenticationFlowId: '${config.authenticationFlowId}',
+  client_id: '${config.client_id}',
   redirectUri: '${config.redirectUri}',
 });`;
 }

@@ -1,5 +1,5 @@
 export interface BaseIntent {
-  type: 'authentication' | 'disclosure' | 'issuance'; 
+  type: string; 
   codeChallenge: string;
   clientId: string;
 }

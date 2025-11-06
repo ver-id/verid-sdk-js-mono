@@ -33,10 +33,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="authenticationFlowId">Authentication Flow ID:</label>
+          <label for="client_id">Authentication Flow ID:</label>
           <input
-            id="authenticationFlowId"
-            v-model="clientConfig.authenticationFlowId"
+            id="client_id"
+            v-model="clientConfig.client_id"
             type="text"
             placeholder="authentication_flow_123"
           >
@@ -47,7 +47,7 @@
             id="redirectUri"
             v-model="clientConfig.redirectUri"
             type="text"
-            placeholder="http://localhost:3000/api/auth/callback"
+            placeholder="http://localhost:3000/api/authentication/callback"
           >
           <small>This is where the OAuth provider will redirect back after authentication</small>
         </div>
@@ -223,7 +223,7 @@ const error = ref('');
 
 const clientConfig = ref({
   issuerUri: '',
-  authenticationFlowId: '',
+  client_id: '',
   redirectUri: '',
 });
 
@@ -248,7 +248,7 @@ const toggleConfigForm = () => {
 const initializeClient = async () => {
   error.value = '';
   try {
-    const response = await fetch(`${API_URL}/auth/initialize`, {
+    const response = await fetch(`${API_URL}/authentication/initialize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ const initializeClient = async () => {
 const generateUrl = async () => {
   error.value = '';
   try {
-    const response = await fetch(`${API_URL}/auth/generate-url`, {
+    const response = await fetch(`${API_URL}/authentication/generate-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -319,7 +319,7 @@ const resetClient = () => {
   // Reset config to defaults
   clientConfig.value = {
     issuerUri: '',
-    authenticationFlowId: '',
+    client_id: '',
     redirectUri: '',
   };
   

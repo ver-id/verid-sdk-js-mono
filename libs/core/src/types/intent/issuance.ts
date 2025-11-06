@@ -1,6 +1,7 @@
 import { BaseIntent } from "../intent/base.js";
 
 export interface IssuanceIntent extends BaseIntent {
+  type: 'issuance';
   payload: {
     mapping: Record<string, unknown>;
     data: {
@@ -10,7 +11,7 @@ export interface IssuanceIntent extends BaseIntent {
       schemeUuid: string;
       providerUuid: string;
       value: unknown
-    };
+    }[];
   },
   challenge?: string
   brandUuid?: string;

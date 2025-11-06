@@ -10,7 +10,7 @@ export function useAuthentication() {
   // Configuration - reactive so it can be updated from form
   const clientConfig = reactive({
     issuerUri: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL || '',
-    authenticationFlowId: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID || '',
+    client_id: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID || '',
     redirectUri: import.meta.env.VITE_VERID_AUTHENTICATION_REDIRECT_URI || 
       `${window.location.origin}/authentication/browser/callback`,
   });

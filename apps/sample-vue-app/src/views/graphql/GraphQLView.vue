@@ -35,7 +35,7 @@
             id="authorizationServer"
             v-model="clientConfig.authorizationServer"
             type="text"
-            placeholder="https://auth.ver.id"
+            placeholder="https://authentication.ver.id"
           >
         </div>
 

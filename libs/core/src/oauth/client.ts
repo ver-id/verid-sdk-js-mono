@@ -13,6 +13,7 @@ import { OAuth4WebApiProvider } from './provider/index.js';
 import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
 import { BaseIntent } from '../types/intent/base.js';
+import { UUID } from '../types/generic.js';
 
 /**
  * Configuration options for the OAuth client.
@@ -54,6 +55,11 @@ export interface OAuthRequestParams {
    * The Code challenge method for the PKCE
    */
   code_challenge_method?: 'S256' | 'plain';
+
+  /**
+   * Intent Id to associate with the request
+   */
+  intent_id?: UUID;
 }
 
 /**
@@ -268,6 +274,11 @@ export class VeridOAuthClient {
       );
     }
     url.searchParams.set('code_challenge_method', params.code_challenge_method ?? 'S256');
+
+    if (params.intent_id) {
+      assertUUID(params.intent_id, 'intent_id', InvalidArgumentError);
+      url.searchParams.set('intent_id', params.intent_id);
+    }
 
     // Add any additional params
     if (additionalParams) {

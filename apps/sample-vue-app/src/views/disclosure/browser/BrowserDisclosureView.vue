@@ -25,10 +25,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="disclosureFlowId">Disclosure Flow ID:</label>
+          <label for="client_id">Disclosure Flow ID:</label>
           <input
-            id="disclosureFlowId"
-            v-model="clientConfig.disclosureFlowId"
+            id="client_id"
+            v-model="clientConfig.client_id"
             type="text"
             placeholder="disclosure_flow_123"
           >

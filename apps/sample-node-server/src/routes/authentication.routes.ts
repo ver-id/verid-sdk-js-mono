@@ -4,37 +4,37 @@ import { initializeAuthClient, generateAuthUrl, handleAuthCallback, finalizeAuth
 const router = Router();
 
 /**
- * POST /api/auth/initialize
+ * POST /api/authentication/initialize
  * Initialize an authentication client
  */
 router.post('/initialize', initializeAuthClient);
 
 /**
- * POST /api/auth/generate-url
+ * POST /api/authentication/generate-url
  * Generate authentication URL
  */
 router.post('/generate-url', generateAuthUrl);
 
 /**
- * GET /api/auth/callback
+ * GET /api/authentication/callback
  * Handle OAuth callback
  */
 router.get('/callback', handleAuthCallback);
 
 /**
- * GET /api/auth/callback-info
+ * GET /api/authentication/callback-info
  * Get callback URL and params
  */
 router.get('/callback-info', getAuthCallbackInfo);
 
 /**
- * POST /api/auth/finalize
+ * POST /api/authentication/finalize
  * Finalize OAuth flow (exchange code for tokens)
  */
 router.post('/finalize', finalizeAuth);
 
 /**
- * POST /api/auth/decode
+ * POST /api/authentication/decode
  * Decode ID token
  */
 router.post('/decode', decodeAuthToken);

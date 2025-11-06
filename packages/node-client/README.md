@@ -41,7 +41,7 @@ import { VeridAuthenticationClient } from '@ver-id/node-client';
 // Create authentication client
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  authenticationFlowId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -81,7 +81,7 @@ import { VeridDisclosureClient } from '@ver-id/node-client';
 // Create disclosure client
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  disclosureFlowId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
+  client_id: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -106,6 +106,68 @@ const disclosureDecodedToken = await disclosureClient.decode(disclosureResponse)
 **Note:** Unlike browser clients, the Node.js client requires explicit `clientAuth` with a `client_secret` during the finalize step. This enables secure server-side disclosure flows where the client secret is never exposed to the frontend.
 
 For other comprehensive configurations and examples, see the [VERIFICATION.md](./VERIFICATION.md) document.
+
+### Issuance
+
+Issuance flows enable you to issue verified credentials to users that they can store in their decentralized identity wallets. This allows users to prove attributes about themselves without repeatedly going through verification processes. Issued credentials can include digital IDs, certificates, licenses, or any verified information.
+
+You can quickly create an issuance flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using issuance client:
+
+```ts
+import { VeridIssuanceClient } from '@ver-id/node-client';
+
+// Create issuance client
+const issuanceClient = new VeridIssuanceClient({
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
+  client_id: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
+  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+});
+
+// Step 1: Generate code challenge
+const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
+
+// Step 2: Create issuance intent (required for issuance flows)
+const intentId = await issuanceClient.createIssuanceIntent(
+  {
+    payload: {
+      mapping: { name: 'fullName', email: 'emailAddress' },
+      data: {
+        attributeUuid: '<ATTRIBUTE_UUID>',
+        credentialUuid: '<CREDENTIAL_UUID>',
+        issuerUuid: '<ISSUER_UUID>',
+        schemeUuid: '<SCHEME_UUID>',
+        providerUuid: '<PROVIDER_UUID>',
+        value: { fullName: 'John Doe', emailAddress: 'john@example.com' },
+      },
+    },
+  },
+  codeChallenge,
+);
+
+// Step 3: Generate issuance url with intent
+const { issuanceUrl, state: finalState } = await issuanceClient.generateIssuanceUrl({
+  intent_id: intentId,
+  pkceOptions: { state, codeChallenge },
+});
+
+// Redirect the user to the Ver.iD issuance flow (or return URL to frontend)
+// After user completes issuance, Ver.iD redirects to your redirectUri with code and state
+
+// Finalize the flow to exchange authorization code for tokens
+const issuanceResponse = await issuanceClient.finalize({
+  clientAuth: {
+    client_secret: '<YOUR_CLIENT_SECRET>', // Client secret from Ver.iD Studio
+  },
+  callbackParams: callbackUrl, // The complete callback URL with code and state
+});
+
+// Decode the token
+const issuanceDecodedToken = await issuanceClient.decode(issuanceResponse);
+```
+
+**Note:** Unlike authentication and disclosure, issuance flows **require** intent creation with a credential payload before generating the issuance URL. The Node.js client also requires explicit `clientAuth` with a `client_secret` during the finalize step for secure server-side flows.
+
+For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISSUANCE.md) document.
 
 ## Examples
 

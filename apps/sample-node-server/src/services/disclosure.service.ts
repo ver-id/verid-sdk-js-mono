@@ -8,7 +8,7 @@ export function generateInitCodeSnippet(config: DisclosureClientConfig): string 
 
 const authClient = new VeridDisclosureClient({
   issuerUri: '${config.issuerUri}',
-  disclosureFlowId: '${config.disclosureFlowId}',
+  client_id: '${config.client_id}',
   redirectUri: '${config.redirectUri}',
 });`;
 }

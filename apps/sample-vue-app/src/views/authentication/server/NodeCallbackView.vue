@@ -198,7 +198,7 @@ onMounted(async () => {
 
 const fetchCallbackInfo = async () => {
   try {
-    const response = await fetch(`${API_URL}/auth/callback-info`);
+    const response = await fetch(`${API_URL}/authentication/callback-info`);
     const data = await response.json();
 
     if (!data.success) {
@@ -218,7 +218,7 @@ const finalize = async () => {
   error.value = '';
   
   try {
-    const response = await fetch(`${API_URL}/auth/finalize`, {
+    const response = await fetch(`${API_URL}/authentication/finalize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ const decode = async () => {
   error.value = '';
   
   try {
-    const response = await fetch(`${API_URL}/auth/decode`, {
+    const response = await fetch(`${API_URL}/authentication/decode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

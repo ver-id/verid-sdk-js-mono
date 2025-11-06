@@ -1,10 +1,3 @@
-/**
- * @internal
- * Re-export everything from core for convenience.
- * See @verid-sdk-js-mono/core module for shared types and utilities documentation.
- */
-export * from '@verid-sdk-js-mono/core';
-
 // client exports
 export { createVeridGraphQLClient } from './client/index.js';
 export type { GraphQLClientOptions } from './client/graphql.js';
@@ -16,3 +9,48 @@ export * from './api/index.js';
 // This includes query/mutation types, input types, and pre-generated Document nodes
 // Users can import specific types: import { FindManyAttributesQuery } from '@ver-id/graphql-client'
 export * from './contrib/graphql/schema-types.js';
+
+/**
+ * Export core errors
+ */
+export {
+  InvalidArgumentError,
+  InvalidAssertionError,
+  InvalidResponseError,
+  OperationFailedError,
+  UnknownError
+} from '@verid-sdk-js-mono/core/error';
+
+/**
+ * Export core utilities
+ */
+export {
+  assert,
+  assertArray,
+  assertBoolean,
+  assertDate,
+  assertFunction,
+  assertJsonValue,
+  assertNumber,
+  assertObject,
+  assertString,
+  assertUUID,
+  assertUrlString,
+} from '@verid-sdk-js-mono/core/utils';
+
+/**
+ * Export core types
+ */
+export type {
+  AttributeEntity,
+  AttributeEntityDeep,
+  AttributeEntityEnriched,
+  CredentialEntity,
+  CredentialEntityDeep,
+  IssuerEntity,
+  IssuerEntityDeep,
+  SchemeEntity,
+  SchemeEntityDeep,
+  ProviderEntity,
+  LocaleEntity
+} from '@verid-sdk-js-mono/core/types';

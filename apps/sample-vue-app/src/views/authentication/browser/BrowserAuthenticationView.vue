@@ -25,10 +25,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="authenticationFlowId">Authentication Flow ID:</label>
+          <label for="client_id">Authentication Flow ID:</label>
           <input
-            id="authenticationFlowId"
-            v-model="clientConfig.authenticationFlowId"
+            id="client_id"
+            v-model="clientConfig.client_id"
             type="text"
             placeholder="authentication_flow_123"
           >

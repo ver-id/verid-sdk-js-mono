@@ -11,6 +11,31 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./flow": {
+      "types": "./src/flow/index.ts",
+      "import": "./src/flow/index.ts",
+      "default": "./src/flow/index.ts"
+    },
+    "./oauth": {
+      "types": "./src/oauth/index.ts",
+      "import": "./src/oauth/index.ts",
+      "default": "./src/oauth/index.ts"
+    },
+    "./types": {
+      "types": "./src/types/index.ts",
+      "import": "./src/types/index.ts",
+      "default": "./src/types/index.ts"
+    },
+    "./error": {
+      "types": "./src/error/index.ts",
+      "import": "./src/error/index.ts",
+      "default": "./src/error/index.ts"
+    },
+    "./utils": {
+      "types": "./src/utils/index.ts",
+      "import": "./src/utils/index.ts",
+      "default": "./src/utils/index.ts"
+    },
     "./package.json": "./package.json"
   },
   "dependencies": {

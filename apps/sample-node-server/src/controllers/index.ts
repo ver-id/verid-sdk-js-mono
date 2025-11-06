@@ -5,7 +5,7 @@ export {
   finalizeAuth,
   getCallbackInfo as getAuthCallbackInfo,
   decodeToken as decodeAuthToken
-} from './auth.controller.js';
+} from './authentication.controller.js';
 
 export { 
   initializeDisclosureClient, 
