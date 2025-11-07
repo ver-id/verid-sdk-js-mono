@@ -1,6 +1,6 @@
 export interface InitializeRequest {
   issuerUri?: string;
-  flowId?: string;
+  client_id?: string;
   redirectUri?: string;
 }
 

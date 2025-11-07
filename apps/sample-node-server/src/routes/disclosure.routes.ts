@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { initializeDisclosureClient, generateDisclosureUrl, handleDisclosureCallback, finalizeDisclosure, getDisclosureCallbackInfo, decodeDisclosureToken } from '../controllers/index.js';
+import { 
+  initializeDisclosureClient, 
+  generateDisclosureCodeChallenge,
+  createDisclosureIntent,
+  generateDisclosureUrl, 
+  handleDisclosureCallback, 
+  finalizeDisclosure, 
+  getDisclosureCallbackInfo, 
+  decodeDisclosureToken 
+} from '../controllers/index.js';
 
 const router = Router();
 
@@ -8,6 +17,18 @@ const router = Router();
  * Initialize a disclosure client
  */
 router.post('/initialize', initializeDisclosureClient);
+
+/**
+ * POST /api/disclosure/generate-code-challenge
+ * Generate PKCE code challenge and state
+ */
+router.post('/generate-code-challenge', generateDisclosureCodeChallenge);
+
+/**
+ * POST /api/disclosure/create-intent
+ * Create disclosure intent
+ */
+router.post('/create-intent', createDisclosureIntent);
 
 /**
  * POST /api/disclosure/generate-url

@@ -19,12 +19,24 @@ export function useAuthentication() {
     scope: import.meta.env.VITE_VERID_AUTHENTICATION_SCOPES || '',
   });
 
+  // Optional intent configuration
+  const useIntent = ref(false);
+  const intentOptions = reactive({
+    challenge: '',
+    brandUuid: '',
+  });
+
   // State
   const showConfigForm = ref(true);
   const clientInitialized = ref(false);
+  const showIntentForm = ref(false);
+  const intentCreated = ref(false);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const authUrl = ref<string | null>(null);
+  const intentId = ref<string | null>(null);
+  const codeChallenge = ref<string | null>(null);
+  const state = ref<string | null>(null);
 
   // The authentication client instance
   let authenticationClient: VeridAuthenticationClient | null = null;
@@ -44,7 +56,73 @@ export function useAuthentication() {
   };
 
   /**
+   * Enable intent-based flow
+   */
+  const enableIntentFlow = () => {
+    useIntent.value = true;
+  };
+
+  /**
+   * Skip to URL generation (direct flow)
+   */
+  const skipToUrlGeneration = () => {
+    useIntent.value = false;
+  };
+
+  /**
+   * Generate code challenge (for intent-based flow)
+   */
+  const generateCodeChallenge = async () => {
+    if (!authenticationClient) return;
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const result = await authenticationClient.generateCodeChallenge();
+      codeChallenge.value = result.codeChallenge;
+      state.value = result.state;
+    } catch (err) {
+      handleError(err);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  /**
+   * Create authentication intent (optional)
+   */
+  const createIntent = async () => {
+    if (!authenticationClient || !codeChallenge.value) {
+      error.value = 'Code challenge must be generated first';
+      return;
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const payload: { challenge?: string; brandUuid?: string } = {};
+      
+      // Add optional parameters if provided
+      if (intentOptions.challenge) payload.challenge = intentOptions.challenge;
+      if (intentOptions.brandUuid) payload.brandUuid = intentOptions.brandUuid;
+
+      const id = await authenticationClient.createAuthenticationIntent(payload, codeChallenge.value);
+      
+      intentId.value = id;
+      intentCreated.value = true;
+      showIntentForm.value = false;
+    } catch (err) {
+      handleError(err);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  /**
    * Generate authentication URL with PKCE
+   * If intent was created, uses intent_id and PKCE params
    */
   const generateAuthUrl = async () => {
     if (!authenticationClient) return;
@@ -53,8 +131,22 @@ export function useAuthentication() {
     error.value = null;
 
     try {
-      const { authenticationUrl } =
-        await authenticationClient.generateAuthenticationUrl(authOptions);
+      let authenticationUrl: string;
+
+      if (useIntent.value && intentId.value && codeChallenge.value && state.value) {
+        // Intent-based flow: use intent_id and existing PKCE params
+        const result = await authenticationClient.generateAuthenticationUrl({
+          scope: authOptions.scope,
+          intent_id: intentId.value,
+          state: state.value,
+          code_challenge: codeChallenge.value,
+        });
+        authenticationUrl = result.authenticationUrl;
+      } else {
+        // Direct flow: generate URL without intent
+        const result = await authenticationClient.generateAuthenticationUrl(authOptions);
+        authenticationUrl = result.authenticationUrl;
+      }
 
       authUrl.value = authenticationUrl;
     } catch (err) {
@@ -84,8 +176,14 @@ export function useAuthentication() {
    */
   const startOver = () => {
     authUrl.value = null;
+    intentId.value = null;
+    codeChallenge.value = null;
+    state.value = null;
+    intentCreated.value = false;
     showConfigForm.value = true;
+    showIntentForm.value = false;
     clientInitialized.value = false;
+    useIntent.value = false;
     authenticationClient = null;
     error.value = null;
   };
@@ -93,17 +191,28 @@ export function useAuthentication() {
   return {
     // State
     showConfigForm,
+    showIntentForm,
     clientInitialized,
+    intentCreated,
     loading,
     error,
     authUrl,
+    intentId,
+    codeChallenge,
+    state,
 
     // Configuration (reactive, can be modified)
     clientConfig,
     authOptions,
+    useIntent,
+    intentOptions,
 
     // Actions
     initializeClient,
+    enableIntentFlow,
+    skipToUrlGeneration,
+    generateCodeChallenge,
+    createIntent,
     generateAuthUrl,
     redirectToAuthServer,
     startOver,

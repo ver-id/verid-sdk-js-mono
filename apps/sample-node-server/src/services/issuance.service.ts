@@ -14,74 +14,88 @@ const issuanceClient = new VeridIssuanceClient({
 }
 
 /**
- * Generate a code snippet showing code challenge generation
+ * Generate a code snippet showing code challenge generation (MANDATORY for issuance)
  */
 export function generateCodeChallengeSnippet(): string {
-  return `// Step 1: Generate code challenge
+  return `// Generate PKCE code challenge and state (required for issuance)
 const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();`;
 }
 
 /**
- * Generate a code snippet showing intent creation with mapping
+ * Generate code snippet for creating issuance intent (MANDATORY for issuance)
  */
-export function generateIntentMappingSnippet(mapping: Record<string, unknown>): string {
-  const mappingStr = JSON.stringify(mapping, null, 2).split('\n').map((line, i) => i === 0 ? line : `  ${line}`).join('\n');
-  
-  return `// Step 2: Create issuance intent with mapping
-const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      mapping: ${mappingStr},
-    },
+export function generateCreateIntentSnippet(
+  payload: { 
+    challenge?: string; 
+    brandUuid?: string;
+    requireExplicitConsent?: boolean;
+    payload?: {
+      mapping?: Record<string, unknown>;
+      data?: Array<{
+        attributeUuid: string;
+        credentialUuid: string;
+        issuerUuid: string;
+        schemeUuid: string;
+        providerUuid: string;
+        value: unknown;
+      }>;
+    };
   },
-  codeChallenge
-);`;
-}
-
-/**
- * Generate a code snippet showing intent creation with data
- */
-export function generateIntentDataSnippet(
-  attributeUuid: string,
-  credentialUuid: string,
-  issuerUuid: string,
-  schemeUuid: string,
-  providerUuid: string,
-  value: unknown
+  codeChallenge: string
 ): string {
-  const valueStr = JSON.stringify(value, null, 2).split('\n').map((line, i) => i === 0 ? line : `        ${line}`).join('\n');
+  const payloadParts: string[] = [];
   
-  return `// Step 2: Create issuance intent with data
+  // Add mapping if present
+  if (payload.payload?.mapping && Object.keys(payload.payload.mapping).length > 0) {
+    payloadParts.push(`    mapping: ${JSON.stringify(payload.payload.mapping, null, 2).replace(/\n/g, '\n    ')}`);
+  }
+  
+  // Add data if present
+  if (payload.payload?.data && payload.payload.data.length > 0) {
+    payloadParts.push(`    data: ${JSON.stringify(payload.payload.data, null, 2).replace(/\n/g, '\n    ')}`);
+  }
+  
+  const payloadContent = payloadParts.length > 0 
+    ? `{\n${payloadParts.join(',\n')}\n  }`
+    : '{}';
+
+  const optionalParams: string[] = [];
+  if (payload.challenge) {
+    optionalParams.push(`  challenge: '${payload.challenge}'`);
+  }
+  if (payload.brandUuid) {
+    optionalParams.push(`  brandUuid: '${payload.brandUuid}'`);
+  }
+  if (payload.requireExplicitConsent) {
+    optionalParams.push(`  requireExplicitConsent: ${payload.requireExplicitConsent}`);
+  }
+
+  const params = optionalParams.length > 0
+    ? `{\n  payload: ${payloadContent},\n${optionalParams.join(',\n')}\n}`
+    : `{ payload: ${payloadContent} }`;
+
+  return `// Create issuance intent (MANDATORY for issuance)
 const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      data: {
-        attributeUuid: '${attributeUuid}',
-        credentialUuid: '${credentialUuid}',
-        issuerUuid: '${issuerUuid}',
-        schemeUuid: '${schemeUuid}',
-        providerUuid: '${providerUuid}',
-        value: ${valueStr},
-      },
-    },
-  },
-  codeChallenge
+  ${params},
+  '${codeChallenge}'
 );`;
 }
 
 /**
- * Generate a code snippet showing URL generation
+ * Generate code snippet for generating issuance URL with intent
+ * Note: Intent is MANDATORY for issuance
  */
-export function generateUrlSnippet(): string {
-  return `// Step 3: Generate issuance URL
+export function generateIssuanceUrlWithIntentSnippet(
+  intentId: string,
+  state: string,
+  codeChallenge: string
+): string {
+  return `// Generate issuance URL with intent (intent is MANDATORY)
 const { issuanceUrl } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId,
-  state: state,
-  code_challenge: codeChallenge,
-});
-
-// Send URL to frontend or redirect
-res.json({ issuanceUrl, state });`;
+  intent_id: '${intentId}',
+  state: '${state}',
+  code_challenge: '${codeChallenge}',
+});`;
 }
 
 /**

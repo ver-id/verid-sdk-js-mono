@@ -60,6 +60,31 @@ const router = createRouter({
       component: () => import('../views/disclosure/server/NodeCallbackView.vue'),
     },
     {
+      path: '/issuance',
+      name: 'issuance',
+      component: () => import('../views/issuance/IssuanceSelectionView.vue'),
+    },
+    {
+      path: '/issuance/browser',
+      name: 'issuance-browser',
+      component: () => import('../views/issuance/browser/BrowserIssuanceView.vue'),
+    },
+    {
+      path: '/issuance/browser/callback',
+      name: 'issuance-browser-callback',
+      component: () => import('../views/issuance/browser/BrowserCallbackView.vue'),
+    },
+    {
+      path: '/issuance/server',
+      name: 'issuance-server',
+      component: () => import('../views/issuance/server/NodeIssuanceView.vue'),
+    },
+    {
+      path: '/issuance/server/callback',
+      name: 'issuance-server-callback',
+      component: () => import('../views/issuance/server/NodeCallbackView.vue'),
+    },
+    {
       path: '/graphql',
       name: 'graphql',
       component: () => import('../views/graphql/GraphQLView.vue'),

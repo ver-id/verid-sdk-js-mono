@@ -1,6 +1,7 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -20,7 +21,12 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    monacoEditorPlugin({
+      languageWorkers: ['json', 'editorWorkerService'],
+    }),
+  ],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [ nxViteTsPaths() ],

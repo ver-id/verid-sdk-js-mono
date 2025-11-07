@@ -19,7 +19,11 @@ import '../assets/styles.css';
           perform passwordless authentication.
         </p>
         <router-link
-to="/authentication" class="btn"> View Examples → </router-link>
+          to="/authentication"
+          class="btn"
+        >
+          View Examples →
+        </router-link>
       </div>
       <div class="card">
         <h2>Verification</h2>
@@ -28,7 +32,25 @@ to="/authentication" class="btn"> View Examples → </router-link>
           KYC/KYB.
         </p>
         <router-link
-to="/disclosure" class="btn"> View Examples → </router-link>
+          to="/disclosure"
+          class="btn"
+        >
+          View Examples →
+        </router-link>
+      </div>
+
+      <div class="card">
+        <h2>Issuance</h2>
+        <p>
+          Learn how to use @ver-id/browser-client for executing Ver.iD issuance flow to issue
+          verifiable credentials.
+        </p>
+        <router-link
+          to="/issuance"
+          class="btn"
+        >
+          View Examples →
+        </router-link>
       </div>
 
       <div class="card">
@@ -38,7 +60,11 @@ to="/disclosure" class="btn"> View Examples → </router-link>
           or node applications.
         </p>
         <router-link
-to="/graphql" class="btn"> View Examples → </router-link>
+          to="/graphql"
+          class="btn"
+        >
+          View Examples →
+        </router-link>
       </div>
     </div>
 

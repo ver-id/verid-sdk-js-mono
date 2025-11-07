@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { initializeAuthClient, generateAuthUrl, handleAuthCallback, finalizeAuth, getAuthCallbackInfo, decodeAuthToken } from '../controllers/index.js';
+import { 
+  initializeAuthClient, 
+  generateAuthCodeChallenge,
+  createAuthIntent,
+  generateAuthUrl, 
+  handleAuthCallback, 
+  finalizeAuth, 
+  getAuthCallbackInfo, 
+  decodeAuthToken 
+} from '../controllers/index.js';
 
 const router = Router();
 
@@ -8,6 +17,18 @@ const router = Router();
  * Initialize an authentication client
  */
 router.post('/initialize', initializeAuthClient);
+
+/**
+ * POST /api/authentication/generate-code-challenge
+ * Generate PKCE code challenge and state
+ */
+router.post('/generate-code-challenge', generateAuthCodeChallenge);
+
+/**
+ * POST /api/authentication/create-intent
+ * Create authentication intent
+ */
+router.post('/create-intent', createAuthIntent);
 
 /**
  * POST /api/authentication/generate-url

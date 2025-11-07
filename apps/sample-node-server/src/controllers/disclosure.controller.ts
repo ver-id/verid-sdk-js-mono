@@ -1,5 +1,13 @@
 import type { Request, Response } from 'express';
-import { clientService, generateDisclosureInitCodeSnippet, generateDisclosureFinalizeCodeSnippet } from '../services/index.js';
+import { 
+  clientService, 
+  generateDisclosureInitCodeSnippet, 
+  generateDisclosureFinalizeCodeSnippet,
+  generateDisclosureCodeChallengeSnippet,
+  generateDisclosureCreateIntentSnippet,
+  generateDisclosureUrlWithIntentSnippet,
+  generateDisclosureUrlSnippet,
+} from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
 import { assert, DisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload } from '@ver-id/node-client';
 
@@ -13,7 +21,7 @@ export async function initializeDisclosureClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_DISCLOSURE_API_URL;
-    const client_id = req.body.flowId || process.env.VERID_DISCLOSURE_FLOW_ID;
+    const client_id = req.body.client_id || process.env.VERID_DISCLOSURE_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_DISCLOSURE_REDIRECT_URI;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
@@ -50,6 +58,105 @@ export async function initializeDisclosureClient(
 }
 
 /**
+ * POST /api/disclosure/generate-code-challenge
+ * Generate PKCE code challenge and state
+ */
+export async function generateDisclosureCodeChallenge(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const disclosureClient = clientService.getDisclosureClient();
+    
+    if (!disclosureClient) {
+      return res.status(400).json({
+        success: false,
+        error: 'No disclosure client initialized. Please initialize first.',
+      });
+    }
+
+    // Generate code challenge
+    const result = await disclosureClient.generateCodeChallenge();
+
+    // Store for later use
+    clientService.setDisclosureCodeChallenge(result.codeChallenge);
+    clientService.setDisclosureState(result.state);
+
+    // Generate code snippet
+    const codeSnippet = generateDisclosureCodeChallengeSnippet();
+
+    return res.json({
+      success: true,
+      codeChallenge: result.codeChallenge,
+      state: result.state,
+      code: codeSnippet,
+      message: 'Code challenge generated successfully',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
+/**
+ * POST /api/disclosure/create-intent
+ * Create disclosure intent
+ */
+export async function createDisclosureIntent(
+  req: Request<object, object, { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean }>,
+  res: Response
+): Promise<Response> {
+  try {
+    const disclosureClient = clientService.getDisclosureClient();
+    const codeChallenge = clientService.getDisclosureCodeChallenge();
+    
+    if (!disclosureClient) {
+      return res.status(400).json({
+        success: false,
+        error: 'No disclosure client initialized. Please initialize first.',
+      });
+    }
+
+    if (!codeChallenge) {
+      return res.status(400).json({
+        success: false,
+        error: 'No code challenge found. Please generate code challenge first.',
+      });
+    }
+
+    const { challenge, brandUuid, requireExplicitConsent } = req.body;
+    const payload: { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean } = {};
+    
+    if (challenge) payload.challenge = challenge;
+    if (brandUuid) payload.brandUuid = brandUuid;
+    if (requireExplicitConsent !== undefined) payload.requireExplicitConsent = requireExplicitConsent;
+
+    // Create intent
+    const intentId = await disclosureClient.createDisclosureIntent(payload, codeChallenge);
+
+    // Store for later use
+    clientService.setDisclosureIntentId(intentId);
+
+    // Generate code snippet
+    const codeSnippet = generateDisclosureCreateIntentSnippet(payload, codeChallenge);
+
+    return res.json({
+      success: true,
+      intentId,
+      code: codeSnippet,
+      message: 'Disclosure intent created successfully',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
+/**
  * POST /api/disclosure/generate-url
  * Generate disclosure URL
  */
@@ -58,11 +165,6 @@ export async function generateDisclosureUrl(
   res: Response
 ): Promise<Response> {
   try {
-    const { scope } = req.body;
-
-    const scopeValue = scope || process.env.VERID_AUTHENTICATION_SCOPES;
-    assert(scopeValue, 'Scope is required', InvalidArgumentError);
-
     // Get the global disclosure client
     const disclosureClient = clientService.getDisclosureClient();
     
@@ -73,12 +175,29 @@ export async function generateDisclosureUrl(
       });
     }
 
-    // Generate disclosure URL
-    const result = await disclosureClient.generateDisclosureUrl();
+    // Check if intent-based flow
+    const intentId = clientService.getDisclosureIntentId();
+    const codeChallenge = clientService.getDisclosureCodeChallenge();
+    const state = clientService.getDisclosureState();
 
-    // Generate code snippet
-    const codeSnippet = `// Using the initialized client
-const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();`;
+    let result: { disclosureUrl: string; state?: string };
+    let codeSnippet: string;
+
+    if (intentId && codeChallenge && state) {
+      // Intent-based flow
+      result = await disclosureClient.generateDisclosureUrl({
+        intent_id: intentId,
+        state: state,
+        code_challenge: codeChallenge,
+      });
+
+      codeSnippet = generateDisclosureUrlWithIntentSnippet(intentId, state, codeChallenge);
+    } else {
+      // Direct flow
+      result = await disclosureClient.generateDisclosureUrl();
+
+      codeSnippet = generateDisclosureUrlSnippet();
+    }
 
     // Return success with disclosure URL
     return res.json({

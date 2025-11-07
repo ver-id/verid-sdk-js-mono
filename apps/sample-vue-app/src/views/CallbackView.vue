@@ -261,8 +261,6 @@ async function decode() {
 }
 
 function handleError(err: unknown) {
-  console.error('Authentication error:', err);
-
   // Serialize the full error object with all details
   const errorDetails = {
     message: err instanceof Error ? err.message : String(err),

@@ -192,6 +192,9 @@ export class VeridOAuthClient {
     // Call intent endpoint
     const intentResponse = await fetch(`${url}`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(intent),
     });
 
