@@ -1,5 +1,5 @@
 export interface BaseIntent {
-  type: string; 
-  codeChallenge: string;
-  clientId: string;
+  scope: string; 
+  code_challenge: string;
+  client_id: string;
 }

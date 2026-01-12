@@ -94,23 +94,35 @@ export function useIssuance() {
     error.value = null;
 
     try {
+      // Build payload object - include only mapping or data, not both
+      const payloadObj: {
+        mapping?: Record<string, unknown>;
+        data?: Array<{
+          attributeUuid: string;
+          credentialUuid: string;
+          issuerUuid: string;
+          schemeUuid: string;
+          providerUuid: string;
+          value: unknown;
+        }>;
+      } = {};
+      
+      // Include mapping if it's defined and has keys
+      if (intentOptions.payload.mapping && Object.keys(intentOptions.payload.mapping).length > 0) {
+        payloadObj.mapping = intentOptions.payload.mapping;
+      }
+      // Include data if it's defined and has items
+      else if (intentOptions.payload.data && intentOptions.payload.data.length > 0) {
+        payloadObj.data = intentOptions.payload.data;
+      }
+      
       const payload: { 
-        payload: { 
-          mapping?: Record<string, unknown>; 
-          data?: Array<{
-            attributeUuid: string;
-            credentialUuid: string;
-            issuerUuid: string;
-            schemeUuid: string;
-            providerUuid: string;
-            value: unknown;
-          }>;
-        };
+        payload: typeof payloadObj;
         challenge?: string; 
         brandUuid?: string;
         requireExplicitConsent?: boolean;
       } = {
-        payload: intentOptions.payload,
+        payload: payloadObj,
       };
       
       // Add optional parameters if provided
@@ -149,7 +161,7 @@ export function useIssuance() {
       const result = await issuanceClient.generateIssuanceUrl({
         intent_id: intentId.value,
         state: state.value,
-        code_challenge: codeChallenge.value,
+        codeChallenge: codeChallenge.value,
       });
       
       issuanceUrl.value = result.issuanceUrl;

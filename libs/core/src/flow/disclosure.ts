@@ -85,9 +85,9 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
   ): Promise<string> {
     // Construct VerificationIntent from DisclosureIntentPayload
     const intent: VerificationIntent = {
-      type: 'disclosure',
-      clientId: this.oauthClient.clientId(),
-      codeChallenge: codeChallenge,
+      scope: 'disclosure',
+      client_id: this.oauthClient.clientId(),
+      code_challenge: codeChallenge,
       ...disclosureIntent,
     };
 

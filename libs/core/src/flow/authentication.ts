@@ -82,9 +82,9 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
   ): Promise<string> {
     // Construct VerificationIntent from AuthenticationIntentPayload
     const intent: VerificationIntent = {
-      type: 'authentication',
-      clientId: this.oauthClient.clientId(),
-      codeChallenge: codeChallenge,
+      scope: 'authentication',
+      client_id: this.oauthClient.clientId(),
+      code_challenge: codeChallenge,
       ...authenticationIntent,
     };
 

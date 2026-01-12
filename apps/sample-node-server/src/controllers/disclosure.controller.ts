@@ -188,7 +188,7 @@ export async function generateDisclosureUrl(
       result = await disclosureClient.generateDisclosureUrl({
         intent_id: intentId,
         state: state,
-        code_challenge: codeChallenge,
+        codeChallenge: codeChallenge,
       });
 
       codeSnippet = generateDisclosureUrlWithIntentSnippet(intentId, state, codeChallenge);

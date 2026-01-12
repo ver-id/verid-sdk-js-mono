@@ -204,7 +204,7 @@ export async function generateIssuanceUrl(
     const result = await issuanceClient.generateIssuanceUrl({
       intent_id: intentId,
       state: state,
-      code_challenge: codeChallenge,
+      codeChallenge: codeChallenge,
     });
 
     // Generate code snippet showing intent-based flow

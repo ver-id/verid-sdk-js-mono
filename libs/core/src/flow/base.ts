@@ -49,7 +49,7 @@ export interface FlowBaseAuthorizationRequestParams {
   /**
    * The code challenge for PKCE flow, if external code challenge must be used
    */
-  code_challenge?: string;
+  codeChallenge?: string;
   /**
    * Intent Id to associate with the request
    */
@@ -177,11 +177,11 @@ export class VeridFlowBaseClient {
   protected validateAuthorizationRequestParams(params?: FlowBaseAuthorizationRequestParams): void {
     if (!params) return;
 
-    if (params.intent_id && !params.code_challenge) {
+    if (params.intent_id && !params.codeChallenge) {
       throw new InvalidArgumentError('Code challenge must be provided when using intentId.');
     }
 
-    if (params.code_challenge && !params.state) {
+    if (params.codeChallenge && !params.state) {
       throw new InvalidArgumentError('State must be provided when using external code challenge.');
     }
   }

@@ -193,7 +193,7 @@ export async function generateAuthUrl(
         scope: scopeValue,
         intent_id: intentId,
         state: state,
-        code_challenge: codeChallenge,
+        codeChallenge: codeChallenge,
       });
 
       codeSnippet = generateAuthUrlWithIntentSnippet(scopeValue, intentId, state, codeChallenge);

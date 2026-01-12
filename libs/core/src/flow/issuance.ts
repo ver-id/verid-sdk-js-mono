@@ -103,7 +103,8 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
       InvalidArgumentError
     );
 
-    assert(issuanceIntent.payload.data && issuanceIntent.payload.mapping,
+    assert(
+      !(issuanceIntent.payload.data && issuanceIntent.payload.mapping),
       'Both payload.data and payload.mapping should not be provided together.',
       InvalidArgumentError
     );
@@ -118,9 +119,9 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     // Construct IssuanceIntent from IssuanceIntentPayload
     const intent: IssuanceIntent = {
       ...issuanceIntent,
-      type: 'issuance',
-      clientId: this.oauthClient.clientId(),
-      codeChallenge: codeChallenge,
+      scope: 'issuance',
+      client_id: this.oauthClient.clientId(),
+      code_challenge: codeChallenge,
       payload: {
         mapping: issuanceIntent.payload.mapping || {},
         data: issuanceIntent.payload.data || [],
@@ -150,6 +151,8 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
   ): Promise<{ issuanceUrl: string; state: string }> {
     // Validate PKCE params using base class method
     this.validateAuthorizationRequestParams(params);
+
+    console.log('Generating issuance URL with params:', params);
 
     // Generate or use provided PKCE params
     const { codeChallenge, state } = await this.getPkceParams(params);

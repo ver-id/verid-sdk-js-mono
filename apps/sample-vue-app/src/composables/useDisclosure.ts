@@ -127,7 +127,7 @@ export function useDisclosure() {
         const result = await disclosureClient.generateDisclosureUrl({
           intent_id: intentId.value,
           state: state.value,
-          code_challenge: codeChallenge.value,
+          codeChallenge: codeChallenge.value,
         });
         url = result.disclosureUrl;
       } else {

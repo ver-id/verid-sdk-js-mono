@@ -1,7 +1,7 @@
 import { BaseIntent } from "../intent/base.js";
 
 export interface IssuanceIntent extends BaseIntent {
-  type: 'issuance';
+  scope: 'issuance';
   payload: {
     mapping: Record<string, unknown>;
     data: {

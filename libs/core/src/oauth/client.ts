@@ -171,9 +171,9 @@ export class VeridOAuthClient {
    * @example
    * ```typescript
    * const intentId = await client.createIntent({
-   *   type: 'authentication',
-   *   codeChallenge: '<code_challenge>',
-   *   clientId: '<client_id>'
+   *   scope: 'authentication',
+   *   code_challenge: '<code_challenge>',
+   *   client_id: '<client_id>'
    *   brandUuid: '<brand_uuid>',
    *   requireExplicitConsent: true
    * });

@@ -139,7 +139,7 @@ export function useAuthentication() {
           scope: authOptions.scope,
           intent_id: intentId.value,
           state: state.value,
-          code_challenge: codeChallenge.value,
+          codeChallenge: codeChallenge.value,
         });
         authenticationUrl = result.authenticationUrl;
       } else {

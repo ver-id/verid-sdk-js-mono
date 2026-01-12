@@ -3453,7 +3453,7 @@ export type CreateOrganizationAppMetaDatakeeperInput = {
 /** The input for creating a organization app meta kiwa. */
 export type CreateOrganizationAppMetaKiwaInput = {
   /** The certificate serial */
-  certificateSerial?: InputMaybe<Scalars['NonEmpty']['input']>;
+  issuerId?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The private key identifier */
   keyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The organization app UUID */
@@ -16443,10 +16443,10 @@ export enum OrganizationAppMetaFilteringField {
 /** Organization app meta kiwa. */
 export type OrganizationAppMetaKiwa = Model & {
   __typename?: 'OrganizationAppMetaKiwa';
-  /** The certificate serial */
-  certificateSerial?: Maybe<Scalars['NonEmpty']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
+  /** The certificate serial */
+  issuerId?: Maybe<Scalars['NonEmpty']['output']>;
   /** The private key identifier */
   keyIdentifier?: Maybe<Scalars['NonEmpty']['output']>;
   /** The organization app meta the kiwa meta belongs to. */
@@ -21886,7 +21886,7 @@ export type UpdateOrganizationAppMetaDatakeeperInput = {
 /** Update Input */
 export type UpdateOrganizationAppMetaKiwaInput = {
   /** The certificate serial */
-  certificateSerial?: InputMaybe<Scalars['NonEmpty']['input']>;
+  issuerId?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The private key identifier */
   keyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
