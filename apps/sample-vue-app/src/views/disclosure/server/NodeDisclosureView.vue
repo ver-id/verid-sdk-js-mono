@@ -180,35 +180,21 @@
           <small style="color: #666;">Brand-specific customization</small>
         </div>
         <div class="form-group">
-          <label>
-            <input
-              type="checkbox"
-              v-model="intentOptions.useRequireExplicitConsent"
-            >
-            Include Require Explicit Consent
-          </label>
-          <small style="color: #666;">Add requireExplicitConsent parameter to the intent</small>
-        </div>
-        <div
-          v-if="intentOptions.useRequireExplicitConsent"
-          class="form-group"
-          style="margin-left: 20px;"
-        >
-          <label>Require Explicit Consent Value:</label>
+          <label>Require Explicit Consent (Optional):</label>
           <div>
-            <label style="margin-right: 15px;">
+            <label style="margin-right: 15px; font-weight: normal;">
               <input
+                v-model="intentOptions.requireExplicitConsent"
                 type="radio"
                 :value="true"
-                v-model="intentOptions.requireExplicitConsent"
               >
               True
             </label>
-            <label>
+            <label style="font-weight: normal;">
               <input
+                v-model="intentOptions.requireExplicitConsent"
                 type="radio"
                 :value="false"
-                v-model="intentOptions.requireExplicitConsent"
               >
               False
             </label>
@@ -384,8 +370,7 @@ const loading = ref(false);
 const intentOptions = ref({
   challenge: '',
   brandUuid: '',
-  useRequireExplicitConsent: false,
-  requireExplicitConsent: true,
+  requireExplicitConsent: undefined,
 });
 
 const initCodeSnippet = ref('');
@@ -474,7 +459,7 @@ const createIntent = async () => {
     if (intentOptions.value.brandUuid) {
       payload.brandUuid = intentOptions.value.brandUuid;
     }
-    if (intentOptions.value.useRequireExplicitConsent) {
+    if (intentOptions.value.requireExplicitConsent !== undefined) {
       payload.requireExplicitConsent = intentOptions.value.requireExplicitConsent;
     }
 
@@ -560,8 +545,7 @@ const resetClient = () => {
   intentOptions.value = {
     challenge: '',
     brandUuid: '',
-    useRequireExplicitConsent: false,
-    requireExplicitConsent: true,
+    requireExplicitConsent: undefined,
   };
   
   // Reset config to defaults

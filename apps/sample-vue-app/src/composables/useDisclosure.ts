@@ -19,8 +19,7 @@ export function useDisclosure() {
   const intentOptions = reactive({
     challenge: '',
     brandUuid: '',
-    useRequireExplicitConsent: false,
-    requireExplicitConsent: false,
+    requireExplicitConsent: undefined,
   });
 
   // State
@@ -96,7 +95,7 @@ export function useDisclosure() {
       // Add optional parameters if provided
       if (intentOptions.challenge) payload.challenge = intentOptions.challenge;
       if (intentOptions.brandUuid) payload.brandUuid = intentOptions.brandUuid;
-      if (intentOptions.useRequireExplicitConsent) payload.requireExplicitConsent = intentOptions.requireExplicitConsent;
+      if (intentOptions.requireExplicitConsent !== undefined) payload.requireExplicitConsent = intentOptions.requireExplicitConsent;
 
       const id = await disclosureClient.createDisclosureIntent(payload, codeChallenge.value);
       

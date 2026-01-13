@@ -179,13 +179,25 @@
         </h4>
         
         <div class="form-group">
-          <label class="checkbox-label">
-            <input
-              v-model="intentOptions.requireExplicitConsent"
-              type="checkbox"
-            >
-            <span>Require Explicit Consent</span>
-          </label>
+          <label>Require Explicit Consent (Optional):</label>
+          <div>
+            <label style="margin-right: 15px; font-weight: normal;">
+              <input
+                v-model="intentOptions.requireExplicitConsent"
+                type="radio"
+                :value="true"
+              >
+              True
+            </label>
+            <label style="font-weight: normal;">
+              <input
+                v-model="intentOptions.requireExplicitConsent"
+                type="radio"
+                :value="false"
+              >
+              False
+            </label>
+          </div>
           <small>Force user to explicitly consent during issuance</small>
         </div>
         
@@ -461,7 +473,7 @@ const getGenerateUrlCode = computed(() => {
   return `const { issuanceUrl } = await issuanceClient.generateIssuanceUrl({
   intent_id: '${intentId.value || 'YOUR_INTENT_ID'}',
   state: '${state.value || 'YOUR_STATE'}',
-  code_challenge: '${codeChallenge.value || 'YOUR_CODE_CHALLENGE'}',
+  codeChallenge: '${codeChallenge.value || 'YOUR_CODE_CHALLENGE'}',
 });
 
 // Generated URL: ${issuanceUrl.value || '(not generated yet)'}`;

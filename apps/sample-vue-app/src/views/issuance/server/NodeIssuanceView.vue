@@ -198,13 +198,25 @@
           </h4>
           
           <div class="form-group">
-            <label class="checkbox-label">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="checkbox"
-              >
-              <span>Require Explicit Consent</span>
-            </label>
+            <label>Require Explicit Consent (Optional):</label>
+            <div>
+              <label style="margin-right: 15px; font-weight: normal;">
+                <input
+                  v-model="intentOptions.requireExplicitConsent"
+                  type="radio"
+                  :value="true"
+                >
+                True
+              </label>
+              <label style="font-weight: normal;">
+                <input
+                  v-model="intentOptions.requireExplicitConsent"
+                  type="radio"
+                  :value="false"
+                >
+                False
+              </label>
+            </div>
             <small style="color: #666;">Force user to explicitly consent during issuance</small>
           </div>
           
@@ -402,7 +414,7 @@ const loading = ref(false);
 const intentOptions = ref({
   challenge: '',
   brandUuid: '',
-  requireExplicitConsent: false,
+  requireExplicitConsent: undefined,
   payload: {
     mapping: {} as Record<string, unknown>,
     data: [] as Array<{
@@ -548,7 +560,7 @@ const createIntent = async () => {
     if (intentOptions.value.brandUuid) {
       payload.brandUuid = intentOptions.value.brandUuid;
     }
-    if (intentOptions.value.requireExplicitConsent) {
+    if (intentOptions.value.requireExplicitConsent !== undefined) {
       payload.requireExplicitConsent = intentOptions.value.requireExplicitConsent;
     }
 
@@ -631,7 +643,7 @@ const resetClient = () => {
   intentOptions.value = {
     challenge: '',
     brandUuid: '',
-    requireExplicitConsent: false,
+    requireExplicitConsent: undefined,
     payload: {
       mapping: {},
       data: [],

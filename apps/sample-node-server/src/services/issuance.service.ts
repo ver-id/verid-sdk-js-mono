@@ -94,7 +94,7 @@ export function generateIssuanceUrlWithIntentSnippet(
 const { issuanceUrl } = await issuanceClient.generateIssuanceUrl({
   intent_id: '${intentId}',
   state: '${state}',
-  code_challenge: '${codeChallenge}',
+  codeChallenge: '${codeChallenge}',
 });`;
 }
 
