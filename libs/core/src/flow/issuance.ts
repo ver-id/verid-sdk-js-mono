@@ -5,6 +5,7 @@ import { IssuanceResponse } from '../types/response/index.js';
 import { VeridFlowBaseClient, FlowBaseAuthorizationRequestParams, FlowBaseFinalizeParams, FlowBaseClientConfig } from './base.js';
 import { IssuanceIntent } from '../types/intent/index.js';
 import { InvalidArgumentError } from '../error/index.js';
+import { ClientAuth } from '../types/oauth/index.js';
 
 /**
  * Default OAuth scope for issuance requests.
@@ -82,6 +83,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
    * 
    * @param issuanceIntent - The intent payload
    * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
    * @returns The ID of the created intent
    * @example
    * ```typescript
@@ -96,6 +98,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
   async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
+    clientAuth?: ClientAuth,
   ): Promise<string> {
     assert(
       issuanceIntent.payload.data || issuanceIntent.payload.mapping,
@@ -128,8 +131,8 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
       },
     };
 
-    // Create intent
-    return this.oauthClient.createIntent(intent);
+    // Create intent with optional clientAuth
+    return this.oauthClient.createIntent(intent, clientAuth);
   }
 
   /**
@@ -151,8 +154,6 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
   ): Promise<{ issuanceUrl: string; state: string }> {
     // Validate PKCE params using base class method
     this.validateAuthorizationRequestParams(params);
-
-    console.log('Generating issuance URL with params:', params);
 
     // Generate or use provided PKCE params
     const { codeChallenge, state } = await this.getPkceParams(params);

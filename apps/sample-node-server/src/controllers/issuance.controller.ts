@@ -125,6 +125,10 @@ export async function createIssuanceIntent(
       });
     }
 
+    // Get client secret from environment
+    const clientSecret = process.env.VERID_CLIENT_SECRET;
+    assert(clientSecret, 'Client secret is required in env variables (VERID_CLIENT_SECRET)', InvalidArgumentError);
+
     // Build intent payload
     const intentPayload: IssuanceIntentPayload = {
       payload: req.body.payload || {},
@@ -140,8 +144,12 @@ export async function createIssuanceIntent(
       intentPayload.requireExplicitConsent = req.body.requireExplicitConsent;
     }
 
-    // Create intent
-    const intentId = await issuanceClient.createIssuanceIntent(intentPayload, codeChallenge);
+    // Create intent with client authentication
+    const intentId = await issuanceClient.createIssuanceIntent(
+      intentPayload, 
+      codeChallenge,
+      { client_secret: clientSecret }
+    );
 
     // Store intent ID
     clientService.setIssuanceIntentId(intentId);
@@ -273,7 +281,7 @@ export async function finalizeIssuance(
       });
     }
 
-    const clientSecret = process.env.VERID_ISSUANCE_CLIENT_SECRET;
+    const clientSecret = process.env.VERID_CLIENT_SECRET;
     if (!clientSecret) {
       return res.status(400).json({
         success: false,

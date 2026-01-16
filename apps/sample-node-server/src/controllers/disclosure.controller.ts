@@ -133,8 +133,16 @@ export async function createDisclosureIntent(
     if (brandUuid) payload.brandUuid = brandUuid;
     if (requireExplicitConsent !== undefined) payload.requireExplicitConsent = requireExplicitConsent;
 
-    // Create intent
-    const intentId = await disclosureClient.createDisclosureIntent(payload, codeChallenge);
+    // Get client secret from environment
+    const clientSecret = process.env.VERID_CLIENT_SECRET;
+    assert(clientSecret, 'Client secret is required in env variables (VERID_CLIENT_SECRET)', InvalidArgumentError);
+
+    // Create intent with client authentication
+    const intentId = await disclosureClient.createDisclosureIntent(
+      payload, 
+      codeChallenge,
+      { client_secret: clientSecret }
+    );
 
     // Store for later use
     clientService.setDisclosureIntentId(intentId);

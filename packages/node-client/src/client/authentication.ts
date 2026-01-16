@@ -3,6 +3,7 @@ import {
   AuthenticationResponse,
   AuthenticationClientConfig,
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
+  AuthenticationIntentPayload,
   ClientAuth,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
@@ -32,6 +33,23 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
   constructor(config: AuthenticationClientConfig) {
     super(config, new FileStorageCacheManager());
+  }
+
+  /**
+   * Creates a new authentication intent.
+   * Client authentication is mandatory for server-side authentication intent creation.
+   * 
+   * @param authenticationIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - The client authentication credentials (required)
+   * @returns The ID of the created intent
+   */
+  override async createAuthenticationIntent(
+    authenticationIntent: AuthenticationIntentPayload,
+    codeChallenge: string,
+    clientAuth: ClientAuth,
+  ): Promise<string> {
+    return super.createAuthenticationIntent(authenticationIntent, codeChallenge, clientAuth);
   }
 
   /**

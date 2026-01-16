@@ -45,7 +45,8 @@ export function generateCreateIntentSnippet(
   return `// Create disclosure intent
 const intentId = await disclosureClient.createDisclosureIntent(
   ${payloadStr},
-  '${codeChallenge}'
+  '${codeChallenge}',
+  { client_secret: '*****' }
 );`;
 }
 

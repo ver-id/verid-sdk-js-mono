@@ -129,10 +129,11 @@ const intentId = await authenticationClient.createAuthenticationIntent(
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
   },
   codeChallenge,
+  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
 );
 ```
 
-**Note:** Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used.
+**Note:** Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used. The `client_secret` is required for server-side intent creation.
 
 ##### Step 3: Generate Authentication URL with Intent
 
@@ -141,10 +142,8 @@ Generate the authentication URL using the created intent:
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: state, // Use the state from Step 1
-    codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  },
+  state: state, // Use the state from Step 1
+  codeChallenge: codeChallenge, // Use the code challenge from Step 1
   intent_id: intentId, // Pass the intent ID from Step 2
 });
 ```
@@ -160,13 +159,11 @@ You can provide your own unique state identifier:
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-  },
+  state: '<UNIQUE_STATE>',
 });
 ```
 
-**Important:** State is mandatory if `pkceOptions` are being provided.
+**Important:** State is mandatory if code challenge is being provided.
 
 ##### Using External Code Challenge
 
@@ -175,10 +172,8 @@ You can provide an externally generated code challenge. This is useful when the 
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-  },
+  state: '<UNIQUE_STATE>',
+  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
 });
 ```
 

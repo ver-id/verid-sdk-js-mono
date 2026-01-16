@@ -77,7 +77,8 @@ export function generateCreateIntentSnippet(
   return `// Create issuance intent (MANDATORY for issuance)
 const intentId = await issuanceClient.createIssuanceIntent(
   ${params},
-  '${codeChallenge}'
+  '${codeChallenge}',
+  { client_secret: '*****' }
 );`;
 }
 

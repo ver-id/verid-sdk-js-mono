@@ -141,10 +141,8 @@ Generate the authentication URL using the created intent:
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: state, // Use the state from Step 1
-    codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  },
+  state: state, // Use the state from Step 1
+  codeChallenge: codeChallenge, // Use the code challenge from Step 1
   intent_id: intentId, // Pass the intent ID from Step 2
 });
 ```
@@ -160,13 +158,11 @@ You can provide your own unique state identifier:
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-  },
+  state: '<UNIQUE_STATE>',
 });
 ```
 
-**Important:** State is mandatory if `pkceOptions` are being provided.
+**Important:** State is mandatory if code challenge is being provided.
 
 ##### Using External Code Challenge
 
@@ -175,10 +171,8 @@ You can provide an externally generated code challenge. This is useful when the 
 ```ts
 const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
   scope: '<SCOPES_TO_REQUEST>',
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-  },
+  state: '<UNIQUE_STATE>',
+  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
 });
 ```
 

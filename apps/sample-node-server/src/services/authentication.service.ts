@@ -42,7 +42,8 @@ export function generateCreateIntentSnippet(
   return `// Create authentication intent
 const intentId = await authClient.createAuthenticationIntent(
   ${payloadStr},
-  '${codeChallenge}'
+  '${codeChallenge}',
+  { client_secret: '*****' }
 );`;
 }
 

@@ -3,6 +3,7 @@ import {
   IssuanceResponse,
   IssuanceClientConfig,
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
+  IssuanceIntentPayload,
   ClientAuth,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
@@ -32,6 +33,23 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
 export class VeridIssuanceClient extends CoreIssuanceClient {
   constructor(config: IssuanceClientConfig) {
     super(config, new FileStorageCacheManager());
+  }
+
+  /**
+   * Creates a new issuance intent.
+   * Client authentication is mandatory for server-side issuance intent creation.
+   * 
+   * @param issuanceIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - The client authentication credentials (required)
+   * @returns The ID of the created intent
+   */
+  override async createIssuanceIntent(
+    issuanceIntent: IssuanceIntentPayload,
+    codeChallenge: string,
+    clientAuth: ClientAuth,
+  ): Promise<string> {
+    return super.createIssuanceIntent(issuanceIntent, codeChallenge, clientAuth);
   }
 
   /**

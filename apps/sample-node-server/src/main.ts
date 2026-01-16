@@ -1,3 +1,9 @@
+// Disable TLS verification for development (NOT for production!)
+// This is needed for self-signed certificates in development environments
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 import express from 'express';
 import cors from 'cors';
 import { SERVER_CONFIG } from './config/index.js';

@@ -6,6 +6,7 @@ import { AuthenticationResponse } from '../types/response/index.js';
 import { OpenIdJwtPayload } from '../types/jwt/payload/index.js';
 import { VerificationIntent } from '../types/intent/verification.js';
 import { FlowBaseAuthorizationRequestParams, FlowBaseClientConfig, FlowBaseFinalizeParams, VeridFlowBaseClient } from './base.js';
+import { ClientAuth } from '../types/oauth/index.js';
 
 /**
  * Payload for creating an authentication intent.
@@ -66,6 +67,7 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
    * 
    * @param authenticationIntent - The intent payload
    * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
    * @returns The ID of the created intent
    * @example
    * ```typescript
@@ -79,6 +81,7 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
   async createAuthenticationIntent(
     authenticationIntent: AuthenticationIntentPayload,
     codeChallenge: string,
+    clientAuth?: ClientAuth,
   ): Promise<string> {
     // Construct VerificationIntent from AuthenticationIntentPayload
     const intent: VerificationIntent = {
@@ -88,8 +91,8 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
       ...authenticationIntent,
     };
 
-    // Create intent
-    return this.oauthClient.createIntent(intent);
+    // Create intent with optional clientAuth
+    return this.oauthClient.createIntent(intent, clientAuth);
   }
 
   /**

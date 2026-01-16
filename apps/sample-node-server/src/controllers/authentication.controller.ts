@@ -132,8 +132,16 @@ export async function createAuthIntent(
     if (challenge) payload.challenge = challenge;
     if (brandUuid) payload.brandUuid = brandUuid;
 
-    // Create intent
-    const intentId = await authClient.createAuthenticationIntent(payload, codeChallenge);
+    // Get client secret from environment
+    const clientSecret = process.env.VERID_CLIENT_SECRET;
+    assert(clientSecret, 'Client secret is required in env variables (VERID_CLIENT_SECRET)', InvalidArgumentError);
+
+    // Create intent with client authentication
+    const intentId = await authClient.createAuthenticationIntent(
+      payload, 
+      codeChallenge,
+      { client_secret: clientSecret }
+    );
 
     // Store for later use
     clientService.setAuthIntentId(intentId);

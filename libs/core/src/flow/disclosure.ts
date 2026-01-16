@@ -4,6 +4,7 @@ import { assertDisclosureResponse } from '../utils/assert.js';
 import { DisclosureResponse } from '../types/response/index.js';
 import { VerificationIntent } from '../types/intent/verification.js';
 import { VeridFlowBaseClient, FlowBaseAuthorizationRequestParams, FlowBaseFinalizeParams, FlowBaseClientConfig } from './base.js';
+import { ClientAuth } from '../types/oauth/index.js';
 
 /**
  * Default OAuth scope for disclosure requests.
@@ -68,6 +69,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
    * 
    * @param disclosureIntent - The intent payload
    * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
    * @returns The ID of the created intent
    * @example
    * ```typescript
@@ -82,6 +84,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
   async createDisclosureIntent(
     disclosureIntent: DisclosureIntentPayload,
     codeChallenge: string,
+    clientAuth?: ClientAuth,
   ): Promise<string> {
     // Construct VerificationIntent from DisclosureIntentPayload
     const intent: VerificationIntent = {
@@ -91,8 +94,8 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
       ...disclosureIntent,
     };
 
-    // Create intent
-    return this.oauthClient.createIntent(intent);
+    // Create intent with optional clientAuth
+    return this.oauthClient.createIntent(intent, clientAuth);
   }
 
   /**

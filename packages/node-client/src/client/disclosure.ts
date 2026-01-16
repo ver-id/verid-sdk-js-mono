@@ -3,6 +3,7 @@ import {
   DisclosureResponse,
   DisclosureClientConfig,
   DisclosureFinalizeParams as CoreDisclosureFinalizeParams,
+  DisclosureIntentPayload,
   ClientAuth,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
@@ -32,6 +33,23 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
 export class VeridDisclosureClient extends CoreDisclosureClient {
   constructor(config: DisclosureClientConfig) {
     super(config, new FileStorageCacheManager());
+  }
+
+  /**
+   * Creates a new disclosure intent.
+   * Client authentication is mandatory for server-side disclosure intent creation.
+   * 
+   * @param disclosureIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - The client authentication credentials (required)
+   * @returns The ID of the created intent
+   */
+  override async createDisclosureIntent(
+    disclosureIntent: DisclosureIntentPayload,
+    codeChallenge: string,
+    clientAuth: ClientAuth,
+  ): Promise<string> {
+    return super.createDisclosureIntent(disclosureIntent, codeChallenge, clientAuth);
   }
 
   /**

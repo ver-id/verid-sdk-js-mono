@@ -126,10 +126,11 @@ const intentId = await disclosureClient.createDisclosureIntent(
     requireExplicitConsent: true, // Optional: Require explicit user consent (default: false)
   },
   codeChallenge,
+  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
 );
 ```
 
-**Note:** All parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used.
+**Note:** All parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used. The `client_secret` is required for server-side intent creation.
 
 ##### Step 3: Generate Disclosure URL with Intent
 
@@ -137,10 +138,8 @@ Generate the disclosure URL using the created intent:
 
 ```ts
 const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl({
-  pkceOptions: {
-    state: state, // Use the state from Step 1
-    codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  },
+  state: state, // Use the state from Step 1
+  codeChallenge: codeChallenge, // Use the code challenge from Step 1
   intent_id: intentId, // Pass the intent ID from Step 2
 });
 ```
@@ -155,13 +154,11 @@ You can provide your own unique state identifier:
 
 ```ts
 const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl({
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-  },
+  state: '<UNIQUE_STATE>',
 });
 ```
 
-**Important:** State is mandatory if `pkceOptions` are being provided.
+**Important:** State is mandatory if code challenge is being provided.
 
 ##### Using External Code Challenge
 
@@ -169,10 +166,8 @@ You can provide an externally generated code challenge. This is useful when the 
 
 ```ts
 const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl({
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-  },
+  state: '<UNIQUE_STATE>',
+  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
 });
 ```
 

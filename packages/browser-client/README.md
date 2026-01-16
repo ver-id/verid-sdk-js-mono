@@ -133,7 +133,8 @@ const intentId = await issuanceClient.createIssuanceIntent(
 // Step 3: Generate issuance url with intent
 const { issuanceUrl, state: finalState } = await issuanceClient.generateIssuanceUrl({
   intent_id: intentId,
-  pkceOptions: { state, codeChallenge },
+  state, // Use the state from Step 1
+  codeChallenge, // Use the code challenge from Step 1
 });
 
 // Redirects the user to the Ver.iD issuance flow

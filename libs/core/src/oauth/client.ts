@@ -167,6 +167,7 @@ export class VeridOAuthClient {
   /**
    * Creates a new intent.
    * @param intent The intent of type BaseIntent.
+   * @param clientAuth Optional client authentication for server-side requests.
    * @returns The ID of the created intent.
    * @example
    * ```typescript
@@ -179,7 +180,7 @@ export class VeridOAuthClient {
    * });
    * ```
    */
-  async createIntent(intent: BaseIntent): Promise<string> {
+  async createIntent(intent: BaseIntent, clientAuth?: ClientAuth): Promise<string> {
     const authorizationServer = await this.provider.discover(this.issuer);
     assertUrlString(
       authorizationServer.intent_endpoint,
@@ -188,13 +189,24 @@ export class VeridOAuthClient {
     );
     const url = new URL(authorizationServer.intent_endpoint);
 
+    // Build headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Authorization header if clientAuth is provided (client credentials style)
+    if (clientAuth) {
+      assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
+      assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
+      const credentials = btoa(`${this.client_id}:${clientAuth.client_secret}`);
+      headers['Authorization'] = `Basic ${credentials}`;
+    }
+
     try {
     // Call intent endpoint
     const intentResponse = await fetch(`${url}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(intent),
     });
 

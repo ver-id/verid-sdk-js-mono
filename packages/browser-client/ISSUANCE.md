@@ -181,10 +181,8 @@ Generate the issuance URL using the created intent:
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
   intent_id: intentId, // Intent ID is mandatory for issuance flows
-  pkceOptions: {
-    state: state, // Use the state from Step 1
-    codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  },
+  state: state, // Use the state from Step 1
+  codeChallenge: codeChallenge, // Use the code challenge from Step 1
 });
 ```
 
@@ -201,13 +199,11 @@ You can provide your own unique state identifier:
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
   intent_id: intentId,
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-  },
+  state: '<UNIQUE_STATE>',
 });
 ```
 
-**Important:** State is mandatory if `pkceOptions` are being provided.
+**Important:** State is mandatory if code challenge is being provided.
 
 ##### Using External Code Challenge
 
@@ -216,10 +212,8 @@ You can provide an externally generated code challenge. This is useful when the 
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
   intent_id: intentId,
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-  },
+  state: '<UNIQUE_STATE>',
+  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
 });
 ```
 
