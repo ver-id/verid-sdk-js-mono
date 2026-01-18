@@ -100,14 +100,18 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<string> {
+    // Check for non-empty data array and non-empty mapping object
+    const hasData = Array.isArray(issuanceIntent.payload.data) && issuanceIntent.payload.data.length > 0;
+    const hasMapping = issuanceIntent.payload.mapping && Object.keys(issuanceIntent.payload.mapping).length > 0;
+
     assert(
-      issuanceIntent.payload.data || issuanceIntent.payload.mapping,
+      hasData || hasMapping,
       'At least one of payload.data or payload.mapping must be provided in issuance intent',
       InvalidArgumentError
     );
 
     assert(
-      !(issuanceIntent.payload.data && issuanceIntent.payload.mapping),
+      !(hasData && hasMapping),
       'Both payload.data and payload.mapping should not be provided together.',
       InvalidArgumentError
     );
