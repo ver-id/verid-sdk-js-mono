@@ -127,6 +127,7 @@ const issuanceClient = new VeridIssuanceClient({
 const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
 
 // Step 2: Create issuance intent (required for issuance flows)
+// Only pass either payload.mapping or payload.data
 const intentId = await issuanceClient.createIssuanceIntent(
   {
     payload: {
