@@ -2,7 +2,6 @@
   "name": "@verid-sdk-js-mono/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -67,5 +66,6 @@
     "rxjs": "^7.8.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
-  }
+  },
+  "packageManager": "yarn@4.12.0"
 }
