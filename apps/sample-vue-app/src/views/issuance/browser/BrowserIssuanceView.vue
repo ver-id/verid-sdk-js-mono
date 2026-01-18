@@ -171,7 +171,7 @@
             height="200px"
             placeholder="[]"
           />
-          <small>Array of data items with attributeUuid, credentialUuid, issuerUuid, schemeUuid, providerUuid, and value</small>
+          <small>Array of data items with attributeUuid and value</small>
         </div>
 
         <h4 style="margin-top: 1.5rem;">

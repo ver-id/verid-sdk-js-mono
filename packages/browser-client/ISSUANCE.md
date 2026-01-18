@@ -136,10 +136,6 @@ const intentId = await issuanceClient.createIssuanceIntent(
     payload: {
       data: [{
         attributeUuid: '<ATTRIBUTE_UUID>', // UUID of the attribute being issued
-        credentialUuid: '<CREDENTIAL_UUID>', // UUID of the credential type
-        issuerUuid: '<ISSUER_UUID>', // UUID of the issuer
-        schemeUuid: '<SCHEME_UUID>', // UUID of the credential scheme
-        providerUuid: '<PROVIDER_UUID>', // UUID of the provider
         value: 'John',
       }],
     },
@@ -163,10 +159,6 @@ Required (choose **one**):
 - `payload.mapping` - Object mapping credential attribute names to values
 - `payload.data` - Explicit credential data object with UUIDs and values
   - `payload.data.attributeUuid` - UUID of the attribute being issued
-  - `payload.data.credentialUuid` - UUID of the credential type
-  - `payload.data.issuerUuid` - Your issuer UUID
-  - `payload.data.schemeUuid` - UUID of the credential scheme
-  - `payload.data.providerUuid` - UUID of the provider
   - `payload.data.value` - The actual credential data to be issued
 
 Optional:

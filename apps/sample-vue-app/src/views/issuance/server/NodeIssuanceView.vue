@@ -190,7 +190,7 @@
               height="200px"
               placeholder="[]"
             />
-            <small style="color: #666;">Array of data items with attributeUuid, credentialUuid, issuerUuid, schemeUuid, providerUuid, and value</small>
+            <small style="color: #666;">Array of data items with attributeUuid and value</small>
           </div>
 
           <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">
@@ -419,10 +419,6 @@ const intentOptions = ref({
     mapping: {} as Record<string, unknown>,
     data: [] as Array<{
       attributeUuid: string;
-      credentialUuid: string;
-      issuerUuid: string;
-      schemeUuid: string;
-      providerUuid: string;
       value: unknown;
     }>,
   },
@@ -540,10 +536,6 @@ const createIntent = async () => {
         mapping?: Record<string, unknown>;
         data?: Array<{
           attributeUuid: string;
-          credentialUuid: string;
-          issuerUuid: string;
-          schemeUuid: string;
-          providerUuid: string;
           value: unknown;
         }>;
       };

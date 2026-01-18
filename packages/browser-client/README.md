@@ -116,14 +116,13 @@ const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
 const intentId = await issuanceClient.createIssuanceIntent(
   {
     payload: {
-      mapping: { name: 'fullName', email: 'emailAddress' },
+      mapping: { 
+        name: 'fullName',
+        email: 'emailAddress' 
+      },
       data: {
         attributeUuid: '<ATTRIBUTE_UUID>',
-        credentialUuid: '<CREDENTIAL_UUID>',
-        issuerUuid: '<ISSUER_UUID>',
-        schemeUuid: '<SCHEME_UUID>',
-        providerUuid: '<PROVIDER_UUID>',
-        value: { fullName: 'John Doe', emailAddress: 'john@example.com' },
+        value: 'John Doe'
       },
     },
   },

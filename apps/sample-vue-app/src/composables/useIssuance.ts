@@ -24,10 +24,6 @@ export function useIssuance() {
       mapping: {} as Record<string, unknown>,
       data: [] as Array<{
         attributeUuid: string;
-        credentialUuid: string;
-        issuerUuid: string;
-        schemeUuid: string;
-        providerUuid: string;
         value: unknown;
       }>,
     },
@@ -99,10 +95,6 @@ export function useIssuance() {
         mapping?: Record<string, unknown>;
         data?: Array<{
           attributeUuid: string;
-          credentialUuid: string;
-          issuerUuid: string;
-          schemeUuid: string;
-          providerUuid: string;
           value: unknown;
         }>;
       } = {};

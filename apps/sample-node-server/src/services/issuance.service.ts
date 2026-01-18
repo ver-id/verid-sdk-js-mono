@@ -33,10 +33,6 @@ export function generateCreateIntentSnippet(
       mapping?: Record<string, unknown>;
       data?: Array<{
         attributeUuid: string;
-        credentialUuid: string;
-        issuerUuid: string;
-        schemeUuid: string;
-        providerUuid: string;
         value: unknown;
       }>;
     };

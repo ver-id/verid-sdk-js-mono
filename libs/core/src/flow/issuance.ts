@@ -21,10 +21,6 @@ export interface IssuanceIntentPayload {
     mapping?: Record<string, unknown>;
     data?: {
       attributeUuid: string;
-      credentialUuid: string;
-      issuerUuid: string;
-      schemeUuid: string;
-      providerUuid: string;
       value: unknown;
     }[];
   };
