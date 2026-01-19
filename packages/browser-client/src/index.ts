@@ -66,6 +66,7 @@ export {
   assertAttestedJwtPayload,
   assertOpenIdJwtPayload,
   assertPlainJwtPayload,
+  assertIssuanceJwtPayload
 } from '@verid-sdk-js-mono/core/utils';
 
 /**

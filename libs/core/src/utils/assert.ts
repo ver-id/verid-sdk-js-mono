@@ -6,6 +6,7 @@ import {
   AttestedJwtPayload,
   AuthenticationResponse,
   DisclosureResponse,
+  IssuanceJwtPayload,
   IssuanceResponse,
   OpenIdJwtCompanyIdentifierType,
   OpenIdJwtCompanyType,
@@ -449,6 +450,52 @@ export function assertJwtPayload(
 }
 
 /**
+ * Asserts that the given data array contains valid output data items.
+ * Validates each data item has required UUID properties and a valid JSON value.
+ * This is a common helper used by both assertAttestedJwtPayload and assertIssuanceJwtPayload.
+ *
+ * @param data - The data array to validate
+ * @param outputIndex - The index of the parent output item for error reporting
+ * @param name - The name of the parent payload for error reporting
+ * @param ctor - The error constructor to use when assertion fails
+ * @internal
+ */
+function assertOutputDataItems(
+  data: unknown[],
+  outputIndex: number,
+  name: string,
+  ctor: ErrorConstructorType,
+): void {
+  for (const [dataIndex, dataItem] of data.entries()) {
+    assertObject(
+      dataItem,
+      `"dataItem" at index ${dataIndex} in "OutputItem.data" ${outputIndex} in ${name}`,
+      ctor,
+    );
+
+    for (const prop of [
+      'attributeUuid',
+      'credentialUuid',
+      'issuerUuid',
+      'schemeUuid',
+      'providerUuid',
+    ]) {
+      assertUUID(
+        dataItem[prop],
+        `"dataItem.${prop}" at index ${dataIndex} in "OutputItem.data" ${outputIndex} in ${name}`,
+        ctor,
+      );
+    }
+
+    assertJsonValue(
+      dataItem.value,
+      `"dataItem.value" at index ${dataIndex} in "OutputItem.data" ${outputIndex} in ${name}`,
+      ctor,
+    );
+  }
+}
+
+/**
  * Asserts that the given value is a valid AttestedJwtPayload.
  * Validates JWT payload with output array containing disclosure/signature data.
  * Recursively validates all nested OutputItem and OutputData structures.
@@ -497,31 +544,77 @@ export function assertAttestedJwtPayload(
     // Validate data
     assertArray(item.data, `"OutputItem.data" at index ${index} in ${name}`, ctor);
 
-    // Validate each data item
-    for (const [dataIndex, dataItem] of (item.data as unknown[]).entries()) {
+    // Validate each data item using common helper
+    assertOutputDataItems(item.data as unknown[], index, name, ctor);
+
+    // Validate mapping
+    assertObject(item.mapping, `"OutputItem.mapping" at index ${index} in ${name}`, ctor);
+  }
+}
+
+/**
+ * Asserts that the given value is a valid IssuanceJwtPayload.
+ * Validates JWT payload with output array containing issuance data.
+ * Recursively validates all nested IssuanceOutputItem and IssuanceOutputData structures.
+ *
+ * @param value - The value to validate as an IssuanceJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid IssuanceJwtPayload (by default)
+ * @throws {Error} Custom error type when specified and value is not valid
+ */
+export function assertIssuanceJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is IssuanceJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  // Check output property
+  assert('output' in value, `Invalid "output" in ${name}: should be defined.`, ctor);
+  assertArray(value.output, `"output" in ${name}`, ctor);
+
+  // Validate each IssuanceOutputItem
+  for (const [index, item] of value.output.entries()) {
+    assertObject(item, `OutputItem at index ${index} in ${name}`, ctor);
+    // Validate uuid
+    assertString(item.uuid, `OutputItem.uuid at index ${index} in ${name}`, ctor);
+
+    // Validate parameter
+    assertObject(item.parameter, `"OutputItem.parameter" at index ${index} in ${name}`, ctor);
+    assertString(
+      (item.parameter as any).challenge,
+      `"OutputItem.parameter.challenge" at index ${index} in ${name}`,
+      ctor,
+    );
+
+    // Validate meta
+    assertObject(item.meta, `"OutputItem.meta" at index ${index} in ${name}`, ctor);
+
+    // Validate data
+    assertArray(item.data, `"OutputItem.data" at index ${index} in ${name}`, ctor);
+
+    // Validate each data item using common helper
+    assertOutputDataItems(item.data as unknown[], index, name, ctor);
+
+    // Validate revocationKeys
+    assertArray(item.revocationKeys, `"OutputItem.revocationKeys" at index ${index} in ${name}`, ctor);
+    for (const [keyIndex, keyItem] of (item.revocationKeys as unknown[]).entries()) {
       assertObject(
-        dataItem,
-        `"dataItem" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
+        keyItem,
+        `"revocationKey" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
         ctor,
       );
-
-      for (const prop of [
-        'attributeUuid',
-        'credentialUuid',
-        'issuerUuid',
-        'schemeUuid',
-        'providerUuid',
-      ]) {
-        assertUUID(
-          dataItem[prop],
-          `"dataItem.${prop}" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
-          ctor,
-        );
-      }
-
-      assertJsonValue(
-        dataItem.value,
-        `"dataItem.value" at index ${dataIndex} in "OutputItem.data" ${index} in ${name}`,
+      assertUUID(
+        (keyItem as any).credentialUuid,
+        `"revocationKey.credentialUuid" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
+        ctor,
+      );
+      assertString(
+        (keyItem as any).key,
+        `"revocationKey.key" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
         ctor,
       );
     }

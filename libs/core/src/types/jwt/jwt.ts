@@ -7,12 +7,14 @@ import { JWTPayload, JWTHeaderParameters } from 'jose';
  * @public
  */
 export enum JwtType {
-  /** Plain disclosure format with full nested structure */
+  /** Plain output token */
   'jwt_ssi_output_plain_v1' = 'ver-id/ssi/output/plain/v1+JWT',
-  /** Attested disclosure format with cryptographic attestation */
+  /** Attested output token */
   'jwt_ssi_output_attested_v1' = 'ver-id/ssi/output/attested/v1+JWT',
-  /** OpenID Connect format with standard OIDC claims */
+  /** OpenID Connect output token */
   'jwt_ssi_output_openid_v1' = 'ver-id/ssi/output/openid/v1+JWT',
+  /** Issuance output token */
+  'jwt_ssi_output_issuance_v1' = 'ver-id/ssi/output/issuance/v1+JWT',
 }
 
 /**
