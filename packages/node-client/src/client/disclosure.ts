@@ -32,7 +32,7 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
   constructor(config: DisclosureClientConfig) {
-    super(config, new FileStorageCacheManager());
+    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
   }
 
   /**

@@ -32,7 +32,7 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
   constructor(config: AuthenticationClientConfig) {
-    super(config, new FileStorageCacheManager());
+    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
   }
 
   /**

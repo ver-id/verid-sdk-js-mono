@@ -32,7 +32,7 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
   constructor(config: IssuanceClientConfig) {
-    super(config, new FileStorageCacheManager());
+    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
   }
 
   /**
