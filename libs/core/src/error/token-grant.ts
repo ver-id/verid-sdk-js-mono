@@ -1,46 +1,25 @@
+import { VeridError } from './base.js';
+
 /**
  * Error thrown when token grant request is failed.
  *
  * @public
- * @extends Error
  */
-export class TokenGrantError extends Error {
-  /**
-   * Error type identifier.
-   * @protected
-   */
-  protected _type = 'ERR_TOKEN_GRANT';
-  /**
-   * Human-readable error type description.
-   * @protected
-   */
-  protected _type_description = 'Token grant error.';
+export class TokenGrantError extends VeridError {
+  protected readonly _type = 'ERR_TOKEN_GRANT';
+  protected readonly _type_description = 'Token grant error.';
 
   /**
    * Creates a new TokenGrantError instance.
    *
-   * @param message - Detailed error message describing what's wrong with the response
+   * @param message - Detailed error message describing what went wrong
+   * @param err - Optional underlying error that caused the failure
    */
   constructor(message: string, err?: unknown) {
-    const errorMessage = `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`;
+    const errorMessage =
+      err !== undefined
+        ? `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`
+        : message.trim();
     super(errorMessage);
-  }
-
-  /**
-   * Gets the error type identifier.
-   *
-   * @returns The error type string
-   */
-  get type() {
-    return this._type;
-  }
-
-  /**
-   * Gets the human-readable error type description.
-   *
-   * @returns The error type description string
-   */
-  get type_description() {
-    return this._type_description;
   }
 }

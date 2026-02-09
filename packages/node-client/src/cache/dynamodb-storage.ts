@@ -9,14 +9,15 @@ let commandsCache: {
   PutCommand: new (input: unknown) => unknown;
   GetCommand: new (input: unknown) => unknown;
   DeleteCommand: new (input: unknown) => unknown;
+  ScanCommand: new (input: unknown) => unknown;
 } | null = null;
 
 async function loadCommands() {
   if (!commandsCache) {
     try {
       // @ts-expect-error — @aws-sdk/lib-dynamodb is an optional peer dependency resolved at runtime
-      const { PutCommand, GetCommand, DeleteCommand } = await import('@aws-sdk/lib-dynamodb');
-      commandsCache = { PutCommand, GetCommand, DeleteCommand };
+      const { PutCommand, GetCommand, DeleteCommand, ScanCommand } = await import('@aws-sdk/lib-dynamodb');
+      commandsCache = { PutCommand, GetCommand, DeleteCommand, ScanCommand };
     } catch {
       throw new InvalidArgumentError(
         '@aws-sdk/lib-dynamodb is required to use DynamoDBCacheManager. ' +
@@ -191,5 +192,43 @@ export class DynamoDBCacheManager implements ICacheManager {
         Key: { pk: this.prefixedKey(key) },
       }),
     );
+  }
+
+  /**
+   * Removes all cache entries that match the configured prefix.
+   * Performs a table scan filtered by prefix, then deletes each matching item.
+   *
+   * @remarks Use sparingly — scans read the entire table and may incur cost at scale.
+   */
+  async clear(): Promise<void> {
+    const commands = await loadCommands();
+    let lastKey: Record<string, unknown> | undefined;
+
+    do {
+      const scanResult = (await this.client.send(
+        new commands.ScanCommand({
+          TableName: this.tableName,
+          FilterExpression: 'begins_with(pk, :prefix)',
+          ExpressionAttributeValues: { ':prefix': this.prefix },
+          ProjectionExpression: 'pk',
+          ...(lastKey ? { ExclusiveStartKey: lastKey } : {}),
+        }),
+      )) as { Items?: { pk: string }[]; LastEvaluatedKey?: Record<string, unknown> };
+
+      if (scanResult.Items) {
+        await Promise.all(
+          scanResult.Items.map((item) =>
+            this.client.send(
+              new commands.DeleteCommand({
+                TableName: this.tableName,
+                Key: { pk: item.pk },
+              }),
+            ),
+          ),
+        );
+      }
+
+      lastKey = scanResult.LastEvaluatedKey;
+    } while (lastKey);
   }
 }

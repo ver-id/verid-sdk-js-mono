@@ -14,6 +14,8 @@ import type { ICacheManager } from '@verid-sdk-js-mono/core';
  *
  * Perfect for short-lived data like PKCE verifiers and OAuth state
  * within a single request lifecycle or Lambda invocation.
+ *
+ * @public
  */
 export class MemoryStorageCacheManager implements ICacheManager {
   private cache: Map<string, string> = new Map();

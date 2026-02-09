@@ -31,14 +31,14 @@ export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'>
  */
 export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizeParams, 'clientAuth'> {
   /**
-   * The client disclosure details.
+   * The client authentication credentials.
    */
   clientAuth: ClientAuth;
 }
 
 /**
  * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles user disclosure and retrieves ID tokens with user identity information.
+ * Handles credential disclosure and retrieves access tokens with verified credentials.
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {

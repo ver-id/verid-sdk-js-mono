@@ -1,7 +1,7 @@
 # Ver.iD Node.js Client
 
-[![npm version](https://badge.fury.io/js/@ver-id%2Fverid-node-js.svg)](https://www.npmjs.com/package/@ver-id/node-client)
-[![Build Status](https://github.com/ver-id/verid-node-js/workflows/CI/badge.svg)](https://github.com/ver-id/verid-node-js/actions)
+[![npm version](https://badge.fury.io/js/@ver-id%2Fnode-client.svg)](https://www.npmjs.com/package/@ver-id/node-client)
+[![Build Status](https://github.com/ver-id/verid-sdk-js-mono/workflows/CI/badge.svg)](https://github.com/ver-id/verid-sdk-js-mono/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
@@ -290,6 +290,16 @@ const authClient = new VeridAuthenticationClient({
 ```
 
 This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| `ENOENT: no such file or directory, open '...cache.json'` | The default `FileStorageCacheManager` writes to `~/.verid-cache/`. Ensure the process has write permission, or switch to `MemoryStorageCacheManager`. |
+| State mismatch on finalize | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL. |
+| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the server. |
+| `TokenGrantError` during finalize | Double-check `client_secret` and ensure the redirect URI matches exactly. |
+| Redis / DynamoDB connection errors | Ensure the cache client is connected before passing it to the cache manager constructor. |
 
 ## Acknowledgments
 

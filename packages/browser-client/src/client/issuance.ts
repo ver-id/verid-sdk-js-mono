@@ -54,13 +54,13 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
    * @returns The issuance response containing access_token and token metadata
    */
   async finalize(params?: IssuanceFinalizeParams): Promise<IssuanceResponse> {
-      // Assign callbackParams from params
-      let callbackParams = params?.callbackParams;
-  
-      // If not provided, use current window location
-      if (!callbackParams) {
-        callbackParams = window.location.href;
-      }
-      return this.finalizeIssuance({ ...params, callbackParams });
+    // Assign callbackParams from params
+    let callbackParams = params?.callbackParams;
+
+    // If not provided, use current window location
+    if (!callbackParams) {
+      callbackParams = window.location.href;
     }
+    return this.finalizeIssuance({ ...params, callbackParams });
+  }
 }

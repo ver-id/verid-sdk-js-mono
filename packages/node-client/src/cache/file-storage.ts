@@ -1,15 +1,6 @@
 import type { ICacheManager } from '@verid-sdk-js-mono/core';
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  openSync,
-  writeSync,
-  fsyncSync,
-  closeSync,
-  renameSync,
-  unlinkSync,
-} from 'fs';
+import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { mkdir, writeFile, rename, unlink } from 'fs/promises';
 import { join } from 'path';
 import { homedir, tmpdir } from 'os';
 
@@ -21,6 +12,11 @@ type KV = Record<string, string>;
  * - Atomic writes (temp -> rename)
  * - Restrictive perms
  * Perfect for PKCE verifier/state across sessions.
+ *
+ * Save and remove operations are async to avoid blocking the event loop.
+ * The constructor performs a synchronous initial load so the cache is ready immediately.
+ *
+ * @public
  */
 export class FileStorageCacheManager implements ICacheManager {
   private cacheDir: string;
@@ -35,17 +31,17 @@ export class FileStorageCacheManager implements ICacheManager {
     const base = cacheDir || join(homedir() || tmpdir(), '.verid-cache');
     this.cacheDir = base;
     this.cacheFile = join(this.cacheDir, 'cache.json');
-    this.ensureDir();
-    this.load();
+    this.ensureDirSync();
+    this.loadSync();
   }
 
-  private ensureDir() {
+  private ensureDirSync() {
     if (!existsSync(this.cacheDir)) {
       mkdirSync(this.cacheDir, { recursive: true, mode: 0o700 });
     }
   }
 
-  private load() {
+  private loadSync() {
     try {
       if (!existsSync(this.cacheFile)) {
         this.kv = {};
@@ -59,26 +55,26 @@ export class FileStorageCacheManager implements ICacheManager {
     }
   }
 
-  private persist() {
+  private async persist(): Promise<void> {
     const json = JSON.stringify(this.kv, null, 2);
     const temp = `${this.cacheFile}.${process.pid}.${Date.now()}.tmp`;
 
-    // write + fsync temp
-    let fd: number | null = null;
+    await mkdir(this.cacheDir, { recursive: true, mode: 0o700 });
+
     try {
-      fd = openSync(temp, 'w', 0o600);
-      const buf = Buffer.from(json, 'utf-8');
-      writeSync(fd, buf, 0, buf.length, 0);
-      fsyncSync(fd);
-    } finally {
-      if (fd !== null) closeSync(fd);
+      await writeFile(temp, json, { encoding: 'utf-8', mode: 0o600 });
+    } catch (err) {
+      try { await unlink(temp); } catch {
+        // intentionally ignore errors during temp file cleanup
+      }
+      throw new Error(`Failed to write cache temp file: ${err instanceof Error ? err.message : String(err)}`);
     }
 
     // atomic replace
     try {
-      renameSync(temp, this.cacheFile);
+      await rename(temp, this.cacheFile);
     } catch {
-      try { unlinkSync(temp); } catch {
+      try { await unlink(temp); } catch {
         // intentionally ignore errors during temp file cleanup
       }
       throw new Error('Failed to persist cache');
@@ -87,25 +83,25 @@ export class FileStorageCacheManager implements ICacheManager {
 
   // ICacheManager methods
 
-  save(key: string, value: string): void {
+  async save(key: string, value: string): Promise<void> {
     this.kv[key] = value;
-    this.persist();
+    await this.persist();
   }
 
   get(key: string): string | null {
     return this.kv[key] ?? null;
   }
 
-  remove(key: string): void {
+  async remove(key: string): Promise<void> {
     if (key in this.kv) {
       delete this.kv[key];
-      this.persist();
+      await this.persist();
     }
   }
 
-  clear(): void {
+  async clear(): Promise<void> {
     this.kv = {};
-    try { unlinkSync(this.cacheFile); } catch {
+    try { await unlink(this.cacheFile); } catch {
       // intentionally ignore errors during cache file removal
     }
   }

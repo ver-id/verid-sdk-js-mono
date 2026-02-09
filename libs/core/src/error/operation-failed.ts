@@ -1,21 +1,14 @@
+import { VeridError } from './base.js';
+
 /**
  * Error thrown when an operation fails to complete successfully.
  * Typically wraps underlying errors from network requests, token exchanges, or other operations.
  *
  * @public
- * @extends Error
  */
-export class OperationFailedError extends Error {
-  /**
-   * Error type identifier.
-   * @protected
-   */
-  protected _type = 'ERR_OPERATION_FAILED';
-  /**
-   * Human-readable error type description.
-   * @protected
-   */
-  protected _type_description = 'Operation failed.';
+export class OperationFailedError extends VeridError {
+  protected readonly _type = 'ERR_OPERATION_FAILED';
+  protected readonly _type_description = 'Operation failed.';
 
   /**
    * Optional error code for additional context.
@@ -31,28 +24,13 @@ export class OperationFailedError extends Error {
    * @param code - Optional error code for additional context
    */
   constructor(message: string, err?: unknown, code?: string) {
-    const errorMessage = `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`;
+    const errorMessage =
+      err !== undefined
+        ? `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`
+        : message.trim();
     super(errorMessage);
     if (code !== undefined) {
       this.code = code;
     }
-  }
-
-  /**
-   * Gets the error type identifier.
-   *
-   * @returns The error type string
-   */
-  get type() {
-    return this._type;
-  }
-
-  /**
-   * Gets the human-readable error type description.
-   *
-   * @returns The error type description string
-   */
-  get type_description() {
-    return this._type_description;
   }
 }

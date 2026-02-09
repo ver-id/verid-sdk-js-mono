@@ -1,6 +1,32 @@
 {
   "name": "@ver-id/browser-client",
   "version": "0.9.1",
+  "description": "Ver.iD Browser SDK for decentralized identity authentication, disclosure, and issuance flows",
+  "license": "MIT",
+  "author": "Ver.iD",
+  "homepage": "https://github.com/ver-id/verid-sdk-js-mono/tree/main/packages/browser-client#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ver-id/verid-sdk-js-mono.git",
+    "directory": "packages/browser-client"
+  },
+  "bugs": {
+    "url": "https://github.com/ver-id/verid-sdk-js-mono/issues"
+  },
+  "keywords": [
+    "verid",
+    "ver-id",
+    "decentralized-identity",
+    "did",
+    "verifiable-credentials",
+    "oauth2",
+    "authentication",
+    "disclosure",
+    "issuance",
+    "browser",
+    "sdk"
+  ],
+  "sideEffects": false,
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -9,13 +35,24 @@
     "./package.json": "./package.json",
     ".": {
       "@verid-sdk-js-mono/source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
       "default": "./dist/index.js"
     }
   },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
     "dist",
+    "LICENSE",
+    "*.md",
     "!**/*.tsbuildinfo"
   ],
   "publishConfig": {

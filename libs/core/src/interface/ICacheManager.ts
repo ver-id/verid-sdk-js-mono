@@ -30,4 +30,10 @@ export interface ICacheManager {
    * @param key - The cache key identifier
    */
   remove(key: string): void | Promise<void>;
+
+  /**
+   * Removes all entries from the cache.
+   * Optional — implementations that support bulk clearing should provide this.
+   */
+  clear?(): void | Promise<void>;
 }

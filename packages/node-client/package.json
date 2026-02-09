@@ -1,6 +1,35 @@
 {
   "name": "@ver-id/node-client",
   "version": "0.7.1",
+  "description": "Ver.iD Node.js SDK for decentralized identity authentication, disclosure, and issuance flows",
+  "license": "MIT",
+  "author": "Ver.iD",
+  "homepage": "https://github.com/ver-id/verid-sdk-js-mono/tree/main/packages/node-client#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ver-id/verid-sdk-js-mono.git",
+    "directory": "packages/node-client"
+  },
+  "bugs": {
+    "url": "https://github.com/ver-id/verid-sdk-js-mono/issues"
+  },
+  "keywords": [
+    "verid",
+    "ver-id",
+    "decentralized-identity",
+    "did",
+    "verifiable-credentials",
+    "oauth2",
+    "authentication",
+    "disclosure",
+    "issuance",
+    "node",
+    "sdk"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -9,13 +38,21 @@
     "./package.json": "./package.json",
     ".": {
       "@verid-sdk-js-mono/source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
       "default": "./dist/index.js"
     }
   },
   "files": [
     "dist",
+    "LICENSE",
+    "*.md",
     "!**/*.tsbuildinfo"
   ],
   "publishConfig": {

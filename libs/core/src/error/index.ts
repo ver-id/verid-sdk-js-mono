@@ -1,3 +1,4 @@
+export * from './base.js';
 export * from './invalid-argument.js';
 export * from './invalid-response.js';
 export * from './operation-failed.js';

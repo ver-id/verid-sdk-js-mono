@@ -54,13 +54,13 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
    * @returns The disclosure response containing access_token and token metadata
    */
   async finalize(params?: DisclosureFinalizeParams): Promise<DisclosureResponse> {
-      // Assign callbackParams from params
-      let callbackParams = params?.callbackParams;
-  
-      // If not provided, use current window location
-      if (!callbackParams) {
-        callbackParams = window.location.href;
-      }
-      return this.finalizeDisclosure({ ...params, callbackParams });
+    // Assign callbackParams from params
+    let callbackParams = params?.callbackParams;
+
+    // If not provided, use current window location
+    if (!callbackParams) {
+      callbackParams = window.location.href;
     }
+    return this.finalizeDisclosure({ ...params, callbackParams });
+  }
 }

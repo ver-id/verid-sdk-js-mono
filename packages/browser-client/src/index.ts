@@ -3,6 +3,7 @@ export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient }
 
 // // Cache exports (browser-specific)
 export { SessionStorageCacheManager, LocalStorageCacheManager } from './cache/index.js';
+export type { ICacheManager } from '@verid-sdk-js-mono/core';
 
 export type {
   AuthenticationClientConfig,
@@ -32,19 +33,27 @@ export type {
  * Export core errors
  */
 export {
+  VeridError,
   InvalidArgumentError,
   InvalidAssertionError,
   InvalidResponseError,
   AuthorizationResponseError,
   TokenGrantError,
   OperationFailedError,
-  UnknownError
+  UnknownError,
 } from '@verid-sdk-js-mono/core/error';
 
 /**
  * Export core oauth client
  */
-export * from '@verid-sdk-js-mono/core/oauth';
+export { VeridOAuthClient, OAuth4WebApiProvider } from '@verid-sdk-js-mono/core/oauth';
+export type {
+  OAuthClientConfig,
+  OAuthRequestParams,
+  OAuthAuthorizationCodeGrantParams,
+  OAuthClientCredentialsGrantParams,
+  IOAuthProvider,
+} from '@verid-sdk-js-mono/core/oauth';
 
 /**
  * Export core utilities
@@ -78,6 +87,7 @@ export {
 export type {
   // Payload
   AttestedJwtPayload,
+  IssuanceJwtPayload,
   OpenIdJwtPayload,
   PlainJwtPayload,
 

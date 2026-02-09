@@ -2,12 +2,19 @@
 export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient } from './client/index.js';
 
 // Cache exports
-export { FileStorageCacheManager } from './cache/index.js';
-export { MemoryStorageCacheManager } from './cache/index.js';
-export { RedisCacheManager } from './cache/index.js';
-export type { RedisCacheManagerConfig, RedisCompatibleClient } from './cache/index.js';
-export { DynamoDBCacheManager } from './cache/index.js';
-export type { DynamoDBCacheManagerConfig, DynamoDBCompatibleClient } from './cache/index.js';
+export {
+  FileStorageCacheManager,
+  MemoryStorageCacheManager,
+  RedisCacheManager,
+  DynamoDBCacheManager,
+} from './cache/index.js';
+export type {
+  RedisCacheManagerConfig,
+  RedisCompatibleClient,
+  DynamoDBCacheManagerConfig,
+  DynamoDBCompatibleClient,
+} from './cache/index.js';
+export type { ICacheManager } from '@verid-sdk-js-mono/core';
 
 export type {
   AuthenticationClientConfig,
@@ -37,19 +44,27 @@ export type {
  * Export core errors
  */
 export {
+  VeridError,
   InvalidArgumentError,
   InvalidAssertionError,
   InvalidResponseError,
   AuthorizationResponseError,
   TokenGrantError,
   OperationFailedError,
-  UnknownError
+  UnknownError,
 } from '@verid-sdk-js-mono/core/error';
 
 /**
  * Export core oauth client
  */
-export * from '@verid-sdk-js-mono/core/oauth';
+export { VeridOAuthClient, OAuth4WebApiProvider } from '@verid-sdk-js-mono/core/oauth';
+export type {
+  OAuthClientConfig,
+  OAuthRequestParams,
+  OAuthAuthorizationCodeGrantParams,
+  OAuthClientCredentialsGrantParams,
+  IOAuthProvider,
+} from '@verid-sdk-js-mono/core/oauth';
 
 /**
  * Export core utilities
@@ -83,6 +98,7 @@ export {
 export type {
   // Payload
   AttestedJwtPayload,
+  IssuanceJwtPayload,
   OpenIdJwtPayload,
   PlainJwtPayload,
 

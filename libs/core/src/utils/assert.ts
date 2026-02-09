@@ -21,7 +21,7 @@ import { convertEnumToValues } from './generic.js';
  * Matches the standard UUID format: 8-4-4-4-12 hexadecimal digits.
  * @constant
  */
-const RegExp =
+const UUID_REGEX =
   /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[1-5]{1}[0-9A-Fa-f]{3}-[ABab89]{1}[0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$/;
 
 /**
@@ -29,7 +29,7 @@ const RegExp =
  * Used to create custom error instances in assertion functions.
  * @public
  */
-type ErrorConstructorType = new (...args: any[]) => Error;
+type ErrorConstructorType = new (message: string) => Error;
 
 /**
  * Base assertion function that validates a condition and throws an error if it fails.
@@ -46,7 +46,7 @@ type ErrorConstructorType = new (...args: any[]) => Error;
  * ```
  */
 export function assert(
-  assertion: any,
+  assertion: unknown,
   message: string,
   ctor?: ErrorConstructorType,
 ): asserts assertion {
@@ -248,7 +248,7 @@ export function assertFunction(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is (...args: any[]) => any {
+): asserts value is (...args: unknown[]) => unknown {
   assert(typeof value === 'function', `Invalid ${name}: not a valid function`, error);
 }
 
@@ -307,7 +307,7 @@ export function assertUUID(
   error?: ErrorConstructorType,
 ): asserts value is UUID {
   assertString(value, name, error);
-  assert(RegExp.test(value), `Invalid ${name}: not a valid UUID`, error);
+  assert(UUID_REGEX.test(value), `Invalid ${name}: not a valid UUID`, error);
 }
 
 /**

@@ -53,6 +53,8 @@ export interface RedisCompatibleClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, ...args: unknown[]): Promise<unknown>;
   del(key: string | string[]): Promise<unknown>;
+  /** Required for {@link RedisCacheManager.clear}. Both `redis` and `ioredis` support this. */
+  keys?(pattern: string): Promise<string[]>;
 }
 
 /**
@@ -128,5 +130,20 @@ export class RedisCacheManager implements ICacheManager {
 
   async remove(key: string): Promise<void> {
     await this.client.del(this.prefixedKey(key));
+  }
+
+  /**
+   * Removes all cache entries that match the configured prefix.
+   * Requires the Redis client to implement the `keys()` method (supported by both `redis` and `ioredis`).
+   * No-op if the client does not support `keys()`.
+   */
+  async clear(): Promise<void> {
+    if (typeof this.client.keys !== 'function') {
+      return;
+    }
+    const keys = await this.client.keys(`${this.prefix}*`);
+    if (keys.length > 0) {
+      await this.client.del(keys);
+    }
   }
 }

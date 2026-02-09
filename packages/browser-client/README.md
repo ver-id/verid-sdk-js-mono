@@ -1,7 +1,7 @@
 # Ver.iD Browser Client
 
-[![npm version](https://badge.fury.io/js/@ver-id%2Fverid-browser-js.svg)](https://www.npmjs.com/package/@ver-id/browser-client)
-[![Build Status](https://github.com/ver-id/verid-browser-js/workflows/CI/badge.svg)](https://github.com/ver-id/verid-browser-js/actions)
+[![npm version](https://badge.fury.io/js/@ver-id%2Fbrowser-client.svg)](https://www.npmjs.com/package/@ver-id/browser-client)
+[![Build Status](https://github.com/ver-id/verid-sdk-js-mono/workflows/CI/badge.svg)](https://github.com/ver-id/verid-sdk-js-mono/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
@@ -150,9 +150,73 @@ const issuanceDecodedToken = await issuanceClient.decode(issuanceResponse);
 
 For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISSUANCE.md) document.
 
+## Cache Stores
+
+All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `SessionStorageCacheManager` is used. You can swap it for `LocalStorageCacheManager` — or provide your own `ICacheManager` implementation.
+
+### Session Storage (default)
+
+Persists cache to `sessionStorage`. Data is available for the lifetime of the browser tab.
+
+```ts
+import { SessionStorageCacheManager } from '@ver-id/browser-client';
+
+const cacheManager = new SessionStorageCacheManager();
+```
+
+### Local Storage
+
+Persists cache to `localStorage`. Data survives tab closes and browser restarts.
+
+```ts
+import { LocalStorageCacheManager } from '@ver-id/browser-client';
+
+const cacheManager = new LocalStorageCacheManager();
+```
+
+### Custom Cache Manager
+
+Implement the `ICacheManager` interface to integrate any storage backend:
+
+```ts
+import type { ICacheManager } from '@ver-id/browser-client';
+
+class MyCacheManager implements ICacheManager {
+  async save(key: string, value: string): Promise<void> { /* ... */ }
+  async get(key: string): Promise<string | null> { /* ... */ }
+  async remove(key: string): Promise<void> { /* ... */ }
+}
+```
+
+### Using a cache store with any flow client
+
+Pass the cache manager via the `options` property:
+
+```ts
+const authClient = new VeridAuthenticationClient({
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
+  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  redirectUri: 'REGISTERED_REDIRECT_URI',
+  options: {
+    cacheManager: new LocalStorageCacheManager(),
+  },
+});
+```
+
+This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
+
 ## Examples
 
-See the [examples](./examples) directory for complete usage examples.
+See the [sample Vue application](https://github.com/ver-id/verid-sdk-js-mono/tree/main/apps/sample-vue-app) for a complete browser integration example.
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| `sessionStorage is not defined` | You're running in a non-browser environment. Use `@ver-id/node-client` for server-side flows. |
+| State mismatch after redirect | Make sure `redirectUri` matches exactly — including trailing slashes and protocol. |
+| CORS errors on token exchange | The Ver.iD authorization server must list your origin. Check your flow settings in [Ver.iD Studio](https://spas.nebula.ver.id/). |
+| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the browser. |
 
 ## Acknowledgments
 

@@ -31,14 +31,14 @@ export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
  */
 export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams, 'clientAuth'> {
   /**
-   * The client issuance details.
+   * The client authentication credentials.
    */
   clientAuth: ClientAuth;
 }
 
 /**
  * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles user issuance and retrieves ID tokens with user identity information.
+ * Handles credential issuance and retrieves access tokens for credential storage.
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {

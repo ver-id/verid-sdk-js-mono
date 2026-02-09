@@ -21,7 +21,7 @@ export default defineConfig({
   },
   sourcemap: true,
   clean: true,
-  external: [],
+  external: ['redis', 'ioredis', '@aws-sdk/client-dynamodb', '@aws-sdk/lib-dynamodb'],
   // Bundle the @verid-sdk-js-mono/core package since it's a workspace dependency
   noExternal: [/@verid-sdk-js-mono\/core/],
   treeshake: true,
