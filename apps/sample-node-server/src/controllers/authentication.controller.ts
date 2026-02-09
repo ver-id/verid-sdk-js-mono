@@ -9,7 +9,7 @@ import {
   generateAuthUrlSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, AuthenticationClientConfig, VeridAuthenticationClient, InvalidArgumentError } from '@ver-id/node-client';
+import { assert, NodeAuthenticationClientConfig, VeridAuthenticationClient, InvalidArgumentError } from '@ver-id/node-client';
 
 /**
  * POST /api/authentication/initialize
@@ -28,7 +28,7 @@ export async function initializeAuthClient(
     assert(client_id, 'Authentication Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
-    const config: AuthenticationClientConfig = {
+    const config: NodeAuthenticationClientConfig = {
       issuerUri,
       client_id: client_id,
       redirectUri,

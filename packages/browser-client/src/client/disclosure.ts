@@ -3,6 +3,7 @@ import {
   DisclosureClientConfig,
   DisclosureFinalizeParams as CoreDisclosureFinalizeParams,
   DisclosureResponse,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -12,6 +13,16 @@ export type {
   DisclosureClientConfig,
   DisclosureRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Browser Disclosure client.
+ * `options` is optional — defaults to using SessionStorageCacheManager for caching.
+ */
+export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Disclosure finalize.
@@ -26,8 +37,13 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
-  constructor(config: DisclosureClientConfig) {
-    super(config, new SessionStorageCacheManager());
+  constructor(config: BrowserDisclosureClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
+      },
+    });
   }
 
   /**

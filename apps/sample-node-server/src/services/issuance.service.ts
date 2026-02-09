@@ -1,9 +1,9 @@
-import { IssuanceClientConfig } from '@ver-id/node-client';
+import { NodeIssuanceClientConfig } from '@ver-id/node-client';
 
 /**
  * Generate a code snippet showing the client initialization
  */
-export function generateInitCodeSnippet(config: IssuanceClientConfig): string {
+export function generateInitCodeSnippet(config: NodeIssuanceClientConfig): string {
   return `import { VeridIssuanceClient } from '@ver-id/node-client';
 
 const issuanceClient = new VeridIssuanceClient({

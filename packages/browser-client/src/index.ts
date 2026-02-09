@@ -6,6 +6,7 @@ export { SessionStorageCacheManager, LocalStorageCacheManager } from './cache/in
 
 export type {
   AuthenticationClientConfig,
+  BrowserAuthenticationClientConfig,
   AuthenticationIntentPayload,
   AuthenticationRequestParams,
   AuthenticationFinalizeParams,
@@ -13,6 +14,7 @@ export type {
 
 export type {
   DisclosureClientConfig,
+  BrowserDisclosureClientConfig,
   DisclosureIntentPayload,
   DisclosureRequestParams,
   DisclosureFinalizeParams,
@@ -20,6 +22,7 @@ export type {
 
 export type {
   IssuanceClientConfig,
+  BrowserIssuanceClientConfig,
   IssuanceIntentPayload,
   IssuanceRequestParams,
   IssuanceFinalizeParams,

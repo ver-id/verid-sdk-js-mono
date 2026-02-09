@@ -3,6 +3,7 @@ import {
   AuthenticationResponse,
   AuthenticationClientConfig,
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -12,6 +13,16 @@ export type {
   AuthenticationClientConfig,
   AuthenticationRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Browser Authentication client.
+ * `options` is optional — defaults to using SessionStorageCacheManager for caching.
+ */
+export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Authentication finalize.
@@ -26,8 +37,13 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
-  constructor(config: AuthenticationClientConfig) {
-    super(config, new SessionStorageCacheManager());
+  constructor(config: BrowserAuthenticationClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
+      },
+    });
   }
 
   /**

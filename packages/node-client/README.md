@@ -172,6 +172,125 @@ For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISS
 
 See the [apps/sample-node-server](../../apps/sample-node-server) directory for a complete Express.js server implementation demonstrating authentication and verification flows.
 
+## Cache Stores
+
+All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `FileStorageCacheManager` is used. You can swap it for any built-in store — or provide your own `ICacheManager` implementation.
+
+### File Storage (default)
+
+Persists cache to a JSON file on disk. Suitable for single-process servers and local development.
+
+```ts
+import { FileStorageCacheManager } from '@ver-id/node-client';
+
+// Uses default directory: ~/.verid-cache/cache.json
+const cacheManager = new FileStorageCacheManager();
+
+// Or specify a custom directory
+const cacheManager = new FileStorageCacheManager('/tmp/my-app-cache');
+```
+
+### Memory Storage
+
+In-memory `Map`-based store. Fastest option but data is lost on process restart and not shared across instances.
+
+```ts
+import { MemoryStorageCacheManager } from '@ver-id/node-client';
+
+const cacheManager = new MemoryStorageCacheManager();
+```
+
+### Redis
+
+Shared cache for distributed / multi-instance deployments. Works with both [`redis`](https://www.npmjs.com/package/redis) (node-redis) and [`ioredis`](https://www.npmjs.com/package/ioredis).
+
+Install one of the Redis client libraries:
+
+```bash
+npm install redis
+# or
+npm install ioredis
+```
+
+**Using `redis` (node-redis):**
+
+```ts
+import { createClient } from 'redis';
+import { RedisCacheManager } from '@ver-id/node-client';
+
+const redisClient = createClient({ url: 'redis://localhost:6379' });
+await redisClient.connect();
+
+const cacheManager = new RedisCacheManager({
+  client: redisClient,
+  options: {
+    prefix: 'myapp:',    // optional, default: 'verid:'
+    ttlSeconds: 600,      // optional, auto-expire after 10 minutes
+  },
+});
+```
+
+**Using `ioredis`:**
+
+```ts
+import Redis from 'ioredis';
+import { RedisCacheManager } from '@ver-id/node-client';
+
+const redisClient = new Redis();
+
+const cacheManager = new RedisCacheManager({ client: redisClient });
+```
+
+### AWS DynamoDB
+
+Serverless cache for AWS-native environments. Ideal for Lambda deployments where Redis isn't available.
+
+Install the AWS SDK packages:
+
+```bash
+npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+```
+
+**DynamoDB table requirements:**
+- Partition key: `pk` (String)
+- Optional TTL attribute: `ttl` (Number) — [enable DynamoDB TTL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) on this attribute
+
+```ts
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBCacheManager } from '@ver-id/node-client';
+
+const dynamoClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ region: 'us-east-1' }),
+);
+
+const cacheManager = new DynamoDBCacheManager({
+  client: dynamoClient,
+  tableName: 'verid-cache',
+  options: {
+    prefix: 'myapp:',    // optional, default: 'verid:'
+    ttlSeconds: 600,      // optional, requires DynamoDB TTL enabled on `ttl` attribute
+  },
+});
+```
+
+### Using a cache store with any flow client
+
+Pass the cache manager via the `options.cacheManager` property:
+
+```ts
+const authClient = new VeridAuthenticationClient({
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
+  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  redirectUri: 'REGISTERED_REDIRECT_URI',
+  options: {
+    cacheManager: new RedisCacheManager({ client: redisClient }),
+  },
+});
+```
+
+This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
+
 ## Acknowledgments
 
 - Built with TypeScript

@@ -1,11 +1,17 @@
 // client exports
 export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient } from './client/index.js';
 
-// // Cache exports
-export { FileStorageCacheManager} from './cache/index.js';
+// Cache exports
+export { FileStorageCacheManager } from './cache/index.js';
+export { MemoryStorageCacheManager } from './cache/index.js';
+export { RedisCacheManager } from './cache/index.js';
+export type { RedisCacheManagerConfig, RedisCompatibleClient } from './cache/index.js';
+export { DynamoDBCacheManager } from './cache/index.js';
+export type { DynamoDBCacheManagerConfig, DynamoDBCompatibleClient } from './cache/index.js';
 
 export type {
   AuthenticationClientConfig,
+  NodeAuthenticationClientConfig,
   AuthenticationIntentPayload,
   AuthenticationRequestParams,
   AuthenticationFinalizeParams,
@@ -13,6 +19,7 @@ export type {
 
 export type {
   DisclosureClientConfig,
+  NodeDisclosureClientConfig,
   DisclosureIntentPayload,
   DisclosureRequestParams,
   DisclosureFinalizeParams,
@@ -20,6 +27,7 @@ export type {
 
 export type {
   IssuanceClientConfig,
+  NodeIssuanceClientConfig,
   IssuanceIntentPayload,
   IssuanceRequestParams,
   IssuanceFinalizeParams,

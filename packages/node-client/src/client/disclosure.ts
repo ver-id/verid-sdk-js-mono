@@ -5,6 +5,7 @@ import {
   DisclosureFinalizeParams as CoreDisclosureFinalizeParams,
   DisclosureIntentPayload,
   ClientAuth,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
@@ -14,6 +15,16 @@ export type {
   DisclosureClientConfig,
   DisclosureRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Node.js Disclosure client.
+ * `options` is optional — defaults to using FileStorageCacheManager for caching.
+ */
+export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Disclosure finalize.
@@ -31,8 +42,13 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
-  constructor(config: DisclosureClientConfig) {
-    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
+  constructor(config: NodeDisclosureClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
+      },
+    });
   }
 
   /**

@@ -1,4 +1,3 @@
-import { ICacheManager } from '../interface/ICacheManager.js';
 import { Jwt, JWTPayload } from '../types/jwt/index.js';
 import { assertDisclosureResponse } from '../utils/assert.js';
 import { DisclosureResponse } from '../types/response/index.js';
@@ -50,9 +49,8 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
    * Creates a new disclosure client.
    * 
    * @param config - The disclosure client configuration
-   * @param defaultCacheManager - The default cache manager to use (package-specific)
    */
-  constructor(config: DisclosureClientConfig, defaultCacheManager: ICacheManager) {
+  constructor(config: DisclosureClientConfig) {
     super(
       {
         issuerUri: config.issuerUri,
@@ -60,7 +58,6 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
         redirectUri: config.redirectUri,
         options: config.options,
       },
-      defaultCacheManager,
     );
   }
 

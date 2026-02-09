@@ -1,9 +1,9 @@
-import { DisclosureClientConfig } from '@ver-id/node-client';
+import { NodeDisclosureClientConfig } from '@ver-id/node-client';
 
 /**
  * Generate a code snippet showing the client initialization
  */
-export function generateInitCodeSnippet(config: DisclosureClientConfig): string {
+export function generateInitCodeSnippet(config: NodeDisclosureClientConfig): string {
   return `import { VeridDisclosureClient } from '@ver-id/node-client';
 
 const authClient = new VeridDisclosureClient({

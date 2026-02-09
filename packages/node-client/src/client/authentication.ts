@@ -5,6 +5,7 @@ import {
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
   AuthenticationIntentPayload,
   ClientAuth,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
@@ -14,6 +15,16 @@ export type {
   AuthenticationClientConfig,
   AuthenticationRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Node.js Authentication client.
+ * `options` is optional — defaults to using FileStorageCacheManager for caching.
+ */
+export type NodeAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Authentication finalize.
@@ -31,8 +42,13 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
-  constructor(config: AuthenticationClientConfig) {
-    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
+  constructor(config: NodeAuthenticationClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
+      },
+    });
   }
 
   /**

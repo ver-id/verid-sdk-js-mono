@@ -1,9 +1,9 @@
-import { AuthenticationClientConfig } from '@ver-id/node-client';
+import { NodeAuthenticationClientConfig } from '@ver-id/node-client';
 
 /**
  * Generate a code snippet showing the client initialization
  */
-export function generateInitCodeSnippet(config: AuthenticationClientConfig): string {
+export function generateInitCodeSnippet(config: NodeAuthenticationClientConfig): string {
   return `import { VeridAuthenticationClient } from '@ver-id/node-client';
 
 const authClient = new VeridAuthenticationClient({

@@ -3,6 +3,7 @@ import {
   IssuanceClientConfig,
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
   IssuanceResponse,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -12,6 +13,16 @@ export type {
   IssuanceClientConfig,
   IssuanceRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Browser Issuance client.
+ * `options` is optional — defaults to using SessionStorageCacheManager for caching.
+ */
+export type BrowserIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Issuance finalize.
@@ -26,8 +37,13 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
-  constructor(config: IssuanceClientConfig) {
-    super(config, new SessionStorageCacheManager());
+  constructor(config: BrowserIssuanceClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
+      },
+    });
   }
 
   /**

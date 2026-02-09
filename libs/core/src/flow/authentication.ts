@@ -1,4 +1,3 @@
-import { ICacheManager } from '../interface/ICacheManager.js';
 import { Jwt } from '../types/jwt/index.js';
 import { assertAuthenticationResponse } from '../utils/assert.js';
 import { assertOpenIdJwtPayload } from '../utils/assert.js';
@@ -50,7 +49,7 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
    * @param config - The authentication client configuration
    * @param defaultCacheManager - The default cache manager to use (package-specific)
    */
-  constructor(config: AuthenticationClientConfig, defaultCacheManager: ICacheManager) {
+  constructor(config: AuthenticationClientConfig) {
     super(
       {
         issuerUri: config.issuerUri,
@@ -58,7 +57,6 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
         redirectUri: config.redirectUri,
         options: config.options,
       },
-      defaultCacheManager,
     );
   }
 

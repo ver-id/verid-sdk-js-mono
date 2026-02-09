@@ -9,7 +9,7 @@ import {
   generateDisclosureUrlSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, DisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload } from '@ver-id/node-client';
+import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload } from '@ver-id/node-client';
 
 /**
  * POST /api/disclosure/initialize
@@ -28,7 +28,7 @@ export async function initializeDisclosureClient(
     assert(client_id, 'Disclosure Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
-    const config: DisclosureClientConfig = {
+    const config: NodeDisclosureClientConfig = {
       issuerUri,
       client_id: client_id,
       redirectUri,

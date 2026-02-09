@@ -28,13 +28,13 @@ export interface FlowBaseClientConfig {
    */
   redirectUri: string;
   /**
-   * Optional configuration settings
+   * Additional options for the flow client.
    */
-  options?: {
+  options: {
     /**
      * Custom cache manager for storing flow state and code verifiers.
      */
-    cacheManager?: ICacheManager;
+    cacheManager: ICacheManager;
   };
 }
 
@@ -123,9 +123,8 @@ export class VeridFlowBaseClient {
    * Creates a new flow client.
    * 
    * @param config - The flow client configuration
-   * @param defaultCacheManager - The default cache manager to use if none is provided in config
    */
-  constructor(config: FlowBaseClientConfig, defaultCacheManager: ICacheManager) {
+  constructor(config: FlowBaseClientConfig) {
     assertUrlString(config.issuerUri, 'issuerUri');
     assertUrlString(config.redirectUri, 'redirectUri');
     assertString(config.client_id, 'flowId', InvalidArgumentError);
@@ -137,12 +136,8 @@ export class VeridFlowBaseClient {
 
     this.redirectUri = config.redirectUri;
 
-    if (config.options?.cacheManager) {
-      assertCacheManager(config.options.cacheManager, 'cacheManager', InvalidArgumentError);
-      this.cacheManager = config.options.cacheManager;
-    } else {
-      this.cacheManager = defaultCacheManager;
-    }
+    assertCacheManager(config.options.cacheManager, 'cacheManager', InvalidArgumentError);
+    this.cacheManager = config.options.cacheManager;
   }
 
   /**
@@ -160,7 +155,7 @@ export class VeridFlowBaseClient {
     
     const { codeChallenge, codeVerifier } = await this.oauthClient.generateCodeChallenge();
     const randomState = state || this.oauthClient.generateRandomState();
-    this.cacheManager.save(randomState, codeVerifier);
+    await this.cacheManager.save(randomState, codeVerifier);
 
     return { codeChallenge, state: randomState };
   }
@@ -205,7 +200,7 @@ export class VeridFlowBaseClient {
 
     const { codeChallenge, codeVerifier } = await this.oauthClient.generateCodeChallenge();
     const state = this.oauthClient.generateRandomState();
-    this.cacheManager.save(state, codeVerifier);
+    await this.cacheManager.save(state, codeVerifier);
 
     return { codeChallenge, state };
   }
@@ -264,14 +259,14 @@ export class VeridFlowBaseClient {
     const state = callbackParams.get('state');
     assertString(state, 'state', InvalidAssertionError);
 
-    const codeVerifier = this.cacheManager.get(state);
+    const codeVerifier = await this.cacheManager.get(state);
     if (!codeVerifier) {
       throw new OperationFailedError(
         `Invalid code verifier: missing or expired code verifier for state ${state}`,
       );
     }
 
-    this.cacheManager.remove(state);
+    await this.cacheManager.remove(state);
 
     const response = await this.oauthClient.authorizationCodeGrant({
       redirect_uri: this.redirectUri,

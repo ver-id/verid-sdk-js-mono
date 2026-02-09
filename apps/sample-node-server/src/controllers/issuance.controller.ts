@@ -8,7 +8,7 @@ import {
   generateIssuanceUrlWithIntentSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, IssuanceClientConfig, VeridIssuanceClient, InvalidArgumentError, IssuanceIntentPayload } from '@ver-id/node-client';
+import { assert, NodeIssuanceClientConfig, VeridIssuanceClient, InvalidArgumentError, IssuanceIntentPayload } from '@ver-id/node-client';
 
 /**
  * POST /api/issuance/initialize
@@ -27,7 +27,7 @@ export async function initializeIssuanceClient(
     assert(client_id, 'Issuance Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
-    const config: IssuanceClientConfig = {
+    const config: NodeIssuanceClientConfig = {
       issuerUri,
       client_id: client_id,
       redirectUri,

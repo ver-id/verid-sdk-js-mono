@@ -1,4 +1,3 @@
-import { ICacheManager } from '../interface/ICacheManager.js';
 import { Jwt, JWTPayload } from '../types/jwt/index.js';
 import { assert, assertArray, assertIssuanceResponse, assertObject } from '../utils/assert.js';
 import { IssuanceResponse } from '../types/response/index.js';
@@ -60,9 +59,8 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
    * Creates a new issuance client.
    * 
    * @param config - The issuance client configuration
-   * @param defaultCacheManager - The default cache manager to use (package-specific)
    */
-  constructor(config: IssuanceClientConfig, defaultCacheManager: ICacheManager) {
+  constructor(config: IssuanceClientConfig) {
     super(
       {
         issuerUri: config.issuerUri,
@@ -70,7 +68,6 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
         redirectUri: config.redirectUri,
         options: config.options,
       },
-      defaultCacheManager,
     );
   }
 

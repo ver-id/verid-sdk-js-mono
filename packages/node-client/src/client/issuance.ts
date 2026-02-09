@@ -5,6 +5,7 @@ import {
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
   IssuanceIntentPayload,
   ClientAuth,
+  ICacheManager,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
@@ -14,6 +15,16 @@ export type {
   IssuanceClientConfig,
   IssuanceRequestParams,
 } from '@verid-sdk-js-mono/core';
+
+/**
+ * Configuration for the Node.js Issuance client.
+ * `options` is optional — defaults to using FileStorageCacheManager for caching.
+ */
+export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
+  options?: {
+    cacheManager?: ICacheManager;
+  };
+};
 
 /**
  * Parameters to Issuance finalize.
@@ -31,8 +42,13 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
-  constructor(config: IssuanceClientConfig) {
-    super(config, config.options?.cacheManager ?? new FileStorageCacheManager());
+  constructor(config: NodeIssuanceClientConfig) {
+    super({
+      ...config,
+      options: {
+        cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
+      },
+    });
   }
 
   /**

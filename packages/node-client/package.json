@@ -21,6 +21,26 @@
   "publishConfig": {
     "access": "public"
   },
+  "peerDependencies": {
+    "redis": ">=4.0.0",
+    "ioredis": ">=5.0.0",
+    "@aws-sdk/client-dynamodb": ">=3.0.0",
+    "@aws-sdk/lib-dynamodb": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "redis": {
+      "optional": true
+    },
+    "ioredis": {
+      "optional": true
+    },
+    "@aws-sdk/client-dynamodb": {
+      "optional": true
+    },
+    "@aws-sdk/lib-dynamodb": {
+      "optional": true
+    }
+  },
   "nx": {
     "targets": {
       "build": {
