@@ -13,7 +13,11 @@ export default [
             '{projectRoot}/esbuild.config.{js,ts,mjs,mts}',
           ],
           ignoredDependencies: [
-            'tsup'
+            'tsup',
+            'redis',
+            'ioredis',
+            '@aws-sdk/client-dynamodb',
+            '@aws-sdk/lib-dynamodb',
           ],
         },
       ],
