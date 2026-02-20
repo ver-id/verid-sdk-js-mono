@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/browser-client",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Ver.iD Browser SDK for decentralized identity authentication, disclosure, and issuance flows",
   "license": "MIT",
   "author": "Ver.iD",

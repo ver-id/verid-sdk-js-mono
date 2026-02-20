@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/graphql-client",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Ver.iD GraphQL client for querying the Ver.iD platform API",
   "license": "MIT",
   "author": "Ver.iD",
