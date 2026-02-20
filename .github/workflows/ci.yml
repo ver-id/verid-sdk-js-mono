@@ -152,6 +152,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      # Ensure local main is up-to-date before nx release pushes commits/tags
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
       # Keep building before releasing so publish has fresh artifacts
       - name: Build affected projects
         run: |
