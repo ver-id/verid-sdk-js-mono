@@ -122,7 +122,7 @@ jobs:
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
 
-  # Stage 6: Build and Publish to GitHub Packages (only on main push)
+  # Stage 6: Build and Publish to npm & GitHub Packages (only on main push)
   build-and-publish:
     needs: [setup, test, typecheck, lint]
     runs-on: ubuntu-latest
@@ -141,7 +141,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          registry-url: 'https://npm.pkg.github.com'
+          registry-url: 'https://registry.npmjs.org'
           always-auth: true
 
       - name: Install dependencies
@@ -160,11 +160,11 @@ jobs:
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
 
-      # version + changelog + publish (only affected)
-      - name: Release affected (version, changelog, publish)
+      # version + changelog + publish to npm (only affected)
+      - name: Release affected (version, changelog, publish to npm)
         env:
-          # GitHub Packages auth for npm publish
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # npm registry auth for publish
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Get affected projects from packages/ directory (which are the publishable ones)
@@ -222,6 +222,35 @@ jobs:
             npx nx release -y --projects="$AFFECTED" --verbose
           fi
 
+      # Publish to GitHub Packages as a secondary registry
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Switch registry to GitHub Packages
+          npm config set registry https://npm.pkg.github.com
+
+          AFFECTED="$(npx nx show projects --affected \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --projects="packages/*" \
+            --sep=",")"
+
+          if [ -z "$AFFECTED" ]; then
+            echo "No affected projects. Skipping GitHub Packages publish."
+            exit 0
+          fi
+
+          echo "Publishing to GitHub Packages: $AFFECTED"
+          for project in ${AFFECTED//,/ }; do
+            PKG_DIR="packages/${project#@verid-sdk-js-mono/}"
+            if [ -d "$PKG_DIR/dist" ]; then
+              echo "Publishing $project to GitHub Packages..."
+              cd "$PKG_DIR"
+              npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
+              cd "$GITHUB_WORKSPACE"
+            fi
+          done
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:

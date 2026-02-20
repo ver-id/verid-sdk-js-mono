@@ -1,5 +1,5 @@
 {
-  "name": "@verid-sdk-js-mono/source",
+  "name": "@ver-id/sdk",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
