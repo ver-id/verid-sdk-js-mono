@@ -5,6 +5,7 @@
   "dependencies": {
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
-    "monaco-editor": "^0.54.0"
+    "monaco-editor": "^0.54.0",
+    "rxjs": "^7.8.1"
   }
 }
