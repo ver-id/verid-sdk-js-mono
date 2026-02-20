@@ -184,7 +184,7 @@ jobs:
           # Check for first release (packages without version in package.json)
           FIRST_RELEASE=""
           for project in ${AFFECTED//,/ }; do
-            PKG_PATH="packages/${project#@verid-sdk-js-mono/}/package.json"
+            PKG_PATH="packages/${project##*js-mono/}/package.json"
             if [ -f "$PKG_PATH" ]; then
               VERSION=$(node -p "require('./$PKG_PATH').version || ''")
               if [ -z "$VERSION" ] || [ "$VERSION" = "0.0.0" ]; then
@@ -243,7 +243,7 @@ jobs:
 
           echo "Publishing to GitHub Packages: $AFFECTED"
           for project in ${AFFECTED//,/ }; do
-            PKG_DIR="packages/${project#@verid-sdk-js-mono/}"
+            PKG_DIR="packages/${project##*js-mono/}"
             if [ -d "$PKG_DIR/dist" ]; then
               echo "Publishing $project to GitHub Packages..."
               cd "$PKG_DIR"
