@@ -1,5 +1,10 @@
 # @ver-id/graphql-client
 
+[![npm version](https://badge.fury.io/js/@ver-id%2Fgraphql-client.svg)](https://www.npmjs.com/package/@ver-id/graphql-client)
+[![Build Status](https://github.com/ver-id/verid-sdk-js-mono/workflows/CI/badge.svg)](https://github.com/ver-id/verid-sdk-js-mono/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+
 Type-safe GraphQL client for querying Ver.iD GraphQL APIs. Built with Apollo Client and fully type-generated from the GraphQL schema.
 
 ## Features

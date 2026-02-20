@@ -4,6 +4,7 @@
 [![Build Status](https://github.com/ver-id/verid-sdk-js-mono/workflows/CI/badge.svg)](https://github.com/ver-id/verid-sdk-js-mono/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org/)
 
 A powerful TypeScript SDK for integrating Ver.iD decentralized identity authentication and disclosure flows into your Node.js server applications. This package enables server-side OAuth 2.1 flows with secure client authentication using client secrets.
 
