@@ -47,9 +47,10 @@ const authenticationClient = new VeridAuthenticationClient({
 });
 
 // Generate authentication url
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+  });
 
 // Redirect the user to the Ver.iD authentication flow (or return URL to frontend)
 // After user completes authentication, Ver.iD redirects to your redirectUri with code and state
@@ -63,7 +64,9 @@ const authenticationResponse = await authenticationClient.finalize({
 });
 
 // Decode the ID token
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+const authenticationDecodedToken = await authenticationClient.decode(
+  authenticationResponse
+);
 ```
 
 **Note:** Unlike browser clients, the Node.js client requires explicit `clientAuth` with a `client_secret` during the finalize step. This enables secure server-side authentication flows where the client secret is never exposed to the frontend.
@@ -101,7 +104,9 @@ const disclosureResponse = await disclosureClient.finalize({
 });
 
 // Decode the token
-const disclosureDecodedToken = await disclosureClient.decode(disclosureResponse);
+const disclosureDecodedToken = await disclosureClient.decode(
+  disclosureResponse
+);
 ```
 
 **Note:** Unlike browser clients, the Node.js client requires explicit `clientAuth` with a `client_secret` during the finalize step. This enables secure server-side disclosure flows where the client secret is never exposed to the frontend.
@@ -140,15 +145,16 @@ const intentId = await issuanceClient.createIssuanceIntent(
     },
   },
   codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
+  { client_secret: '<YOUR_CLIENT_SECRET>' } // Client authentication required for Node.js
 );
 
 // Step 3: Generate issuance url with intent
-const { issuanceUrl, state: finalState } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId,
-  state, // Use the state from Step 1
-  codeChallenge, // Use the code challenge from Step 1
-});
+const { issuanceUrl, state: finalState } =
+  await issuanceClient.generateIssuanceUrl({
+    intent_id: intentId,
+    state, // Use the state from Step 1
+    codeChallenge, // Use the code challenge from Step 1
+  });
 
 // Redirect the user to the Ver.iD issuance flow (or return URL to frontend)
 // After user completes issuance, Ver.iD redirects to your redirectUri with code and state
@@ -225,8 +231,8 @@ await redisClient.connect();
 const cacheManager = new RedisCacheManager({
   client: redisClient,
   options: {
-    prefix: 'myapp:',    // optional, default: 'verid:'
-    ttlSeconds: 600,      // optional, auto-expire after 10 minutes
+    prefix: 'myapp:', // optional, default: 'verid:'
+    ttlSeconds: 600, // optional, auto-expire after 10 minutes
   },
 });
 ```
@@ -253,6 +259,7 @@ npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 ```
 
 **DynamoDB table requirements:**
+
 - Partition key: `pk` (String)
 - Optional TTL attribute: `ttl` (Number) — [enable DynamoDB TTL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) on this attribute
 
@@ -262,15 +269,15 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBCacheManager } from '@ver-id/node-client';
 
 const dynamoClient = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ region: 'us-east-1' }),
+  new DynamoDBClient({ region: 'us-east-1' })
 );
 
 const cacheManager = new DynamoDBCacheManager({
   client: dynamoClient,
   tableName: 'verid-cache',
   options: {
-    prefix: 'myapp:',    // optional, default: 'verid:'
-    ttlSeconds: 600,      // optional, requires DynamoDB TTL enabled on `ttl` attribute
+    prefix: 'myapp:', // optional, default: 'verid:'
+    ttlSeconds: 600, // optional, requires DynamoDB TTL enabled on `ttl` attribute
   },
 });
 ```
@@ -294,13 +301,13 @@ This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
 
 ## Troubleshooting
 
-| Problem | Fix |
-| --- | --- |
+| Problem                                                   | Fix                                                                                                                                                   |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ENOENT: no such file or directory, open '...cache.json'` | The default `FileStorageCacheManager` writes to `~/.verid-cache/`. Ensure the process has write permission, or switch to `MemoryStorageCacheManager`. |
-| State mismatch on finalize | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL. |
-| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the server. |
-| `TokenGrantError` during finalize | Double-check `client_secret` and ensure the redirect URI matches exactly. |
-| Redis / DynamoDB connection errors | Ensure the cache client is connected before passing it to the cache manager constructor. |
+| State mismatch on finalize                                | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL.                  |
+| `OperationFailedError: Failed to discover issuer`         | Verify `issuerUri` is correct and reachable from the server.                                                                                          |
+| `TokenGrantError` during finalize                         | Double-check `client_secret` and ensure the redirect URI matches exactly.                                                                             |
+| Redis / DynamoDB connection errors                        | Ensure the cache client is connected before passing it to the cache manager constructor.                                                              |
 
 ## Acknowledgments
 

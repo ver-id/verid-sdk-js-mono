@@ -59,7 +59,11 @@ const client = createVeridGraphQLClient({
 All helper functions can be called with an instance of Apollo Client. You can use `createVeridGraphQLClient` to create one or create your own client.
 
 ```typescript
-import { getAttribute, getAttributes, getAttributesWithHierarchy } from '@ver-id/graphql-client';
+import {
+  getAttribute,
+  getAttributes,
+  getAttributesWithHierarchy,
+} from '@ver-id/graphql-client';
 
 // Fetch a single attribute
 const attribute = await getAttribute(client, 'attribute-uuid');

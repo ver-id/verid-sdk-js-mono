@@ -47,9 +47,10 @@ const authenticationClient = new VeridAuthenticationClient({
 });
 
 // Generate authentication url
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+  });
 
 // Redirects the user to the Ver.iD authentication flow
 window.location.href = authenticationUrl;
@@ -58,7 +59,9 @@ window.location.href = authenticationUrl;
 const authenticationResponse = await authenticationClient.finalize();
 
 // Decode the token
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+const authenticationDecodedToken = await authenticationClient.decode(
+  authenticationResponse
+);
 ```
 
 For other comprehensive configurations and examples, see the [AUTHENTICATION.md](./AUTHENTICATION.md) document.
@@ -89,7 +92,9 @@ window.location.href = disclosureUrl;
 const disclosureResponse = await disclosureClient.finalize();
 
 // Decode the token
-const disclosureDecodedToken = await disclosureClient.decode(disclosureResponse);
+const disclosureDecodedToken = await disclosureClient.decode(
+  disclosureResponse
+);
 ```
 
 For other comprehensive configurations and examples, see the [VERIFICATION.md](./VERIFICATION.md) document.
@@ -117,25 +122,26 @@ const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
 const intentId = await issuanceClient.createIssuanceIntent(
   {
     payload: {
-      mapping: { 
+      mapping: {
         name: 'fullName',
-        email: 'emailAddress' 
+        email: 'emailAddress',
       },
       data: {
         attributeUuid: '<ATTRIBUTE_UUID>',
-        value: 'John Doe'
+        value: 'John Doe',
       },
     },
   },
-  codeChallenge,
+  codeChallenge
 );
 
 // Step 3: Generate issuance url with intent
-const { issuanceUrl, state: finalState } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId,
-  state, // Use the state from Step 1
-  codeChallenge, // Use the code challenge from Step 1
-});
+const { issuanceUrl, state: finalState } =
+  await issuanceClient.generateIssuanceUrl({
+    intent_id: intentId,
+    state, // Use the state from Step 1
+    codeChallenge, // Use the code challenge from Step 1
+  });
 
 // Redirects the user to the Ver.iD issuance flow
 window.location.href = issuanceUrl;
@@ -183,9 +189,15 @@ Implement the `ICacheManager` interface to integrate any storage backend:
 import type { ICacheManager } from '@ver-id/browser-client';
 
 class MyCacheManager implements ICacheManager {
-  async save(key: string, value: string): Promise<void> { /* ... */ }
-  async get(key: string): Promise<string | null> { /* ... */ }
-  async remove(key: string): Promise<void> { /* ... */ }
+  async save(key: string, value: string): Promise<void> {
+    /* ... */
+  }
+  async get(key: string): Promise<string | null> {
+    /* ... */
+  }
+  async remove(key: string): Promise<void> {
+    /* ... */
+  }
 }
 ```
 
@@ -212,12 +224,12 @@ See the [sample Vue application](https://github.com/ver-id/verid-sdk-js-mono/tre
 
 ## Troubleshooting
 
-| Problem | Fix |
-| --- | --- |
-| `sessionStorage is not defined` | You're running in a non-browser environment. Use `@ver-id/node-client` for server-side flows. |
-| State mismatch after redirect | Make sure `redirectUri` matches exactly — including trailing slashes and protocol. |
-| CORS errors on token exchange | The Ver.iD authorization server must list your origin. Check your flow settings in [Ver.iD Studio](https://spas.nebula.ver.id/). |
-| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the browser. |
+| Problem                                           | Fix                                                                                                                              |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionStorage is not defined`                   | You're running in a non-browser environment. Use `@ver-id/node-client` for server-side flows.                                    |
+| State mismatch after redirect                     | Make sure `redirectUri` matches exactly — including trailing slashes and protocol.                                               |
+| CORS errors on token exchange                     | The Ver.iD authorization server must list your origin. Check your flow settings in [Ver.iD Studio](https://spas.nebula.ver.id/). |
+| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the browser.                                                                    |
 
 ## Acknowledgments
 
