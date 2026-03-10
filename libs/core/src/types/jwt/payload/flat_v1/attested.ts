@@ -1,5 +1,5 @@
 import { JWTPayload } from 'jose';
-import { JSONValue, UUID } from '../../generic.js';
+import { JSONValue, UUID } from '../../../generic.js';
 
 /**
  * Represents a single disclosed data item in an attested JWT payload.

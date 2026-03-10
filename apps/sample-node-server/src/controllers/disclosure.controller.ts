@@ -9,7 +9,7 @@ import {
   generateDisclosureUrlSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload } from '@ver-id/node-client';
+import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload, assertDisclosureJwtPayload } from '@ver-id/node-client';
 
 /**
  * POST /api/disclosure/initialize
@@ -347,12 +347,15 @@ export async function decodeToken(
     }
 
     // Decode the ID token
-    const decoded = await disclosureClient.decode(disclosureResponse, assertAttestedJwtPayload);
+    // Use assertDisclosureJwtPayload for v2 credential-grouped tokens (ver-id/ssi/disclosure/v1+JWT)
+    // Use assertAttestedJwtPayload for legacy flat tokens (ver-id/ssi/disclosure/flat/v1+JWT)
+    const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureJwtPayload);
 
     // Generate code snippet
     const codeSnippet = `// Decode the ID token from the disclosure response
-// Change assertFunction based on your flow configuration
-const decoded = await disclosureClient.decode(disclosureResponse, assertAttestedJwtPayload);`;
+// Use assertDisclosureJwtPayload for v2 credential-grouped tokens (default for new flows)
+// Use assertAttestedJwtPayload for legacy flat tokens
+const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureJwtPayload);`;
 
     return res.json({
       success: true,

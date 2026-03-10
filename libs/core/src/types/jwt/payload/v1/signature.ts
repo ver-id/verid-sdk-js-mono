@@ -1,5 +1,5 @@
 import { JWTPayload } from 'jose';
-import { JSONValue, UUID } from '../../generic.js';
+import { JSONValue, UUID } from '../../../generic.js';
 import { SignatureCredential } from './credential.js';
 
 /**
@@ -25,4 +25,8 @@ export interface SignatureJwtPayload extends JWTPayload {
   signatureUuid: UUID;
   /** Organization that configured the flow */
   organizationUuid: UUID;
+  /** ProviderApp UUID — the app instance used to complete the flow */
+  providerAppUuid: UUID;
+  /** App name — human-readable name of the app */
+  appName: string;
 }

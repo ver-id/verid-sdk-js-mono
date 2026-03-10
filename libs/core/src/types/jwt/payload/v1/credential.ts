@@ -1,4 +1,4 @@
-import { JSONValue, UUID } from '../../generic.js';
+import { JSONValue, UUID } from '../../../generic.js';
 
 /**
  * Credential format type discriminator.

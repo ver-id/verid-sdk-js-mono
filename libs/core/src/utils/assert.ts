@@ -5,14 +5,17 @@ import { JSONValue, UUID } from '../types/generic.js';
 import {
   AttestedJwtPayload,
   AuthenticationResponse,
+  DisclosureJwtPayload,
   DisclosureResponse,
+  IssuanceFlatJwtPayload,
   IssuanceJwtPayload,
   IssuanceResponse,
   OpenIdJwtCompanyIdentifierType,
   OpenIdJwtCompanyType,
   OpenIdJwtNINIdentifierType,
   OpenIdJwtPayload,
-  PlainJwtPayload,
+  OutputCredentialType,
+  SignatureJwtPayload,
 } from '../types/index.js';
 import { convertEnumToValues } from './generic.js';
 
@@ -452,7 +455,7 @@ export function assertJwtPayload(
 /**
  * Asserts that the given data array contains valid output data items.
  * Validates each data item has required UUID properties and a valid JSON value.
- * This is a common helper used by both assertAttestedJwtPayload and assertIssuanceJwtPayload.
+ * This is a common helper used by both assertAttestedJwtPayload and assertIssuanceFlatJwtPayload.
  *
  * @param data - The data array to validate
  * @param outputIndex - The index of the parent output item for error reporting
@@ -553,21 +556,19 @@ export function assertAttestedJwtPayload(
 }
 
 /**
- * Asserts that the given value is a valid IssuanceJwtPayload.
+ * Asserts that the given value is a valid IssuanceFlatJwtPayload (legacy flat format).
  * Validates JWT payload with output array containing issuance data.
- * Recursively validates all nested IssuanceOutputItem and IssuanceOutputData structures.
  *
- * @param value - The value to validate as an IssuanceJwtPayload
+ * @param value - The value to validate as an IssuanceFlatJwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid IssuanceJwtPayload (by default)
- * @throws {Error} Custom error type when specified and value is not valid
+ * @deprecated Use assertIssuanceJwtPayload for v1 credential-grouped tokens
  */
-export function assertIssuanceJwtPayload(
+export function assertIssuanceFlatJwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is IssuanceJwtPayload {
+): asserts value is IssuanceFlatJwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);
@@ -599,204 +600,8 @@ export function assertIssuanceJwtPayload(
     // Validate each data item using common helper
     assertOutputDataItems(item.data as unknown[], index, name, ctor);
 
-    // Validate revocationKeys
-    assertArray(item.revocationKeys, `"OutputItem.revocationKeys" at index ${index} in ${name}`, ctor);
-    for (const [keyIndex, keyItem] of (item.revocationKeys as unknown[]).entries()) {
-      assertObject(
-        keyItem,
-        `"revocationKey" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
-        ctor,
-      );
-      assertUUID(
-        (keyItem as any).credentialUuid,
-        `"revocationKey.credentialUuid" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
-        ctor,
-      );
-      assertString(
-        (keyItem as any).key,
-        `"revocationKey.key" at index ${keyIndex} in "OutputItem.revocationKeys" ${index} in ${name}`,
-        ctor,
-      );
-    }
-
     // Validate mapping
     assertObject(item.mapping, `"OutputItem.mapping" at index ${index} in ${name}`, ctor);
-  }
-}
-
-/**
- * Asserts that the given value is a valid PlainJwtPayload.
- * Validates JWT payload with plain disclosure data structure.
- * Recursively validates nested disclosure, provider, reply, and field structures.
- *
- * @param value - The value to validate as a PlainJwtPayload
- * @param name - The name of the value for error reporting
- * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid PlainJwtPayload (by default)
- * @throws {Error} Custom error type when specified and value is not valid
- */
-export function assertPlainJwtPayload(
-  value: unknown,
-  name: string,
-  error?: ErrorConstructorType,
-): asserts value is PlainJwtPayload {
-  const ctor = error ?? InvalidAssertionError;
-
-  assertJwtPayload(value, name, ctor);
-
-  // Check plain property
-  assert('plain' in value, `Invalid "plain" in ${name}: should be defined.`, ctor);
-  assertObject(value.plain, `"plain" in ${name}`, ctor);
-
-  const plain = value.plain as Record<string, unknown>;
-
-  // Validate uuid
-  assertUUID(plain.uuid, `"plain.uuid" in ${name}`, ctor);
-
-  // Validate disclosures array
-  assertArray(plain.disclosures, `"plain.disclosures" in ${name}`, ctor);
-
-  // Validate each disclosure
-  for (const [index, disclosure] of (plain.disclosures as unknown[]).entries()) {
-    assertObject(disclosure, `disclosure at index ${index} in ${name}`, ctor);
-
-    // Validate disclosure uuid
-    assertUUID(
-      (disclosure as Record<string, unknown>).uuid,
-      `disclosure.uuid at index ${index} in ${name}`,
-      ctor,
-    );
-
-    // Validate parameter
-    assertObject(
-      (disclosure as Record<string, unknown>).parameter,
-      `disclosure.parameter at index ${index} in ${name}`,
-      ctor,
-    );
-    assertUUID(
-      ((disclosure as Record<string, unknown>).parameter as Record<string, unknown>).challenge,
-      `disclosure.parameter.challenge at index ${index} in ${name}`,
-      ctor,
-    );
-
-    // Validate provider
-    assertObject(
-      (disclosure as Record<string, unknown>).provider,
-      `disclosure.provider at index ${index} in ${name}`,
-      ctor,
-    );
-
-    const provider = (disclosure as Record<string, unknown>).provider as Record<string, unknown>;
-
-    // Validate providerUuid
-    assertUUID(
-      provider.providerUuid,
-      `disclosure.provider.providerUuid at index ${index} in ${name}`,
-      ctor,
-    );
-
-    // Validate providerOptions
-    assertObject(
-      provider.providerOptions,
-      `disclosure.provider.providerOptions at index ${index} in ${name}`,
-      ctor,
-    );
-
-    // Validate replies array
-    assertArray(provider.replies, `disclosure.provider.replies at index ${index} in ${name}`, ctor);
-
-    // Validate each reply
-    for (const [replyIndex, reply] of (provider.replies as unknown[]).entries()) {
-      assertObject(reply, `reply at index ${replyIndex} in disclosure ${index} in ${name}`, ctor);
-
-      const replyObj = reply as Record<string, unknown>;
-
-      // Validate UUIDs
-      for (const prop of ['schemeUuid', 'issuerUuid', 'credentialUuid']) {
-        assertUUID(
-          replyObj[prop],
-          `reply.${prop} at index ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-      }
-
-      // Validate meta
-      assertObject(
-        replyObj.meta,
-        `reply.meta at index ${replyIndex} in disclosure ${index} in ${name}`,
-        ctor,
-      );
-
-      // Validate i18n arrays in meta
-      const meta = replyObj.meta as Record<string, unknown>;
-      if (meta.i18n_name) {
-        assertArray(
-          meta.i18n_name,
-          `reply.meta.i18n_name at index ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-      }
-      if (meta.i18n_description) {
-        assertArray(
-          meta.i18n_description,
-          `reply.meta.i18n_description at index ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-      }
-
-      // Validate timestamps
-      assertNumber(
-        replyObj.issuedAt,
-        `reply.issuedAt at index ${replyIndex} in disclosure ${index} in ${name}`,
-        ctor,
-        { allowZero: true },
-      );
-      assertNumber(
-        replyObj.expiresAt,
-        `reply.expiresAt at index ${replyIndex} in disclosure ${index} in ${name}`,
-        ctor,
-        { allowZero: true },
-      );
-
-      // Validate fields array
-      assertArray(
-        replyObj.fields,
-        `reply.fields at index ${replyIndex} in disclosure ${index} in ${name}`,
-        ctor,
-      );
-
-      // Validate each field
-      for (const [fieldIndex, field] of (replyObj.fields as unknown[]).entries()) {
-        assertObject(
-          field,
-          `field at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-
-        const fieldObj = field as Record<string, unknown>;
-
-        // Validate attributeUuid
-        assertUUID(
-          fieldObj.attributeUuid,
-          `field.attributeUuid at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-
-        // Validate meta
-        assertObject(
-          fieldObj.meta,
-          `field.meta at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-
-        // Validate value
-        assertJsonValue(
-          fieldObj.value,
-          `field.value at index ${fieldIndex} in reply ${replyIndex} in disclosure ${index} in ${name}`,
-          ctor,
-        );
-      }
-    }
   }
 }
 
@@ -887,6 +692,160 @@ export function assertOpenIdJwtPayload(
     assert(
       convertEnumToValues(OpenIdJwtNINIdentifierType).includes(value.nin.identifier_type),
       `Invalid nin.identifier_type in ${name}: not a valid OpenIdJwtNinIdentifierType`,
+      ctor,
+    );
+  }
+}
+
+/**
+ * Asserts that the given credentials array contains valid credential-grouped items.
+ * Validates each credential has required UUID, name, type, and attribute properties.
+ * Used by assertDisclosureJwtPayload, assertSignatureJwtPayload, and assertIssuanceJwtPayload.
+ *
+ * @param credentials - The credentials array to validate
+ * @param name - The name of the parent payload for error reporting
+ * @param ctor - The error constructor to use when assertion fails
+ * @internal
+ */
+function assertCredentials(
+  credentials: unknown[],
+  name: string,
+  ctor: ErrorConstructorType,
+): void {
+  for (const [index, cred] of credentials.entries()) {
+    assertObject(cred, `credential at index ${index} in ${name}`, ctor);
+
+    const c = cred as Record<string, unknown>;
+
+    // UUID fields
+    for (const prop of ['credentialUuid', 'issuerUuid', 'schemeUuid', 'providerUuid']) {
+      assertUUID(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
+    }
+
+    // Name fields
+    for (const prop of ['credentialName', 'issuerName', 'schemeName', 'providerName']) {
+      assertString(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
+    }
+
+    // Type
+    assert(
+      convertEnumToValues(OutputCredentialType).includes(c.type as string),
+      `Invalid "type" in credential at index ${index} in ${name}: not a valid OutputCredentialType`,
+      ctor,
+    );
+
+    // Attributes
+    assertArray(c.attributes, `"attributes" in credential at index ${index} in ${name}`, ctor);
+    for (const [attrIndex, attr] of (c.attributes as unknown[]).entries()) {
+      assertObject(attr, `attribute at index ${attrIndex} in credential ${index} in ${name}`, ctor);
+      const a = attr as Record<string, unknown>;
+      assertUUID(a.attributeUuid, `"attributeUuid" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
+      assertString(a.attributeName, `"attributeName" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
+      assertJsonValue(a.value, `"value" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
+      assert(
+        convertEnumToValues(OutputCredentialType).includes(a.type as string),
+        `Invalid "type" in attribute ${attrIndex} in credential ${index} in ${name}: not a valid OutputCredentialType`,
+        ctor,
+      );
+    }
+  }
+}
+
+/**
+ * Asserts that the given value is a valid DisclosureJwtPayload (v2 credential-grouped format).
+ * Validates JWT payload with credentials array, flow context, and metadata.
+ *
+ * @param value - The value to validate as a DisclosureJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid DisclosureJwtPayload (by default)
+ */
+export function assertDisclosureJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is DisclosureJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  assertUUID(value.uuid, `"uuid" in ${name}`, ctor);
+  assertObject(value.parameter, `"parameter" in ${name}`, ctor);
+  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
+  assertObject(value.meta, `"meta" in ${name}`, ctor);
+  assertObject(value.mapping, `"mapping" in ${name}`, ctor);
+  assertUUID(value.disclosureUuid, `"disclosureUuid" in ${name}`, ctor);
+  assertUUID(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
+
+  assertArray(value.credentials, `"credentials" in ${name}`, ctor);
+  assertCredentials(value.credentials as unknown[], name, ctor);
+}
+
+/**
+ * Asserts that the given value is a valid SignatureJwtPayload (v2 credential-grouped format).
+ * Validates JWT payload with credentials array, flow context, and metadata.
+ *
+ * @param value - The value to validate as a SignatureJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid SignatureJwtPayload (by default)
+ */
+export function assertSignatureJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is SignatureJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  assertUUID(value.uuid, `"uuid" in ${name}`, ctor);
+  assertObject(value.parameter, `"parameter" in ${name}`, ctor);
+  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
+  assertObject(value.meta, `"meta" in ${name}`, ctor);
+  assertObject(value.mapping, `"mapping" in ${name}`, ctor);
+  assertUUID(value.signatureUuid, `"signatureUuid" in ${name}`, ctor);
+  assertUUID(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
+
+  assertArray(value.credentials, `"credentials" in ${name}`, ctor);
+  assertCredentials(value.credentials as unknown[], name, ctor);
+}
+
+/**
+ * Asserts that the given value is a valid IssuanceJwtPayload (v2 credential-grouped format).
+ * Validates JWT payload with credentials array (including status), flow context, and echoed input payload.
+ *
+ * @param value - The value to validate as an IssuanceJwtPayload
+ * @param name - The name of the value for error reporting
+ * @param error - Optional custom error constructor to use when assertion fails
+ * @throws {InvalidAssertionError} When value is not a valid IssuanceJwtPayload (by default)
+ */
+export function assertIssuanceJwtPayload(
+  value: unknown,
+  name: string,
+  error?: ErrorConstructorType,
+): asserts value is IssuanceJwtPayload {
+  const ctor = error ?? InvalidAssertionError;
+
+  assertJwtPayload(value, name, ctor);
+
+  assertString(value.uuid, `"uuid" in ${name}`, ctor);
+  assertObject(value.parameter, `"parameter" in ${name}`, ctor);
+  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
+  assertObject((value.parameter as any).payload, `"parameter.payload" in ${name}`, ctor);
+  assertObject(value.meta, `"meta" in ${name}`, ctor);
+  assertObject(value.mapping, `"mapping" in ${name}`, ctor);
+  assertString(value.issuanceUuid, `"issuanceUuid" in ${name}`, ctor);
+  assertString(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
+
+  assertArray(value.credentials, `"credentials" in ${name}`, ctor);
+  assertCredentials(value.credentials as unknown[], name, ctor);
+
+  // Validate issuance-specific status on each credential
+  for (const [index, cred] of (value.credentials as unknown[]).entries()) {
+    assertString(
+      (cred as Record<string, unknown>).status,
+      `"status" in credential at index ${index} in ${name}`,
       ctor,
     );
   }
