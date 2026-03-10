@@ -56,13 +56,45 @@ export interface IssuanceOutputItem {
 }
 
 /**
- * JWT payload structure for issuance in Ver.iD system..
+ * Legacy JWT payload structure for issuance (flat format).
  * Used in the 'ver-id/ssi/output/issuance/v1+JWT' token type.
  *
  * @public
  * @extends JWTPayload
+ * @deprecated Use IssuanceV2JwtPayload for new integrations
  */
 export interface IssuanceJwtPayload extends JWTPayload {
   /** Array of output items containing disclosed or signed data */
   output: IssuanceOutputItem[];
+}
+
+/**
+ * JWT payload structure for issuance tokens (v2).
+ * Contains credential-grouped issued data with catalog metadata.
+ * Used in the 'ver-id/ssi/issuance/v1+JWT' token type.
+ *
+ * @public
+ * @extends JWTPayload
+ */
+export interface IssuanceV2JwtPayload extends JWTPayload {
+  /** Process identifier */
+  uuid: string;
+  /** Replay protection with echoed input payload */
+  parameter: {
+    challenge: string;
+    payload: {
+      data: Array<{ attributeUuid: string; value: JSONValue }>;
+      mapping: Record<string, JSONValue>;
+    };
+  };
+  /** Flow-level metadata from studio */
+  meta: Record<string, JSONValue>;
+  /** Field transformation results */
+  mapping: Record<string, JSONValue>;
+  /** Credentials grouped by credential with catalog metadata and status */
+  credentials: import('./credential.js').IssuanceCredential[];
+  /** Issuance UUID from studio */
+  issuanceUuid: string;
+  /** Organization that configured the flow */
+  organizationUuid: string;
 }
