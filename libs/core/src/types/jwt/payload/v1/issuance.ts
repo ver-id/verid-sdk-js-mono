@@ -23,8 +23,6 @@ export interface IssuanceV1JwtPayload extends JWTPayload {
   };
   /** Flow-level metadata from studio */
   meta: Record<string, JSONValue>;
-  /** Field transformation results */
-  mapping: Record<string, JSONValue>;
   /** Credentials grouped by credential with catalog metadata and status */
   credentials: IssuanceCredential[];
   /** Issuance UUID from studio */
