@@ -10,7 +10,7 @@ import { IssuanceCredential } from './credential.js';
  * @public
  * @extends JWTPayload
  */
-export interface IssuanceJwtPayload extends JWTPayload {
+export interface IssuanceV1JwtPayload extends JWTPayload {
   /** Process identifier */
   uuid: UUID;
   /** Replay protection with echoed input payload */

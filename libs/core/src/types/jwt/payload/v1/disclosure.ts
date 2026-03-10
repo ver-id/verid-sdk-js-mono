@@ -1,6 +1,6 @@
 import { JWTPayload } from 'jose';
 import { JSONValue, UUID } from '../../../generic.js';
-import { DisclosureCredential } from './credential.js';
+import { DisclosureV1Credential } from './credential.js';
 
 /**
  * JWT payload structure for disclosure tokens (v2).
@@ -10,7 +10,7 @@ import { DisclosureCredential } from './credential.js';
  * @public
  * @extends JWTPayload
  */
-export interface DisclosureJwtPayload extends JWTPayload {
+export interface DisclosureV1JwtPayload extends JWTPayload {
   /** Process identifier */
   uuid: UUID;
   /** Replay protection */
@@ -20,7 +20,7 @@ export interface DisclosureJwtPayload extends JWTPayload {
   /** Field transformation results */
   mapping: Record<string, JSONValue>;
   /** Credentials grouped by credential with catalog metadata */
-  credentials: DisclosureCredential[];
+  credentials: DisclosureV1Credential[];
   /** Disclosure UUID from studio */
   disclosureUuid: UUID;
   /** Organization that configured the flow */

@@ -59,14 +59,14 @@ export interface OutputCredential {
  *
  * @public
  */
-export type DisclosureCredential = OutputCredential;
+export type DisclosureV1Credential = OutputCredential;
 
 /**
  * Signature credential — same shape as disclosure.
  *
  * @public
  */
-export type SignatureCredential = OutputCredential;
+export type SignatureV1Credential = OutputCredential;
 
 /**
  * Issuance credential — extends base with fulfillment status.

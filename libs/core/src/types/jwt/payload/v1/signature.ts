@@ -1,6 +1,6 @@
 import { JWTPayload } from 'jose';
 import { JSONValue, UUID } from '../../../generic.js';
-import { SignatureCredential } from './credential.js';
+import { SignatureV1Credential } from './credential.js';
 
 /**
  * JWT payload structure for signature tokens (v2).
@@ -10,7 +10,7 @@ import { SignatureCredential } from './credential.js';
  * @public
  * @extends JWTPayload
  */
-export interface SignatureJwtPayload extends JWTPayload {
+export interface SignatureV1JwtPayload extends JWTPayload {
   /** Process identifier */
   uuid: UUID;
   /** Replay protection */
@@ -20,7 +20,7 @@ export interface SignatureJwtPayload extends JWTPayload {
   /** Field transformation results */
   mapping: Record<string, JSONValue>;
   /** Credentials grouped by credential with catalog metadata */
-  credentials: SignatureCredential[];
+  credentials: SignatureV1Credential[];
   /** Signature UUID from studio */
   signatureUuid: UUID;
   /** Organization that configured the flow */

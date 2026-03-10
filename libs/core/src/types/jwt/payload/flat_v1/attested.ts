@@ -54,7 +54,7 @@ export interface AttestedOutputItem {
  * @public
  * @extends JWTPayload
  */
-export interface AttestedJwtPayload extends JWTPayload {
+export interface AttestedFlatV1JwtPayload extends JWTPayload {
   /** Array of output items containing disclosed or signed data */
   output: AttestedOutputItem[];
 }

@@ -1,6 +1,6 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { assertAttestedJwtPayload, VeridDisclosureClient } from '@ver-id/browser-client';
+import { assertAttestedFlatV1JwtPayload, VeridDisclosureClient } from '@ver-id/browser-client';
 import { formatError } from '../utils/errorHandler.js';
 
 /**
@@ -82,7 +82,7 @@ export function useDisclosureCallback() {
   const decode = async () => {
     decoding.value = true;
     try {
-      const jwt = await disclosureClient.decode(rawDisclosureResponse, assertAttestedJwtPayload);
+      const jwt = await disclosureClient.decode(rawDisclosureResponse, assertAttestedFlatV1JwtPayload);
 
       decodedJwt.value = jwt;
       jwtHeader.value = JSON.stringify(jwt.protectedHeader, null, 2) || 'Header not available';

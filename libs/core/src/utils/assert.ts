@@ -3,19 +3,19 @@ import { InvalidAssertionError } from '../error/index.js';
 import { ICacheManager } from '../interface/ICacheManager.js';
 import { JSONValue, UUID } from '../types/generic.js';
 import {
-  AttestedJwtPayload,
+  AttestedFlatV1JwtPayload,
   AuthenticationResponse,
-  DisclosureJwtPayload,
+  DisclosureV1JwtPayload,
   DisclosureResponse,
-  IssuanceFlatJwtPayload,
-  IssuanceJwtPayload,
+  IssuanceFlatV1JwtPayload,
+  IssuanceV1JwtPayload,
   IssuanceResponse,
   OpenIdJwtCompanyIdentifierType,
   OpenIdJwtCompanyType,
   OpenIdJwtNINIdentifierType,
   OpenIdJwtPayload,
   OutputCredentialType,
-  SignatureJwtPayload,
+  SignatureV1JwtPayload,
 } from '../types/index.js';
 import { convertEnumToValues } from './generic.js';
 
@@ -455,7 +455,7 @@ export function assertJwtPayload(
 /**
  * Asserts that the given data array contains valid output data items.
  * Validates each data item has required UUID properties and a valid JSON value.
- * This is a common helper used by both assertAttestedJwtPayload and assertIssuanceFlatJwtPayload.
+ * This is a common helper used by both assertAttestedFlatV1JwtPayload and assertIssuanceFlatV1JwtPayload.
  *
  * @param data - The data array to validate
  * @param outputIndex - The index of the parent output item for error reporting
@@ -499,21 +499,21 @@ function assertOutputDataItems(
 }
 
 /**
- * Asserts that the given value is a valid AttestedJwtPayload.
+ * Asserts that the given value is a valid AttestedFlatV1JwtPayload.
  * Validates JWT payload with output array containing disclosure/signature data.
  * Recursively validates all nested OutputItem and OutputData structures.
  *
- * @param value - The value to validate as an AttestedJwtPayload
+ * @param value - The value to validate as an AttestedFlatV1JwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid AttestedJwtPayload (by default)
+ * @throws {InvalidAssertionError} When value is not a valid AttestedFlatV1JwtPayload (by default)
  * @throws {Error} Custom error type when specified and value is not valid
  */
-export function assertAttestedJwtPayload(
+export function assertAttestedFlatV1JwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is AttestedJwtPayload {
+): asserts value is AttestedFlatV1JwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);
@@ -556,19 +556,19 @@ export function assertAttestedJwtPayload(
 }
 
 /**
- * Asserts that the given value is a valid IssuanceFlatJwtPayload (legacy flat format).
+ * Asserts that the given value is a valid IssuanceFlatV1JwtPayload (legacy flat format).
  * Validates JWT payload with output array containing issuance data.
  *
- * @param value - The value to validate as an IssuanceFlatJwtPayload
+ * @param value - The value to validate as an IssuanceFlatV1JwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @deprecated Use assertIssuanceJwtPayload for v1 credential-grouped tokens
+ * @deprecated Use assertIssuanceV1JwtPayload for v1 credential-grouped tokens
  */
-export function assertIssuanceFlatJwtPayload(
+export function assertIssuanceFlatV1JwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is IssuanceFlatJwtPayload {
+): asserts value is IssuanceFlatV1JwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);
@@ -700,7 +700,7 @@ export function assertOpenIdJwtPayload(
 /**
  * Asserts that the given credentials array contains valid credential-grouped items.
  * Validates each credential has required UUID, name, type, and attribute properties.
- * Used by assertDisclosureJwtPayload, assertSignatureJwtPayload, and assertIssuanceJwtPayload.
+ * Used by assertDisclosureV1JwtPayload, assertSignatureV1JwtPayload, and assertIssuanceV1JwtPayload.
  *
  * @param credentials - The credentials array to validate
  * @param name - The name of the parent payload for error reporting
@@ -752,19 +752,19 @@ function assertCredentials(
 }
 
 /**
- * Asserts that the given value is a valid DisclosureJwtPayload (v2 credential-grouped format).
+ * Asserts that the given value is a valid DisclosureV1JwtPayload (v2 credential-grouped format).
  * Validates JWT payload with credentials array, flow context, and metadata.
  *
- * @param value - The value to validate as a DisclosureJwtPayload
+ * @param value - The value to validate as a DisclosureV1JwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid DisclosureJwtPayload (by default)
+ * @throws {InvalidAssertionError} When value is not a valid DisclosureV1JwtPayload (by default)
  */
-export function assertDisclosureJwtPayload(
+export function assertDisclosureV1JwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is DisclosureJwtPayload {
+): asserts value is DisclosureV1JwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);
@@ -782,19 +782,19 @@ export function assertDisclosureJwtPayload(
 }
 
 /**
- * Asserts that the given value is a valid SignatureJwtPayload (v2 credential-grouped format).
+ * Asserts that the given value is a valid SignatureV1JwtPayload (v2 credential-grouped format).
  * Validates JWT payload with credentials array, flow context, and metadata.
  *
- * @param value - The value to validate as a SignatureJwtPayload
+ * @param value - The value to validate as a SignatureV1JwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid SignatureJwtPayload (by default)
+ * @throws {InvalidAssertionError} When value is not a valid SignatureV1JwtPayload (by default)
  */
-export function assertSignatureJwtPayload(
+export function assertSignatureV1JwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is SignatureJwtPayload {
+): asserts value is SignatureV1JwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);
@@ -812,19 +812,19 @@ export function assertSignatureJwtPayload(
 }
 
 /**
- * Asserts that the given value is a valid IssuanceJwtPayload (v2 credential-grouped format).
+ * Asserts that the given value is a valid IssuanceV1JwtPayload (v2 credential-grouped format).
  * Validates JWT payload with credentials array (including status), flow context, and echoed input payload.
  *
- * @param value - The value to validate as an IssuanceJwtPayload
+ * @param value - The value to validate as an IssuanceV1JwtPayload
  * @param name - The name of the value for error reporting
  * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid IssuanceJwtPayload (by default)
+ * @throws {InvalidAssertionError} When value is not a valid IssuanceV1JwtPayload (by default)
  */
-export function assertIssuanceJwtPayload(
+export function assertIssuanceV1JwtPayload(
   value: unknown,
   name: string,
   error?: ErrorConstructorType,
-): asserts value is IssuanceJwtPayload {
+): asserts value is IssuanceV1JwtPayload {
   const ctor = error ?? InvalidAssertionError;
 
   assertJwtPayload(value, name, ctor);

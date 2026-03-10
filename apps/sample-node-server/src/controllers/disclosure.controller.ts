@@ -9,7 +9,7 @@ import {
   generateDisclosureUrlSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedJwtPayload, assertDisclosureJwtPayload } from '@ver-id/node-client';
+import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedFlatV1JwtPayload, assertDisclosureV1JwtPayload } from '@ver-id/node-client';
 
 /**
  * POST /api/disclosure/initialize
@@ -347,15 +347,15 @@ export async function decodeToken(
     }
 
     // Decode the ID token
-    // Use assertDisclosureJwtPayload for v2 credential-grouped tokens (ver-id/ssi/disclosure/v1+JWT)
-    // Use assertAttestedJwtPayload for legacy flat tokens (ver-id/ssi/disclosure/flat/v1+JWT)
-    const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureJwtPayload);
+    // Use assertDisclosureV1JwtPayload for v2 credential-grouped tokens (ver-id/ssi/disclosure/v1+JWT)
+    // Use assertAttestedFlatV1JwtPayload for legacy flat tokens (ver-id/ssi/disclosure/flat/v1+JWT)
+    const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureV1JwtPayload);
 
     // Generate code snippet
     const codeSnippet = `// Decode the ID token from the disclosure response
-// Use assertDisclosureJwtPayload for v2 credential-grouped tokens (default for new flows)
-// Use assertAttestedJwtPayload for legacy flat tokens
-const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureJwtPayload);`;
+// Use assertDisclosureV1JwtPayload for v2 credential-grouped tokens (default for new flows)
+// Use assertAttestedFlatV1JwtPayload for legacy flat tokens
+const decoded = await disclosureClient.decode(disclosureResponse, assertDisclosureV1JwtPayload);`;
 
     return res.json({
       success: true,

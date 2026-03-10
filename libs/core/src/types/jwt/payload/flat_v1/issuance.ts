@@ -50,9 +50,9 @@ export interface IssuanceOutputItem {
  *
  * @public
  * @extends JWTPayload
- * @deprecated Use IssuanceJwtPayload for new integrations
+ * @deprecated Use IssuanceV1JwtPayload for new integrations
  */
-export interface IssuanceFlatJwtPayload extends JWTPayload {
+export interface IssuanceFlatV1JwtPayload extends JWTPayload {
   /** Array of output items containing issuance data */
   output: IssuanceOutputItem[];
 }
