@@ -93,6 +93,8 @@ export interface OutputAttribute {
   value: JSONValue;
   /** Format discriminator — mirrors credential-level type */
   type: OutputCredentialType;
+  /** Fulfillment status of this attribute (e.g., "FULFILLED", "REJECTED") */
+  status?: string;
   /** SD-JWT format-specific metadata */
   sd_jwt?: {
     /** SD-JWT VC claim path */
