@@ -105,7 +105,7 @@ class="start-over-btn" @click="goBack">← Back to Disclosure Page</button>
       </div>
 
       <div v-else>
-        <p>Decode and verify the ID token to extract user claims.</p>
+        <p>Decode and verify the ID token to extract user claims. This sample expects the <strong>V1</strong> payload format (credentials grouped by provider). The disclosure flow on the server must be configured to return V1 payloads for this to succeed. To use the legacy flat format instead, pass <code>assertDisclosureFlatV1JwtPayload</code> as the assertion function.</p>
 
         <h3>Code Example:</h3>
         <div class="code-block-wrapper">
@@ -184,11 +184,13 @@ const response = await disclosureClient.finalize();`;
 };
 
 const getDecodeCode = () => {
-  return `// Decode and verify the ID token
-const jwt = await disclosureClient.decode(response);
+  return `import { assertDisclosureV1JwtPayload } from '@ver-id/browser-client';
+
+// Decode and verify the ID token using the V1 assertion
+const jwt = await disclosureClient.decode(response, assertDisclosureV1JwtPayload);
 
 // JWT contains:
 // - header: Algorithm, token type
-// - payload: User claims (sub, iss, exp, etc.)`;
+// - payload: V1 structured claims (credentials grouped by provider)`;
 };
 </script>

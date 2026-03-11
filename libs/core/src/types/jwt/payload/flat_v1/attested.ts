@@ -1,5 +1,5 @@
 import { JWTPayload } from 'jose';
-import { JSONValue, UUID } from '../../generic.js';
+import { JSONValue, UUID } from '../../../generic.js';
 
 /**
  * Represents a single disclosed data item in an attested JWT payload.
@@ -54,7 +54,7 @@ export interface AttestedOutputItem {
  * @public
  * @extends JWTPayload
  */
-export interface AttestedJwtPayload extends JWTPayload {
+export interface AttestedFlatV1JwtPayload extends JWTPayload {
   /** Array of output items containing disclosed or signed data */
   output: AttestedOutputItem[];
 }

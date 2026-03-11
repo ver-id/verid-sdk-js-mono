@@ -322,11 +322,11 @@ Once you have the issuance response, you can verify and decode the token to get 
 You have to pass `typeAssert` function based on the output type configured in your flow.
 
 ```ts
-import { assertIssuanceJwtPayload } from '@ver-id/node-client';
+import { assertIssuanceV1JwtPayload } from '@ver-id/node-client';
 
 const issuanceDecodedToken = await issuanceClient.decode(
   issuanceResponse,
-  assertIssuanceJwtPayload,
+  assertIssuanceV1JwtPayload,
 );
 ```
 

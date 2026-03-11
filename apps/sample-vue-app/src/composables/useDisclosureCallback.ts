@@ -1,6 +1,6 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { assertAttestedJwtPayload, VeridDisclosureClient } from '@ver-id/browser-client';
+import { assertDisclosureV1JwtPayload, VeridDisclosureClient } from '@ver-id/browser-client';
 import { formatError } from '../utils/errorHandler.js';
 
 /**
@@ -78,11 +78,20 @@ export function useDisclosureCallback() {
 
   /**
    * Step 3: Decode - Decode and verify the disclosure token
+   *
+   * The second argument to `decode()` is the assertion function that determines
+   * which JWT payload format to expect. This sample uses `assertDisclosureV1JwtPayload`
+   * (the V1 grouped/structured format). The disclosure flow on the server must be
+   * configured to return V1 payloads for this assertion to succeed.
+   *
+   * Available assertion functions:
+   * - `assertDisclosureV1JwtPayload`  — V1 structured format (credentials grouped by provider)
+   * - `assertDisclosureFlatV1JwtPayload` — FlatV1 legacy format (flat credential list)
    */
   const decode = async () => {
     decoding.value = true;
     try {
-      const jwt = await disclosureClient.decode(rawDisclosureResponse, assertAttestedJwtPayload);
+      const jwt = await disclosureClient.decode(rawDisclosureResponse, assertDisclosureV1JwtPayload);
 
       decodedJwt.value = jwt;
       jwtHeader.value = JSON.stringify(jwt.protectedHeader, null, 2) || 'Header not available';

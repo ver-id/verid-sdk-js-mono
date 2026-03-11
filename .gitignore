@@ -5,6 +5,13 @@ dist
 tmp
 out-tsc
 
+# Yarn files
+.yarn/install-state.gz
+.yarn/build-state.yml
+.yarn/cache/
+.pnp.*
+
+
 # dependencies
 node_modules
 

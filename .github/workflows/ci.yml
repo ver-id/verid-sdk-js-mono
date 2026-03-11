@@ -29,13 +29,16 @@ jobs:
         id: set-shas
         uses: nrwl/nx-set-shas@v4
 
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
 
   # Stage 2: Lint (runs concurrently)
   lint:
@@ -45,18 +48,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Lint affected projects
         run: |
-          npx nx affected -t lint \
+          yarn nx affected -t lint \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 3: Test (runs concurrently)
   test:
@@ -66,18 +72,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Test affected projects
         run: |
-          npx nx affected -t test \
+          yarn nx affected -t test \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 4: Type check (runs concurrently)
   typecheck:
@@ -87,18 +96,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Type check affected projects
         run: |
-          npx nx affected -t typecheck \
+          yarn nx affected -t typecheck \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 5: Build for PR validation (only runs on PRs)
   build:
@@ -109,18 +121,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Build affected projects
         run: |
-          npx nx affected -t build \
+          yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 6: Build and Publish to npm & GitHub Packages (only on main push)
   build-and-publish:
@@ -137,15 +152,18 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
 
       - name: Configure Git identity
         run: |
@@ -159,10 +177,11 @@ jobs:
       # Keep building before releasing so publish has fresh artifacts
       - name: Build affected projects
         run: |
-          npx nx affected -t build \
+          yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
       # version + changelog + publish to npm (only affected)
       - name: Release affected (version, changelog, publish to npm)
@@ -172,7 +191,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Get affected projects from packages/ directory (which are the publishable ones)
-          AFFECTED="$(npx nx show projects --affected \
+          AFFECTED="$(yarn nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --projects="packages/*" \
@@ -204,8 +223,8 @@ jobs:
           # Run release with first-release flag if needed
           if [ -n "$FIRST_RELEASE" ]; then
             echo "Running first release for: $FIRST_RELEASE"
-            npx nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
-            
+            yarn nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
+
             # Remove first release projects from affected list
             REMAINING_AFFECTED=""
             for project in ${AFFECTED//,/ }; do
@@ -214,16 +233,16 @@ jobs:
               fi
             done
             REMAINING_AFFECTED="${REMAINING_AFFECTED#,}"
-            
+
             # Release remaining projects normally
             if [ -n "$REMAINING_AFFECTED" ]; then
               echo "Running normal release for: $REMAINING_AFFECTED"
-              npx nx release -y --projects="$REMAINING_AFFECTED" --verbose
+              yarn nx release -y --projects="$REMAINING_AFFECTED" --verbose
             fi
           else
             # No first releases, run normal release
             echo "Running normal release for: $AFFECTED"
-            npx nx release -y --projects="$AFFECTED" --verbose
+            yarn nx release -y --projects="$AFFECTED" --verbose
           fi
 
       # Publish to GitHub Packages as a secondary registry
@@ -232,9 +251,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Switch registry to GitHub Packages
-          npm config set registry https://npm.pkg.github.com
+          yarn config set npmRegistryServer https://npm.pkg.github.com
 
-          AFFECTED="$(npx nx show projects --affected \
+          AFFECTED="$(yarn nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --projects="packages/*" \
@@ -251,7 +270,7 @@ jobs:
             if [ -d "$PKG_DIR/dist" ]; then
               echo "Publishing $project to GitHub Packages..."
               cd "$PKG_DIR"
-              npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
+              yarn npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
               cd "$GITHUB_WORKSPACE"
             fi
           done
@@ -265,11 +284,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
+          cache: yarn
       - name: Nx CI self-healing
         if: always()
         run: |
-          npx nx fix-ci || npx nx reset || true
+          yarn nx fix-ci || yarn nx reset || true

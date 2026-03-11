@@ -7,7 +7,7 @@ Thank you for your interest in contributing to the Ver.ID SDK! We welcome contri
 ### Prerequisites
 
 - Node.js 20 or higher
-- npm (comes with Node.js)
+- yarn (via Corepack: `corepack enable`)
 - Git
 
 ### Setting Up Your Development Environment
@@ -27,7 +27,7 @@ Thank you for your interest in contributing to the Ver.ID SDK! We welcome contri
 
 4. **Install dependencies**:
    ```bash
-   npm install --legacy-peer-deps
+   yarn install
    ```
 
 ## Development Workflow
@@ -55,29 +55,29 @@ Branch naming conventions:
 2. **Run tests** to ensure everything works:
    ```bash
    # Run tests for affected projects
-   npx nx affected -t test
+   yarn nx affected -t test
    
    # Or run tests for a specific project
-   npx nx test @ver-id/graphql-client
+   yarn nx test @ver-id/graphql-client
    ```
 
 3. **Run linting**:
    ```bash
    # Lint affected projects
-   npx nx affected -t lint
+   yarn nx affected -t lint
    
    # Or lint a specific project
-   npx nx lint @ver-id/graphql-client
+   yarn nx lint @ver-id/graphql-client
    ```
 
 4. **Run type checking**:
    ```bash
-   npx nx affected -t typecheck
+   yarn nx affected -t typecheck
    ```
 
 5. **Build the project**:
    ```bash
-   npx nx affected -t build
+   yarn nx affected -t build
    ```
 
 ### Commit Guidelines
@@ -145,10 +145,10 @@ git push origin feature/your-feature-name
 Before submitting, ensure:
 
 - [ ] Code follows the project's style guidelines
-- [ ] Tests pass locally (`npx nx affected -t test`)
-- [ ] Linting passes (`npx nx affected -t lint`)
-- [ ] Type checking passes (`npx nx affected -t typecheck`)
-- [ ] Build succeeds (`npx nx affected -t build`)
+- [ ] Tests pass locally (`yarn nx affected -t test`)
+- [ ] Linting passes (`yarn nx affected -t lint`)
+- [ ] Type checking passes (`yarn nx affected -t typecheck`)
+- [ ] Build succeeds (`yarn nx affected -t build`)
 - [ ] Commit messages follow conventional commits format
 - [ ] Documentation is updated (if needed)
 - [ ] Changes are described in the PR description
@@ -171,23 +171,23 @@ verid-sdk-js-mono/
 
 ### For a specific package:
 ```bash
-npx nx test @ver-id/graphql-client
-npx nx lint @ver-id/browser-client
-npx nx build @ver-id/graphql-client
+yarn nx test @ver-id/graphql-client
+yarn nx lint @ver-id/browser-client
+yarn nx build @ver-id/graphql-client
 ```
 
 ### For all affected projects:
 ```bash
-npx nx affected -t test
-npx nx affected -t lint
-npx nx affected -t build
+yarn nx affected -t test
+yarn nx affected -t lint
+yarn nx affected -t build
 ```
 
 ### For all projects:
 ```bash
-npx nx run-many -t test
-npx nx run-many -t lint
-npx nx run-many -t build
+yarn nx run-many -t test
+yarn nx run-many -t lint
+yarn nx run-many -t build
 ```
 
 ## GraphQL Code Generation
@@ -195,19 +195,19 @@ npx nx run-many -t build
 If you modify GraphQL queries in `packages/graphql-client`:
 
 ```bash
-npx nx run @ver-id/graphql-client:codegen
+yarn nx run @ver-id/graphql-client:codegen
 ```
 
 ## Testing
 
 ### Unit Tests
 ```bash
-npx nx test <project-name>
+yarn nx test <project-name>
 ```
 
 ### Watch Mode
 ```bash
-npx nx test <project-name> --watch
+yarn nx test <project-name> --watch
 ```
 
 ## Code Style

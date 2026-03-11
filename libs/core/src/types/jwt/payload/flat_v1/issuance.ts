@@ -1,8 +1,8 @@
 import { JWTPayload } from 'jose';
-import { JSONValue, UUID } from '../../generic.js';
+import { JSONValue, UUID } from '../../../generic.js';
 
 /**
- * Represents a single disclosed data item in an attested JWT payload.
+ * Represents a single data item in a flat issuance JWT payload.
  * Contains the attribute value along with its complete identity hierarchy.
  *
  * @public
@@ -21,19 +21,10 @@ export interface IssuanceOutputData {
   /** The actual disclosed value of the attribute */
   value: JSONValue;
 }
+
 /**
- * Represents a revocation key associated with a credential.
- * @public
- */
-export interface IssuanceRevocationKey {
-  /** UUID of the credential containing this revocation key */
-  credentialUuid: UUID;
-  /** Revocation key */
-  key: string;
-}
-/**
- * Represents a disclosure or signature output item in an attested JWT.
- * Contains the disclosed data items along with metadata and verification parameters.
+ * Represents an output item in a flat issuance JWT.
+ * Contains the data items along with metadata and verification parameters.
  *
  * @public
  */
@@ -47,22 +38,21 @@ export interface IssuanceOutputItem {
   };
   /** Additional metadata about the output */
   meta: Record<string, JSONValue>;
-  /** Array of disclosed data items */
+  /** Array of data items */
   data: IssuanceOutputData[];
-  /** */
-  revocationKeys: IssuanceRevocationKey[];
   /** Mapping information for field transformations or aliases */
   mapping: Record<string, JSONValue>;
 }
 
 /**
- * JWT payload structure for issuance in Ver.iD system..
- * Used in the 'ver-id/ssi/output/issuance/v1+JWT' token type.
+ * Legacy JWT payload structure for issuance (flat format).
+ * Used in the 'ver-id/ssi/issuance/flat/v1+JWT' token type.
  *
  * @public
  * @extends JWTPayload
+ * @deprecated Use IssuanceV1JwtPayload for new integrations
  */
-export interface IssuanceJwtPayload extends JWTPayload {
-  /** Array of output items containing disclosed or signed data */
+export interface IssuanceFlatV1JwtPayload extends JWTPayload {
+  /** Array of output items containing issuance data */
   output: IssuanceOutputItem[];
 }
