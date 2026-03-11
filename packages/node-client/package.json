@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/node-client",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "description": "Ver.iD Node.js SDK for decentralized identity authentication, disclosure, and issuance flows",
   "license": "MIT",
   "author": "Ver.iD",
