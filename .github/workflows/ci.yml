@@ -58,7 +58,7 @@ jobs:
         run: yarn install --immutable
       - name: Lint affected projects
         run: |
-          npx nx affected -t lint \
+          yarn nx affected -t lint \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
@@ -81,7 +81,7 @@ jobs:
         run: yarn install --immutable
       - name: Test affected projects
         run: |
-          npx nx affected -t test \
+          yarn nx affected -t test \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
@@ -104,7 +104,7 @@ jobs:
         run: yarn install --immutable
       - name: Type check affected projects
         run: |
-          npx nx affected -t typecheck \
+          yarn nx affected -t typecheck \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
@@ -128,7 +128,7 @@ jobs:
         run: yarn install --immutable
       - name: Build affected projects
         run: |
-          npx nx affected -t build \
+          yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
@@ -173,7 +173,7 @@ jobs:
       # Keep building before releasing so publish has fresh artifacts
       - name: Build affected projects
         run: |
-          npx nx affected -t build \
+          yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --parallel=3 --max-parallel=3
@@ -186,7 +186,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Get affected projects from packages/ directory (which are the publishable ones)
-          AFFECTED="$(npx nx show projects --affected \
+          AFFECTED="$(yarn nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --projects="packages/*" \
@@ -218,7 +218,7 @@ jobs:
           # Run release with first-release flag if needed
           if [ -n "$FIRST_RELEASE" ]; then
             echo "Running first release for: $FIRST_RELEASE"
-            npx nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
+            yarn nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
 
             # Remove first release projects from affected list
             REMAINING_AFFECTED=""
@@ -232,12 +232,12 @@ jobs:
             # Release remaining projects normally
             if [ -n "$REMAINING_AFFECTED" ]; then
               echo "Running normal release for: $REMAINING_AFFECTED"
-              npx nx release -y --projects="$REMAINING_AFFECTED" --verbose
+              yarn nx release -y --projects="$REMAINING_AFFECTED" --verbose
             fi
           else
             # No first releases, run normal release
             echo "Running normal release for: $AFFECTED"
-            npx nx release -y --projects="$AFFECTED" --verbose
+            yarn nx release -y --projects="$AFFECTED" --verbose
           fi
 
       # Publish to GitHub Packages as a secondary registry
@@ -248,7 +248,7 @@ jobs:
           # Switch registry to GitHub Packages
           yarn config set npmRegistryServer https://npm.pkg.github.com
 
-          AFFECTED="$(npx nx show projects --affected \
+          AFFECTED="$(yarn nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
             --projects="packages/*" \
@@ -288,4 +288,4 @@ jobs:
       - name: Nx CI self-healing
         if: always()
         run: |
-          npx nx fix-ci || npx nx reset || true
+          yarn nx fix-ci || yarn nx reset || true
