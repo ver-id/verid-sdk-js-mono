@@ -9,7 +9,7 @@ import {
   generateDisclosureUrlSnippet,
 } from '../services/index.js';
 import type { InitializeRequest, GenerateUrlRequest } from '../types/index.js';
-import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertAttestedFlatV1JwtPayload, assertDisclosureV1JwtPayload } from '@ver-id/node-client';
+import { assert, NodeDisclosureClientConfig, VeridDisclosureClient, InvalidArgumentError, assertDisclosureV1JwtPayload } from '@ver-id/node-client';
 
 /**
  * POST /api/disclosure/initialize

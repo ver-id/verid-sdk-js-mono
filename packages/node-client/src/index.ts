@@ -86,21 +86,31 @@ export {
   assertIssuanceResponse,
   assertCacheManager,
   assertJwtPayload,
-  assertAttestedJwtPayload,
+  assertAttestedFlatV1JwtPayload,
   assertOpenIdJwtPayload,
-  assertPlainJwtPayload,
-  assertIssuanceJwtPayload
+  assertIssuanceFlatV1JwtPayload,
+  assertDisclosureV1JwtPayload,
+  assertSignatureV1JwtPayload,
+  assertIssuanceV1JwtPayload,
 } from '@verid-sdk-js-mono/core/utils';
 
 /**
  * Export core types
  */
 export type {
-  // Payload
-  AttestedJwtPayload,
-  IssuanceJwtPayload,
+  // Payload (legacy flat format)
+  AttestedFlatV1JwtPayload,
+  IssuanceFlatV1JwtPayload,
+  // Payload (v1 credential-grouped format)
+  DisclosureV1JwtPayload,
+  SignatureV1JwtPayload,
+  IssuanceV1JwtPayload,
+  // Payload (OpenID)
   OpenIdJwtPayload,
-  PlainJwtPayload,
+  // Credential types
+  OutputCredential,
+  OutputAttribute,
+  OutputCredentialType,
 
   // JWT
   JwtType,

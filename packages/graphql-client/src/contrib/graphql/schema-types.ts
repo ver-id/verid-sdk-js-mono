@@ -17,8 +17,8 @@ export type Scalars = {
   Domain: { input: string; output: string; }
   DomainName: { input: string; output: string; }
   Email: { input: string; output: string; }
-  Entitlement: { input: string; output: string; }
   FilteringValue: { input: string | number | boolean | string[]; output: string | number | boolean | string[]; }
+  Grant: { input: unknown; output: unknown; }
   ISO3166: { input: string; output: string; }
   JSONObject: { input: any; output: any; }
   JwtMediaType: { input: string; output: string; }
@@ -38,15 +38,6 @@ export type Scalars = {
   URL: { input: string; output: string; }
   URN: { input: string; output: string; }
   UUID: { input: string; output: string; }
-};
-
-export type AcceptAuthenticationInvitationInput = {
-  /** The new password of the user. */
-  password: Scalars['Password']['input'];
-  /** The confirmed password of the user. */
-  passwordConfirmation: Scalars['Password']['input'];
-  /** The invitation token which is used to authorize the user. */
-  token: Scalars['NonEmpty']['input'];
 };
 
 export type AcceptUserInvitationAndRegisterByPasswordInput = {
@@ -74,6 +65,15 @@ export type AcceptUserInvitationByPasswordInput = {
   token: Scalars['NonEmpty']['input'];
 };
 
+export type AcceptUserInvitationTokenInput = {
+  /** The new password of the user. */
+  password: Scalars['Password']['input'];
+  /** The confirmed password of the user. */
+  passwordConfirmation: Scalars['Password']['input'];
+  /** The invitation token which is used to authorize the user. */
+  token: Scalars['NonEmpty']['input'];
+};
+
 /** Lifecycle actions */
 export enum Action {
   Activate = 'ACTIVATE',
@@ -90,6 +90,12 @@ export type ActionAppInput = {
 export type ActionAttributeInput = {
   /** The action */
   action: Action;
+};
+
+/** Update state Input */
+export type ActionAuthenticationInput = {
+  /** The transition of the flow authentication. */
+  action: AuthenticationAction;
 };
 
 /** Charge action */
@@ -130,34 +136,28 @@ export type ActionCredentialRequestInput = {
   meta?: InputMaybe<Scalars['JSONObject']['input']>;
 };
 
-/** Update state Input */
-export type ActionFlowAuthenticationInput = {
-  /** The transition of the flow authentication. */
-  action: FlowAuthenticationAction;
-};
-
-/** ActionFlowDisclosureInput */
-export type ActionFlowDisclosureInput = {
+/** ActionDisclosureInput */
+export type ActionDisclosureInput = {
   /** The action */
-  action: FlowDisclosureAction;
+  action: DisclosureAction;
 };
 
 /** Action Input */
-export type ActionFlowIssuanceInput = {
+export type ActionIssuanceInput = {
   /** The action */
-  action: FlowIssuanceAction;
-};
-
-/** Action Input */
-export type ActionFlowSignatureInput = {
-  /** The action */
-  action: FlowSignatureAction;
+  action: IssuanceAction;
 };
 
 /** Action Input */
 export type ActionIssuerInput = {
   /** The action */
   action: Action;
+};
+
+/** ActionMaintenanceInput */
+export type ActionMaintenanceInput = {
+  /** The action */
+  action: MaintenanceAction;
 };
 
 /** Action Input */
@@ -206,7 +206,7 @@ export type ActionOrganizationAppPrerequisiteInput = {
 export type ActionOrganizationBrandInput = {
   /** The action. */
   action: OrganizationBrandAction;
-  /** Reject  */
+  /** Reject */
   reject?: InputMaybe<ActionOrganizationBrandRejectInput>;
 };
 
@@ -220,7 +220,7 @@ export type ActionOrganizationBrandRejectInput = {
 export type ActionOrganizationDomainInput = {
   /** The action */
   action: OrganizationDomainAction;
-  /** Reject  */
+  /** Reject */
   reject?: InputMaybe<OrganizationDomainActionRejectInput>;
 };
 
@@ -252,6 +252,12 @@ export type ActionPasswordUserInput = {
   passwordConfirmation: Scalars['Password']['input'];
 };
 
+/** Update state Input */
+export type ActionPricingRuleInput = {
+  /** The transition of the pricing rule. */
+  action: PricingRuleAction;
+};
+
 /** Action Input */
 export type ActionProviderInput = {
   /** The action */
@@ -268,6 +274,12 @@ export type ActionSchemeInput = {
 export type ActionScopeInput = {
   /** The action */
   action: Action;
+};
+
+/** Action Input */
+export type ActionSignatureInput = {
+  /** The action */
+  action: SignatureAction;
 };
 
 /** Update state Input */
@@ -554,6 +566,8 @@ export type AppPrerequisiteState = Model & {
   appPrerequisite: AppPrerequisite;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
+  /** The grants allowed to take action */
+  grants: Array<Scalars['String']['output']>;
   /** The collection of locale */
   locale: AppPrerequisiteStateLocaleConnection;
   /** The name of the state */
@@ -783,6 +797,58 @@ export enum AttributeFilteringField {
   State = 'state',
   Uuid = 'uuid'
 }
+
+/** Identity attribute label definition. */
+export type AttributeLabel = Model & {
+  __typename?: 'AttributeLabel';
+  /** The identity attribute (resolved via federation) */
+  attribute: Attribute;
+  /** The identity attribute UUID (no direct relation - separate database) */
+  attributeUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Connection */
+export type AttributeLabelConnection = {
+  __typename?: 'AttributeLabelConnection';
+  edges: Array<AttributeLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Edge */
+export type AttributeLabelEdge = {
+  __typename?: 'AttributeLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: AttributeLabel;
+};
+
+/** Fields which can be used to filter identity attribute labels. Value must be camel case. */
+export enum AttributeLabelFilteringField {
+  AttributeUuid = 'attributeUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort identity attribute labels. Value must be camel case. */
+export enum AttributeLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting identity attribute labels. */
+export type AttributeLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AttributeLabelSortEnum;
+};
 
 /** Attribute locale definition. */
 export type AttributeLocale = Model & {
@@ -1039,10 +1105,10 @@ export type AttributeMetaNlWallet = Model & {
   __typename?: 'AttributeMetaNLWallet';
   /** The attribute meta the NL Wallet meta belongs to. */
   attributeMeta: AttributeMeta;
+  /** The DCQL claim path for the attribute */
+  claimPath: Scalars['JSONObject']['output'];
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The name of the attribute */
-  name: Scalars['NonEmpty']['output'];
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -1455,6 +1521,22 @@ export type AttributeMetaYotiSortInput = {
   field: AttributeMetaYotiSortEnum;
 };
 
+/** The input for filtering attribute meta */
+export type AttributeNestedFilteringAttributeMetaField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering attribute meta */
+  input: FindManyAttributeMetaInput;
+};
+
+/** The input for filtering credential */
+export type AttributeNestedFilteringCredentialField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering credential */
+  input: FindManyCredentialsInput;
+};
+
 /** Attribute request. */
 export type AttributeRequest = Model & {
   __typename?: 'AttributeRequest';
@@ -1564,6 +1646,10 @@ export type AttributeRequestMeta = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The datakeeper attribute request meta */
   datakeeper?: Maybe<AttributeRequestMetaDatakeeper>;
+  /** The OID4VC mdoc attribute request meta */
+  oid4vcMdoc?: Maybe<AttributeRequestMetaOid4Vcmdoc>;
+  /** The OID4VC SD-JWT attribute request meta */
+  oid4vcSdJwt?: Maybe<AttributeRequestMetaOid4Vcsdjwt>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -1641,6 +1727,107 @@ export enum AttributeRequestMetaFilteringField {
   AttributeRequestUuid = 'attributeRequestUuid'
 }
 
+/** Attribute request meta OID4VC mdoc definition. */
+export type AttributeRequestMetaOid4Vcmdoc = Model & {
+  __typename?: 'AttributeRequestMetaOID4VCMDOC';
+  /** The attribute request meta the OID4VC mdoc meta belongs to. */
+  attributeRequestMeta: AttributeRequestMeta;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The mdoc data element identifier */
+  dataElementIdentifier: Scalars['NonEmpty']['output'];
+  /** The mdoc namespace */
+  namespace: Scalars['NonEmpty']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The attribute request meta OID4VC mdoc connection definition. */
+export type AttributeRequestMetaOid4VcmdocConnection = {
+  __typename?: 'AttributeRequestMetaOID4VCMDOCConnection';
+  edges: Array<Maybe<AttributeRequestMetaOid4VcmdocEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The attribute request meta OID4VC mdoc edge definition. */
+export type AttributeRequestMetaOid4VcmdocEdge = {
+  __typename?: 'AttributeRequestMetaOID4VCMDOCEdge';
+  cursor: Scalars['String']['output'];
+  node: AttributeRequestMetaOid4Vcmdoc;
+};
+
+/** Fields which can be used to filter attribute request meta OID4VC mdoc on. Value must be camel case. */
+export enum AttributeRequestMetaOid4VcmdocFilteringField {
+  AttributeRequestMetaUuid = 'attributeRequestMetaUuid',
+  DataElementIdentifier = 'dataElementIdentifier',
+  Namespace = 'namespace'
+}
+
+/** Fields which can be used to sort attribute request meta OID4VC mdoc on. Value must be camel case. */
+export enum AttributeRequestMetaOid4VcmdocSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting attribute request meta OID4VC mdoc. */
+export type AttributeRequestMetaOid4VcmdocSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AttributeRequestMetaOid4VcmdocSortEnum;
+};
+
+/** Attribute request meta OID4VC SD-JWT definition. */
+export type AttributeRequestMetaOid4Vcsdjwt = Model & {
+  __typename?: 'AttributeRequestMetaOID4VCSDJWT';
+  /** The attribute request meta the OID4VC SD-JWT meta belongs to. */
+  attributeRequestMeta: AttributeRequestMeta;
+  /** The claim path array */
+  claimPath: Scalars['JSONObject']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The JSON path for the SD-JWT claim */
+  jsonPath: Scalars['NonEmpty']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The attribute request meta OID4VC SD-JWT connection definition. */
+export type AttributeRequestMetaOid4VcsdjwtConnection = {
+  __typename?: 'AttributeRequestMetaOID4VCSDJWTConnection';
+  edges: Array<Maybe<AttributeRequestMetaOid4VcsdjwtEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The attribute request meta OID4VC SD-JWT edge definition. */
+export type AttributeRequestMetaOid4VcsdjwtEdge = {
+  __typename?: 'AttributeRequestMetaOID4VCSDJWTEdge';
+  cursor: Scalars['String']['output'];
+  node: AttributeRequestMetaOid4Vcsdjwt;
+};
+
+/** Fields which can be used to filter attribute request meta OID4VC SD-JWT on. Value must be camel case. */
+export enum AttributeRequestMetaOid4VcsdjwtFilteringField {
+  AttributeRequestMetaUuid = 'attributeRequestMetaUuid',
+  JsonPath = 'jsonPath'
+}
+
+/** Fields which can be used to sort attribute request meta OID4VC SD-JWT on. Value must be camel case. */
+export enum AttributeRequestMetaOid4VcsdjwtSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting attribute request meta OID4VC SD-JWT. */
+export type AttributeRequestMetaOid4VcsdjwtSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AttributeRequestMetaOid4VcsdjwtSortEnum;
+};
+
 /** Fields which can be used to sort attribute request meta on. Value must be camel case. */
 export enum AttributeRequestMetaSortEnum {
   CreatedAt = 'createdAt'
@@ -1658,6 +1845,8 @@ export type AttributeRequestMetaSortInput = {
 export enum AttributeRequestMetaType {
   Datakeeper = 'DATAKEEPER',
   None = 'NONE',
+  Oid4VcMdoc = 'OID4VC_MDOC',
+  Oid4VcSdJwt = 'OID4VC_SD_JWT',
   Yivi = 'YIVI',
   Yoti = 'YOTI'
 }
@@ -1791,40 +1980,559 @@ export type AttributeSortInput = {
   field: AttributeSortEnum;
 };
 
-/** A response to a successful login */
-export type Authentication = {
+/** Flow authentication definition. */
+export type Authentication = Model & {
   __typename?: 'Authentication';
-  /** The login response token. */
-  token: Scalars['NonEmpty']['output'];
+  /** The associated brands with this authentication */
+  authenticationBrands: AuthenticationBrandConnection;
+  /** The associated domains with this authentication */
+  authenticationDomains: AuthenticationDomainConnection;
+  /** The associated labels with this authentication */
+  authenticationLabels: AuthenticationLabelConnection;
+  /** A list of flow providers belonging to this flow authentication. */
+  authenticationProviders: AuthenticationProviderConnection;
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['output'];
+  /** The organization the flow belongs to. */
+  organization: Organization;
+  /** The state of the flow. */
+  state: AuthenticationState;
+  /** Shortcut to active studio controls associated to this object */
+  studioControlCompacts: Array<StudioControlCompact>;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
 };
 
-/** Login by client credentials input */
-export type AuthenticationByClientCredentialsInput = {
-  /** The client identifier */
-  client_id: Scalars['NonEmpty']['input'];
-  /** The client secret */
-  client_secret: Scalars['NonEmpty']['input'];
+
+/** Flow authentication definition. */
+export type AuthenticationAuthenticationBrandsArgs = {
+  input?: InputMaybe<FindManyAuthenticationBrandsInput>;
 };
 
-/** Login by OpenID token input */
-export type AuthenticationByOpenIdTokenInput = {
-  /** The OAuth provider UUID */
-  oauthProviderUuid?: InputMaybe<Scalars['UUID']['input']>;
-  /** The organization UUID. */
-  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
-  /** The open id token which is obtained via SSI or an external OAuth provider. */
-  token: Scalars['NonEmpty']['input'];
+
+/** Flow authentication definition. */
+export type AuthenticationAuthenticationDomainsArgs = {
+  input?: InputMaybe<FindManyAuthenticationDomainsInput>;
 };
 
-/** Login by password input */
-export type AuthenticationByPasswordInput = {
-  /** The email which we should use to log in the user. */
-  email: Scalars['Email']['input'];
-  /** The organization UUID. */
-  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
-  /** The password which we should use to log in the user. */
-  password: Scalars['Password']['input'];
+
+/** Flow authentication definition. */
+export type AuthenticationAuthenticationLabelsArgs = {
+  input?: InputMaybe<FindManyAuthenticationLabelsInput>;
 };
+
+
+/** Flow authentication definition. */
+export type AuthenticationAuthenticationProvidersArgs = {
+  input?: InputMaybe<FindManyAuthenticationProvidersInput>;
+};
+
+/** AuthenticationAction */
+export enum AuthenticationAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE'
+}
+
+/** Authentication activity definition. */
+export type AuthenticationActivity = Model & {
+  __typename?: 'AuthenticationActivity';
+  /** The authentication UUID */
+  authenticationUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The event URN */
+  eventURN: Scalars['URN']['output'];
+  /** The metadata */
+  meta: Scalars['JSONObject']['output'];
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** The request UUID */
+  requestUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The authentication activity connection definition. */
+export type AuthenticationActivityConnection = {
+  __typename?: 'AuthenticationActivityConnection';
+  edges: Array<Maybe<AuthenticationActivityEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The authentication activity edge definition. */
+export type AuthenticationActivityEdge = {
+  __typename?: 'AuthenticationActivityEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationActivity;
+};
+
+/** Fields which can be used to filter authentication activities on. */
+export enum AuthenticationActivityFilteringField {
+  AuthenticationUuid = 'authenticationUuid',
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventURN',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid'
+}
+
+/** Fields which can be used to sort authentication activities on. */
+export enum AuthenticationActivitySortEnum {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventUrn'
+}
+
+/** Input options for sorting authentication activities. */
+export type AuthenticationActivitySortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationActivitySortEnum;
+};
+
+/** Organization brand definition. */
+export type AuthenticationBrand = Model & {
+  __typename?: 'AuthenticationBrand';
+  /** The flow authentication */
+  authentication: Authentication;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Is default branding */
+  isDefault: Scalars['Boolean']['output'];
+  /** The user organization brand */
+  organizationBrand: OrganizationBrand;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type AuthenticationBrandConnection = {
+  __typename?: 'AuthenticationBrandConnection';
+  edges: Array<AuthenticationBrandEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type AuthenticationBrandEdge = {
+  __typename?: 'AuthenticationBrandEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationBrand;
+};
+
+/** Fields which can be used to filter brands on. Value must be camel case. */
+export enum AuthenticationBrandFilteringField {
+  AuthenticationUuid = 'authenticationUuid',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort brands on. Value must be camel case. */
+export enum AuthenticationBrandSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting brands. */
+export type AuthenticationBrandSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationBrandSortEnum;
+};
+
+/** The flow authentication connection definition. */
+export type AuthenticationConnection = {
+  __typename?: 'AuthenticationConnection';
+  edges: Array<Maybe<AuthenticationEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** Organization domain definition. */
+export type AuthenticationDomain = Model & {
+  __typename?: 'AuthenticationDomain';
+  /** The flow authentication */
+  authentication: Authentication;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The user organization domain */
+  organizationDomain: OrganizationDomain;
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['output'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['output'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type AuthenticationDomainConnection = {
+  __typename?: 'AuthenticationDomainConnection';
+  edges: Array<AuthenticationDomainEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type AuthenticationDomainEdge = {
+  __typename?: 'AuthenticationDomainEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationDomain;
+};
+
+/** Fields which can be used to filter domains on. Value must be camel case. */
+export enum AuthenticationDomainFilteringField {
+  AuthenticationUuid = 'authenticationUuid',
+  OrganizationDomainUuid = 'organizationDomainUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort domains on. Value must be camel case. */
+export enum AuthenticationDomainSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting domains. */
+export type AuthenticationDomainSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationDomainSortEnum;
+};
+
+/** The flow authentication edge definition. */
+export type AuthenticationEdge = {
+  __typename?: 'AuthenticationEdge';
+  cursor: Scalars['String']['output'];
+  node: Authentication;
+};
+
+/** Fields which can be used to filter flow authentications on. Value must be camel case. */
+export enum AuthenticationFilteringField {
+  Name = 'name',
+  OrganizationUuid = 'organizationUuid',
+  State = 'state',
+  Uuid = 'uuid'
+}
+
+/** Organization Label definition. */
+export type AuthenticationLabel = Model & {
+  __typename?: 'AuthenticationLabel';
+  /** The flow authentication */
+  authentication: Authentication;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type AuthenticationLabelConnection = {
+  __typename?: 'AuthenticationLabelConnection';
+  edges: Array<AuthenticationLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type AuthenticationLabelEdge = {
+  __typename?: 'AuthenticationLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum AuthenticationLabelFilteringField {
+  AuthenticationUuid = 'authenticationUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum AuthenticationLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type AuthenticationLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationLabelSortEnum;
+};
+
+/** The input for filtering flow authentication brands in nested filtering. */
+export type AuthenticationNestedFilteringAuthenticationBrandField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow authentication brands */
+  input: FindManyAuthenticationBrandsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering flow authentication labels in nested filtering. */
+export type AuthenticationNestedFilteringAuthenticationLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow authentication labels */
+  input: FindManyAuthenticationLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** Flow authentication provider definition. */
+export type AuthenticationProvider = Model & {
+  __typename?: 'AuthenticationProvider';
+  /** The flow authentication the flow provider belongs to. */
+  authentication: Authentication;
+  /** A list of flow queries belonging to this flow provider. */
+  authenticationScopes: AuthenticationScopeConnection;
+  /** The flow authentication provider configuration. */
+  configuration?: Maybe<AuthenticationProviderConfiguration>;
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The provider app the providerAppUuid belongs to. */
+  providerApp: ProviderApp;
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['output'];
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow authentication provider definition. */
+export type AuthenticationProviderAuthenticationScopesArgs = {
+  input?: InputMaybe<FindManyAuthenticationScopesInput>;
+};
+
+/** Flow authentication provider configuration definition */
+export type AuthenticationProviderConfiguration = Model & {
+  __typename?: 'AuthenticationProviderConfiguration';
+  /** The AuthenticationProvider this configuration belongs to */
+  authenticationProvider: AuthenticationProvider;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The NL Wallet flow authentication provider configuration */
+  nlWallet?: Maybe<AuthenticationProviderConfigurationNlWallet>;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The AuthenticationProviderConfiguration connection definition. */
+export type AuthenticationProviderConfigurationConnection = {
+  __typename?: 'AuthenticationProviderConfigurationConnection';
+  edges: Array<Maybe<AuthenticationProviderConfigurationEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The AuthenticationProviderConfiguration edge definition. */
+export type AuthenticationProviderConfigurationEdge = {
+  __typename?: 'AuthenticationProviderConfigurationEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationProviderConfiguration;
+};
+
+/** Fields which can be used to filter AuthenticationProviderConfiguration on. Value must be camel case. */
+export enum AuthenticationProviderConfigurationFilteringField {
+  AuthenticationProviderUuid = 'authenticationProviderUuid'
+}
+
+/** AuthenticationProviderConfigurationNLWallet definition */
+export type AuthenticationProviderConfigurationNlWallet = Model & {
+  __typename?: 'AuthenticationProviderConfigurationNLWallet';
+  /** The AuthenticationProviderConfiguration this object belongs to. */
+  authenticationProviderConfiguration: AuthenticationProviderConfiguration;
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The usecase */
+  usecase: Scalars['String']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The AuthenticationProviderConfigurationNLWallet connection definition. */
+export type AuthenticationProviderConfigurationNlWalletConnection = {
+  __typename?: 'AuthenticationProviderConfigurationNLWalletConnection';
+  edges: Array<Maybe<AuthenticationProviderConfigurationNlWalletEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The AuthenticationProviderConfigurationNLWallet edge definition. */
+export type AuthenticationProviderConfigurationNlWalletEdge = {
+  __typename?: 'AuthenticationProviderConfigurationNLWalletEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationProviderConfigurationNlWallet;
+};
+
+/** Fields which can be used to filter AuthenticationProviderConfigurationNLWallet on. Value must be camel case. */
+export enum AuthenticationProviderConfigurationNlWalletFilteringField {
+  AuthenticationProviderConfigurationUuid = 'authenticationProviderConfigurationUuid',
+  Intent = 'intent'
+}
+
+/** Fields which can be used to sort AuthenticationProviderConfigurationNLWallet on. Value must be camel case. */
+export enum AuthenticationProviderConfigurationNlWalletSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting AuthenticationProviderConfigurationNLWallet. */
+export type AuthenticationProviderConfigurationNlWalletSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationProviderConfigurationNlWalletSortEnum;
+};
+
+/** Fields which can be used to sort AuthenticationProviderConfiguration on. Value must be camel case. */
+export enum AuthenticationProviderConfigurationSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting AuthenticationProviderConfiguration. */
+export type AuthenticationProviderConfigurationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationProviderConfigurationSortEnum;
+};
+
+/** The flow authentication provider connection definition. */
+export type AuthenticationProviderConnection = {
+  __typename?: 'AuthenticationProviderConnection';
+  edges: Array<AuthenticationProviderEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow authentication provider edge definition. */
+export type AuthenticationProviderEdge = {
+  __typename?: 'AuthenticationProviderEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationProvider;
+};
+
+/** Fields which can be used to filter flow authentication providers on. Value must be camel case. */
+export enum AuthenticationProviderFilteringField {
+  AuthenticationUuid = 'authenticationUuid',
+  ProviderAppUuid = 'providerAppUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow authentication providers on. Value must be camel case. */
+export enum AuthenticationProviderSortEnum {
+  CreatedAt = 'createdAt',
+  ProviderAppUuid = 'providerAppUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow authentication providers. */
+export type AuthenticationProviderSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationProviderSortEnum;
+};
+
+/** Flow authentication scope definition. */
+export type AuthenticationScope = Model & {
+  __typename?: 'AuthenticationScope';
+  /** The flow authentication the flow scope belongs to. */
+  authenticationProvider: AuthenticationProvider;
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The scope the scopeUuid belongs to. */
+  scope: Scope;
+  /** The name */
+  scopeUuid: Scalars['UUID']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow authentication scope connection definition. */
+export type AuthenticationScopeConnection = {
+  __typename?: 'AuthenticationScopeConnection';
+  edges: Array<AuthenticationScopeEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow authentication scope edge definition. */
+export type AuthenticationScopeEdge = {
+  __typename?: 'AuthenticationScopeEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationScope;
+};
+
+/** Fields which can be used to filter flow authentication scope on. Value must be camel case. */
+export enum AuthenticationScopeFilteringField {
+  AuthenticationProviderUuid = 'authenticationProviderUuid',
+  ScopeUuid = 'scopeUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow authentication scope on. Value must be camel case. */
+export enum AuthenticationScopeSortEnum {
+  CreatedAt = 'createdAt',
+  ScopeUuid = 'scopeUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow authentication scope. */
+export type AuthenticationScopeSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationScopeSortEnum;
+};
+
+/** Fields which can be used to sort flow authentications on. Value must be camel case. */
+export enum AuthenticationSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  State = 'state',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow authentications. */
+export type AuthenticationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationSortEnum;
+};
+
+/** AuthenticationState */
+export enum AuthenticationState {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
 
 /** Billing definition. */
 export type Billing = Model & {
@@ -1981,61 +2689,6 @@ export enum BillingPlanFilteringField {
   Uuid = 'uuid'
 }
 
-/** BillingPlanPayment definition. */
-export type BillingPlanPayment = Model & {
-  __typename?: 'BillingPlanPayment';
-  /** Billing */
-  billingPlan: BillingPlan;
-  /** Billing tx */
-  billingWalletTransaction: BillingWalletTransaction;
-  /** The user creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The interval end time */
-  intervalEndAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The interval start time */
-  intervalStartAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The user update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-export type BillingPlanPaymentConnection = {
-  __typename?: 'BillingPlanPaymentConnection';
-  edges: Array<BillingPlanPaymentEdge>;
-  pageInfo: PageInfo;
-};
-
-export type BillingPlanPaymentEdge = {
-  __typename?: 'BillingPlanPaymentEdge';
-  cursor: Scalars['String']['output'];
-  node: BillingPlanPayment;
-};
-
-/** Fields which can be used to filter billings on. Value must be camel case. */
-export enum BillingPlanPaymentFilteringField {
-  BillingPlanUuid = 'billingPlanUuid',
-  BillingWalletTransactionUuid = 'billingWalletTransactionUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort billings on. Value must be camel case. */
-export enum BillingPlanPaymentSortEnum {
-  BillingPlanUuid = 'billingPlanUuid',
-  BillingWalletTransactionUuid = 'billingWalletTransactionUuid',
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt',
-  Uuid = 'uuid'
-}
-
-/** Input options for sorting billings. */
-export type BillingPlanPaymentSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: BillingPlanPaymentSortEnum;
-};
-
 /** Fields which can be used to sort billings on. Value must be camel case. */
 export enum BillingPlanSortEnum {
   CreatedAt = 'createdAt',
@@ -2089,8 +2742,6 @@ export type BillingWallet = Model & {
   balance?: Maybe<Scalars['Int']['output']>;
   /** The organization the user belongs to. */
   billing: Billing;
-  /** A list of billing payments */
-  billingWalletPayments: BillingWalletPaymentConnection;
   /** A list of billing transactions */
   billingWalletTransactions: BillingWalletTransactionConnection;
   /** The user creation time */
@@ -2105,12 +2756,6 @@ export type BillingWallet = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-};
-
-
-/** BillingWallet definition. */
-export type BillingWalletBillingWalletPaymentsArgs = {
-  input?: InputMaybe<FindManyBillingWalletPaymentsInput>;
 };
 
 
@@ -2144,70 +2789,7 @@ export enum BillingWalletFilteringField {
   Uuid = 'uuid'
 }
 
-/** BillingWalletPayment definition. */
-export type BillingWalletPayment = Model & {
-  __typename?: 'BillingWalletPayment';
-  /** Billing */
-  billingWallet: BillingWallet;
-  /** Billing tx */
-  billingWalletTransaction: BillingWalletTransaction;
-  /** The user creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The interval end time */
-  intervalEndAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The interval start time */
-  intervalStartAt?: Maybe<Scalars['DateTime']['output']>;
-  /** Invoice */
-  paymentProviderInvoice: PaymentProviderInvoice;
-  /** The type of the payment */
-  type: BillingWalletPaymentType;
-  /** The user update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-export type BillingWalletPaymentConnection = {
-  __typename?: 'BillingWalletPaymentConnection';
-  edges: Array<BillingWalletPaymentEdge>;
-  pageInfo: PageInfo;
-};
-
-export type BillingWalletPaymentEdge = {
-  __typename?: 'BillingWalletPaymentEdge';
-  cursor: Scalars['String']['output'];
-  node: BillingWalletPayment;
-};
-
-/** Fields which can be used to filter billings on. Value must be camel case. */
-export enum BillingWalletPaymentFilteringField {
-  BillingWalletTransactionUuid = 'billingWalletTransactionUuid',
-  BillingWalletUuid = 'billingWalletUuid',
-  PaymentProviderInvoiceUuid = 'paymentProviderInvoiceUuid',
-  Type = 'type',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort billings on. Value must be camel case. */
-export enum BillingWalletPaymentSortEnum {
-  BillingWalletTransactionUuid = 'billingWalletTransactionUuid',
-  BillingWalletUuid = 'billingWalletUuid',
-  CreatedAt = 'createdAt',
-  PaymentProviderInvoiceUuid = 'paymentProviderInvoiceUuid',
-  Type = 'type',
-  UpdatedAt = 'updatedAt',
-  Uuid = 'uuid'
-}
-
-/** Input options for sorting billings. */
-export type BillingWalletPaymentSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: BillingWalletPaymentSortEnum;
-};
-
-/** Fields which can be used to filter billings on. Value must be camel case. */
+/** Wallet payment type enum. */
 export enum BillingWalletPaymentType {
   FreeCredit = 'FREE_CREDIT',
   TopUpManual = 'TOP_UP_MANUAL',
@@ -2236,14 +2818,14 @@ export type BillingWalletTransaction = Model & {
   __typename?: 'BillingWalletTransaction';
   /** amount */
   amount: Scalars['Int']['output'];
-  /** Billing Plan Payment */
-  billingPlanPayment?: Maybe<BillingPlanPayment>;
-  /** Billing */
+  /** Billing Wallet */
   billingWallet: BillingWallet;
-  /** Billing Wallet Payment */
-  billingWalletPayment?: Maybe<BillingWalletPayment>;
+  /** Transaction Meta */
+  billingWalletTransactionMeta?: Maybe<BillingWalletTransactionMeta>;
   /** The user creation time */
   createdAt: Scalars['DateTime']['output'];
+  /** Meta Type */
+  metaType: BillingWalletTransactionMetaType;
   /** The resourceURN */
   resourceURN: Scalars['NonEmpty']['output'];
   /** State */
@@ -2270,16 +2852,359 @@ export type BillingWalletTransactionEdge = {
 export enum BillingWalletTransactionFilteringField {
   Amount = 'amount',
   BillingWalletUuid = 'billingWalletUuid',
+  MetaType = 'metaType',
   ResourceUrn = 'resourceURN',
   State = 'state',
   Uuid = 'uuid'
 }
+
+/** BillingWalletTransactionMeta definition - container for payment details based on metaType */
+export type BillingWalletTransactionMeta = Model & {
+  __typename?: 'BillingWalletTransactionMeta';
+  /** Transaction */
+  billingWalletTransaction: BillingWalletTransaction;
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Flow Payment Meta (when metaType = FLOW) */
+  flow?: Maybe<BillingWalletTransactionMetaFlow>;
+  /** Plan Payment Meta (when metaType = PLAN) */
+  plan?: Maybe<BillingWalletTransactionMetaPlan>;
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+  /** Wallet Payment Meta (when metaType = WALLET) */
+  wallet?: Maybe<BillingWalletTransactionMetaWallet>;
+};
+
+export type BillingWalletTransactionMetaConnection = {
+  __typename?: 'BillingWalletTransactionMetaConnection';
+  edges: Array<BillingWalletTransactionMetaEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaEdge = {
+  __typename?: 'BillingWalletTransactionMetaEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMeta;
+};
+
+/** Fields which can be used to filter billing wallet transaction metas on. Value must be camel case. */
+export enum BillingWalletTransactionMetaFilteringField {
+  BillingWalletTransactionUuid = 'billingWalletTransactionUuid',
+  Uuid = 'uuid'
+}
+
+/** BillingWalletTransactionMetaFlow definition - flow execution payment details. */
+export type BillingWalletTransactionMetaFlow = Model & {
+  __typename?: 'BillingWalletTransactionMetaFlow';
+  /** Flow Payment Attributes */
+  attributes: BillingWalletTransactionMetaFlowAttributeConnection;
+  /** Transaction Meta */
+  billingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** Cost */
+  cost: Scalars['Int']['output'];
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Flow Type */
+  flowType: FlowType;
+  /** Flow UUID */
+  flowUuid: Scalars['UUID']['output'];
+  /** Organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** Request UUID */
+  requestUuid: Scalars['UUID']['output'];
+  /** Revenue */
+  revenue: Scalars['Int']['output'];
+  /** Summary */
+  summary?: Maybe<Scalars['String']['output']>;
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** BillingWalletTransactionMetaFlow definition - flow execution payment details. */
+export type BillingWalletTransactionMetaFlowAttributesArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaFlowAttributesInput>;
+};
+
+/** BillingWalletTransactionMetaFlowAttribute definition - attribute details for flow payments. */
+export type BillingWalletTransactionMetaFlowAttribute = Model & {
+  __typename?: 'BillingWalletTransactionMetaFlowAttribute';
+  /** Attribute UUID */
+  attributeUuid: Scalars['UUID']['output'];
+  /** Flow Payment Meta */
+  billingWalletTransactionMetaFlow: BillingWalletTransactionMetaFlow;
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Credential UUID */
+  credentialUuid: Scalars['UUID']['output'];
+  /** Issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
+  /** Provider App UUID */
+  providerAppUuid: Scalars['UUID']['output'];
+  /** Provider UUID */
+  providerUuid: Scalars['UUID']['output'];
+  /** Scheme UUID */
+  schemeUuid: Scalars['UUID']['output'];
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type BillingWalletTransactionMetaFlowAttributeConnection = {
+  __typename?: 'BillingWalletTransactionMetaFlowAttributeConnection';
+  edges: Array<BillingWalletTransactionMetaFlowAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaFlowAttributeEdge = {
+  __typename?: 'BillingWalletTransactionMetaFlowAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMetaFlowAttribute;
+};
+
+/** Fields which can be used to filter billing wallet transaction meta flow attributes on. Value must be camel case. */
+export enum BillingWalletTransactionMetaFlowAttributeFilteringField {
+  AttributeUuid = 'attributeUuid',
+  BillingWalletTransactionMetaFlowUuid = 'billingWalletTransactionMetaFlowUuid',
+  CredentialUuid = 'credentialUuid',
+  IssuerUuid = 'issuerUuid',
+  ProviderAppUuid = 'providerAppUuid',
+  ProviderUuid = 'providerUuid',
+  SchemeUuid = 'schemeUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort billing wallet transaction meta flow attributes on. Value must be camel case. */
+export enum BillingWalletTransactionMetaFlowAttributeSortEnum {
+  AttributeUuid = 'attributeUuid',
+  BillingWalletTransactionMetaFlowUuid = 'billingWalletTransactionMetaFlowUuid',
+  CreatedAt = 'createdAt',
+  CredentialUuid = 'credentialUuid',
+  IssuerUuid = 'issuerUuid',
+  ProviderAppUuid = 'providerAppUuid',
+  ProviderUuid = 'providerUuid',
+  SchemeUuid = 'schemeUuid',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction meta flow attributes. */
+export type BillingWalletTransactionMetaFlowAttributeSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaFlowAttributeSortEnum;
+};
+
+export type BillingWalletTransactionMetaFlowConnection = {
+  __typename?: 'BillingWalletTransactionMetaFlowConnection';
+  edges: Array<BillingWalletTransactionMetaFlowEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaFlowEdge = {
+  __typename?: 'BillingWalletTransactionMetaFlowEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMetaFlow;
+};
+
+/** Fields which can be used to filter billing wallet transaction meta flows on. Value must be camel case. */
+export enum BillingWalletTransactionMetaFlowFilteringField {
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  FlowType = 'flowType',
+  FlowUuid = 'flowUuid',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort billing wallet transaction meta flows on. Value must be camel case. */
+export enum BillingWalletTransactionMetaFlowSortEnum {
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  Cost = 'cost',
+  CreatedAt = 'createdAt',
+  FlowType = 'flowType',
+  FlowUuid = 'flowUuid',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid',
+  Revenue = 'revenue',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction meta flows. */
+export type BillingWalletTransactionMetaFlowSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaFlowSortEnum;
+};
+
+/** BillingWalletTransaction field. */
+export type BillingWalletTransactionMetaNestedFilteringBillingWalletTransactionField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering billing wallet transactions */
+  input: FindManyBillingWalletTransactionsInput;
+};
+
+/** BillingWalletTransactionMetaPlan definition - plan payment details. */
+export type BillingWalletTransactionMetaPlan = Model & {
+  __typename?: 'BillingWalletTransactionMetaPlan';
+  /** Billing Plan */
+  billingPlan: BillingPlan;
+  /** Transaction Meta */
+  billingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The interval end time */
+  intervalEndAt: Scalars['DateTime']['output'];
+  /** The interval start time */
+  intervalStartAt: Scalars['DateTime']['output'];
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type BillingWalletTransactionMetaPlanConnection = {
+  __typename?: 'BillingWalletTransactionMetaPlanConnection';
+  edges: Array<BillingWalletTransactionMetaPlanEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaPlanEdge = {
+  __typename?: 'BillingWalletTransactionMetaPlanEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMetaPlan;
+};
+
+/** Fields which can be used to filter billing wallet transaction meta plans on. Value must be camel case. */
+export enum BillingWalletTransactionMetaPlanFilteringField {
+  BillingPlanUuid = 'billingPlanUuid',
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  IntervalEndAt = 'intervalEndAt',
+  IntervalStartAt = 'intervalStartAt',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort billing wallet transaction meta plans on. Value must be camel case. */
+export enum BillingWalletTransactionMetaPlanSortEnum {
+  BillingPlanUuid = 'billingPlanUuid',
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  CreatedAt = 'createdAt',
+  IntervalEndAt = 'intervalEndAt',
+  IntervalStartAt = 'intervalStartAt',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction meta plans. */
+export type BillingWalletTransactionMetaPlanSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaPlanSortEnum;
+};
+
+/** Fields which can be used to sort billing wallet transaction metas on. Value must be camel case. */
+export enum BillingWalletTransactionMetaSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction metas. */
+export type BillingWalletTransactionMetaSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaSortEnum;
+};
+
+/** Transaction meta types */
+export enum BillingWalletTransactionMetaType {
+  Flow = 'FLOW',
+  Plan = 'PLAN',
+  Wallet = 'WALLET'
+}
+
+/** BillingWalletTransactionMetaWallet definition - wallet top-up payment details. */
+export type BillingWalletTransactionMetaWallet = Model & {
+  __typename?: 'BillingWalletTransactionMetaWallet';
+  /** Transaction Meta */
+  billingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Organization User */
+  organizationUser?: Maybe<OrganizationUser>;
+  /** Payment Provider Invoice */
+  paymentProviderInvoice: PaymentProviderInvoice;
+  /** The type of the payment */
+  type: BillingWalletPaymentType;
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type BillingWalletTransactionMetaWalletConnection = {
+  __typename?: 'BillingWalletTransactionMetaWalletConnection';
+  edges: Array<BillingWalletTransactionMetaWalletEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaWalletEdge = {
+  __typename?: 'BillingWalletTransactionMetaWalletEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMetaWallet;
+};
+
+/** Fields which can be used to filter billing wallet transaction meta wallets on. Value must be camel case. */
+export enum BillingWalletTransactionMetaWalletFilteringField {
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  PaymentProviderInvoiceUuid = 'paymentProviderInvoiceUuid',
+  Type = 'type',
+  Uuid = 'uuid'
+}
+
+/** BillingWalletTransactionMeta field. */
+export type BillingWalletTransactionMetaWalletNestedFilteringBillingWalletTransactionMetaField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering payment provider invoices */
+  input: FindManyBillingWalletTransactionMetasInput;
+};
+
+/** Fields which can be used to sort billing wallet transaction meta wallets on. Value must be camel case. */
+export enum BillingWalletTransactionMetaWalletSortEnum {
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  CreatedAt = 'createdAt',
+  PaymentProviderInvoiceUuid = 'paymentProviderInvoiceUuid',
+  Type = 'type',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction meta wallets. */
+export type BillingWalletTransactionMetaWalletSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaWalletSortEnum;
+};
 
 /** Fields which can be used to sort billings on. Value must be camel case. */
 export enum BillingWalletTransactionSortEnum {
   Amount = 'amount',
   BillingWalletUuid = 'billingWalletUuid',
   CreatedAt = 'createdAt',
+  MetaType = 'metaType',
   UpdatedAt = 'updatedAt',
   Uuid = 'uuid'
 }
@@ -2299,6 +3224,17 @@ export enum BillingWalletTransactionState {
   Succeeded = 'SUCCEEDED'
 }
 
+/** CatalogModelType */
+export enum CatalogModelType {
+  App = 'APP',
+  Attribute = 'ATTRIBUTE',
+  Credential = 'CREDENTIAL',
+  Issuer = 'ISSUER',
+  Provider = 'PROVIDER',
+  Scheme = 'SCHEME',
+  Scope = 'SCOPE'
+}
+
 /** Output type used for billing method configuration */
 export type ConfigBillingMethodOutput = {
   __typename?: 'ConfigBillingMethodOutput';
@@ -2315,6 +3251,8 @@ export type Constants = {
   studioControlUrns: Array<Scalars['NonEmpty']['output']>;
   /** The studio event urns */
   studioEventUrns: Array<Scalars['NonEmpty']['output']>;
+  /** The studio maintenance urns */
+  studioMaintenanceUrns: Array<Scalars['NonEmpty']['output']>;
   /** The studio plan urns */
   studioPlanUrns: Array<Scalars['NonEmpty']['output']>;
   /** The studio resource urns */
@@ -2365,6 +3303,8 @@ export type CreateAppPrerequisiteLocaleInput = {
 export type CreateAppPrerequisiteStateInput = {
   /** The app prerequisite. */
   appPrerequisiteUuid: Scalars['UUID']['input'];
+  /** The grants allowed to take action. */
+  grants?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The name of the state. */
   name: AppPrerequisiteStates;
   /** The roles allowed to take action. */
@@ -2395,6 +3335,14 @@ export type CreateAttributeInput = {
   metaType: AttributeMetaType;
   /** The name of the attribute. */
   name: Scalars['NonEmpty']['input'];
+};
+
+/** Create input */
+export type CreateAttributeLabelInput = {
+  /** The UUID of the identity attribute */
+  attributeUuid: Scalars['UUID']['input'];
+  /** The UUID of the label */
+  labelUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a attribute locale. */
@@ -2437,8 +3385,8 @@ export type CreateAttributeMetaMdocInput = {
 export type CreateAttributeMetaNlWalletInput = {
   /** The attribute UUID */
   attributeUuid: Scalars['UUID']['input'];
-  /** The name of the attribute */
-  name: Scalars['NonEmpty']['input'];
+  /** The DCQL claim path for the attribute */
+  claimPath: Scalars['JSONObject']['input'];
 };
 
 /** The input for creating a attribute meta nect. */
@@ -2531,6 +3479,26 @@ export type CreateAttributeRequestMetaDatakeeperInput = {
   predicate: Scalars['NonEmpty']['input'];
 };
 
+/** The input for creating an attribute request meta OID4VC mdoc. */
+export type CreateAttributeRequestMetaOid4VcmdocInput = {
+  /** The attribute request UUID */
+  attributeRequestUuid: Scalars['UUID']['input'];
+  /** The mdoc data element identifier */
+  dataElementIdentifier: Scalars['NonEmpty']['input'];
+  /** The mdoc namespace */
+  namespace: Scalars['NonEmpty']['input'];
+};
+
+/** The input for creating an attribute request meta OID4VC SD-JWT. */
+export type CreateAttributeRequestMetaOid4VcsdjwtInput = {
+  /** The attribute request UUID */
+  attributeRequestUuid: Scalars['UUID']['input'];
+  /** The claim path array */
+  claimPath: Scalars['JSONObject']['input'];
+  /** The JSON path for the SD-JWT claim */
+  jsonPath: Scalars['NonEmpty']['input'];
+};
+
 /** The input for creating a attribute request meta yivi. */
 export type CreateAttributeRequestMetaYiviInput = {
   /** The attribute request UUID */
@@ -2549,9 +3517,66 @@ export type CreateAttributeRequestMetaYotiInput = {
   identifier: Scalars['NonEmpty']['input'];
 };
 
-export type CreateAuthenticationResetInput = {
-  /** The email of the user which we're resetting the password of. */
-  email: Scalars['Email']['input'];
+/** Create input */
+export type CreateAuthenticationBrandInput = {
+  /** The UUID of the organization the brand belongs to. */
+  authenticationUuid: Scalars['UUID']['input'];
+  /** The UUID of the flow brand */
+  organizationBrandUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateAuthenticationDomainInput = {
+  /** The UUID of the organization the domain belongs to. */
+  authenticationUuid: Scalars['UUID']['input'];
+  /** The UUID of the flow domain */
+  organizationDomainUuid: Scalars['UUID']['input'];
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['input'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['input'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['input'];
+};
+
+/** The input for creating a flow authentication. */
+export type CreateAuthenticationInput = {
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['input'];
+  /** The uuid of the organization the flow belongs to. */
+  organizationUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateAuthenticationLabelInput = {
+  /** The UUID of the organization the Label belongs to. */
+  authenticationUuid: Scalars['UUID']['input'];
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+};
+
+/** Create Input */
+export type CreateAuthenticationProviderConfigurationNlWalletInput = {
+  /** The AuthenticationProvider UUID */
+  authenticationProviderUuid: Scalars['UUID']['input'];
+  /** The usecase */
+  usecase: Scalars['String']['input'];
+};
+
+/** The input for creating a flow authentication provider. */
+export type CreateAuthenticationProviderInput = {
+  /** The uuid of the flow the flow provider belongs to. */
+  authenticationUuid: Scalars['UUID']['input'];
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow authentication scope. */
+export type CreateAuthenticationScopeInput = {
+  /** The uuid of the provider. */
+  authenticationProviderUuid: Scalars['UUID']['input'];
+  /** The scope name */
+  scopeUuid: Scalars['UUID']['input'];
 };
 
 /** Input type used to create billing plan types. */
@@ -2592,6 +3617,14 @@ export type CreateCredentialInput = {
   metaType: CredentialMetaType;
   /** The name of the credential. */
   name: Scalars['NonEmpty']['input'];
+};
+
+/** Create input */
+export type CreateCredentialLabelInput = {
+  /** The UUID of the identity credential */
+  credentialUuid: Scalars['UUID']['input'];
+  /** The UUID of the label */
+  labelUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a credential locale. */
@@ -2648,18 +3681,34 @@ export type CreateCredentialMetaNectInput = {
 
 /** The input for creating a credential meta OID4VC mdoc. */
 export type CreateCredentialMetaOid4VcmdocInput = {
+  /** The credential background color */
+  backgroundColor?: InputMaybe<Scalars['String']['input']>;
+  /** The credential background image URI */
+  backgroundImage?: InputMaybe<Scalars['String']['input']>;
   /** The credential UUID */
   credentialUuid: Scalars['UUID']['input'];
   /** mdoc document type */
   docType: Scalars['NonEmpty']['input'];
+  /** The credential logo (uri and optional alt_text) */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The credential text color */
+  textColor?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The input for creating a credential meta OID4VC SD-JWT. */
 export type CreateCredentialMetaOid4VcsdjwtInput = {
+  /** The credential background color */
+  backgroundColor?: InputMaybe<Scalars['String']['input']>;
+  /** The credential background image URI */
+  backgroundImage?: InputMaybe<Scalars['String']['input']>;
   /** The credential UUID */
   credentialUuid: Scalars['UUID']['input'];
   /** SD-JWT Key binding */
   keyBinding: Scalars['Boolean']['input'];
+  /** The credential logo (uri and optional alt_text) */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The credential text color */
+  textColor?: InputMaybe<Scalars['String']['input']>;
   /** SD-JWT Type */
   type: Scalars['NonEmpty']['input'];
 };
@@ -2730,6 +3779,30 @@ export type CreateCredentialRequestMetaDatakeeperInput = {
   credentialRequestUuid: Scalars['UUID']['input'];
   /** The expiration date of the credential */
   expirationDate?: InputMaybe<Scalars['DateTime']['input']>;
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a credential request meta OID4VC mdoc. */
+export type CreateCredentialRequestMetaOid4VcmdocInput = {
+  /** The credential request UUID */
+  credentialRequestUuid: Scalars['UUID']['input'];
+  /** mdoc document type */
+  docType: Scalars['NonEmpty']['input'];
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a credential request meta OID4VC SD-JWT. */
+export type CreateCredentialRequestMetaOid4VcsdjwtInput = {
+  /** The credential request UUID */
+  credentialRequestUuid: Scalars['UUID']['input'];
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['input'];
+  /** SD-JWT Key binding */
+  keyBinding?: InputMaybe<Scalars['Boolean']['input']>;
+  /** SD-JWT Type */
+  type: Scalars['NonEmpty']['input'];
 };
 
 /** The input for creating a credential request meta yivi. */
@@ -2738,6 +3811,8 @@ export type CreateCredentialRequestMetaYiviInput = {
   credentialRequestUuid: Scalars['UUID']['input'];
   /** The identifier of this credential */
   id?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a credential request meta yoti. */
@@ -2752,6 +3827,8 @@ export type CreateCredentialRequestMetaYotiInput = {
   identifier: Scalars['NonEmpty']['input'];
   /** The info uri of the credential */
   infoUri: Scalars['URL']['input'];
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['input'];
   /** The display configuration logo of the credential */
   logo?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The display configuration subtitle of the credential */
@@ -2766,6 +3843,8 @@ export type CreateCredentialRequestStateInput = {
   canDelete?: InputMaybe<Scalars['Boolean']['input']>;
   /** Is update allowed */
   canUpdate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The grants allowed to take action */
+  grants?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The name of the state */
   name: CredentialRequestStates;
   /** The provider UUID */
@@ -2788,82 +3867,28 @@ export type CreateCredentialRequestStateLocaleInput = {
   locale: Scalars['Locale']['input'];
 };
 
-/** Create input */
-export type CreateFlowAuthenticationBrandInput = {
-  /** The UUID of the organization the brand belongs to. */
-  flowAuthenticationUuid: Scalars['UUID']['input'];
-  /** The UUID of the flow brand */
-  organizationBrandUuid: Scalars['UUID']['input'];
-};
-
-/** Create input */
-export type CreateFlowAuthenticationDomainInput = {
-  /** The UUID of the organization the domain belongs to. */
-  flowAuthenticationUuid: Scalars['UUID']['input'];
-  /** The UUID of the flow domain */
-  organizationDomainUuid: Scalars['UUID']['input'];
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
-};
-
-/** The input for creating a flow authentication. */
-export type CreateFlowAuthenticationInput = {
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['input'];
-  /** The uuid of the organization the flow belongs to. */
-  organizationUuid: Scalars['UUID']['input'];
-};
-
-/** Create Input */
-export type CreateFlowAuthenticationProviderConfigurationNlWalletInput = {
-  /** The FlowAuthenticationProvider UUID */
-  flowAuthenticationProviderUuid: Scalars['UUID']['input'];
-  /** The usecase */
-  usecase: Scalars['String']['input'];
-};
-
-/** The input for creating a flow authentication provider. */
-export type CreateFlowAuthenticationProviderInput = {
-  /** The uuid of the flow the flow provider belongs to. */
-  flowAuthenticationUuid: Scalars['UUID']['input'];
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['input'];
-};
-
-/** The input for creating a flow authentication scope. */
-export type CreateFlowAuthenticationScopeInput = {
-  /** The uuid of the provider. */
-  flowAuthenticationProviderUuid: Scalars['UUID']['input'];
-  /** The scope name */
-  scopeUuid: Scalars['UUID']['input'];
-};
-
 /** The input for creating a flow disclosure attribute. */
-export type CreateFlowDisclosureAttributeInput = {
+export type CreateDisclosureAttributeInput = {
   /** The uuid of the flow attribute. */
   attributeUuid: Scalars['UUID']['input'];
   /** The uuid of the query the attribute belongs to. */
-  flowDisclosureCredentialUuid: Scalars['UUID']['input'];
+  disclosureCredentialUuid: Scalars['UUID']['input'];
 };
 
 /** Create input */
-export type CreateFlowDisclosureBrandInput = {
+export type CreateDisclosureBrandInput = {
   /** The UUID of the organization the brand belongs to. */
-  flowDisclosureUuid: Scalars['UUID']['input'];
+  disclosureUuid: Scalars['UUID']['input'];
   /** The UUID of the flow brand */
   organizationBrandUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow disclosure field. */
-export type CreateFlowDisclosureCredentialInput = {
+export type CreateDisclosureCredentialInput = {
   /** The uuid of the credential. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the group the credential belongs to. */
-  flowDisclosureGroupUuid: Scalars['UUID']['input'];
+  disclosureGroupUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
   /** The uuid of the scheme. */
@@ -2871,9 +3896,9 @@ export type CreateFlowDisclosureCredentialInput = {
 };
 
 /** Create input */
-export type CreateFlowDisclosureDomainInput = {
+export type CreateDisclosureDomainInput = {
   /** The UUID of the organization the domain belongs to. */
-  flowDisclosureUuid: Scalars['UUID']['input'];
+  disclosureUuid: Scalars['UUID']['input'];
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
@@ -2885,15 +3910,15 @@ export type CreateFlowDisclosureDomainInput = {
 };
 
 /** The input for creating a flow disclosure group. */
-export type CreateFlowDisclosureGroupInput = {
+export type CreateDisclosureGroupInput = {
   /** The uuid of the provider. */
-  flowDisclosureProviderUuid: Scalars['UUID']['input'];
+  disclosureProviderUuid: Scalars['UUID']['input'];
   /** The group name */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** The input for creating a flow disclosure. */
-export type CreateFlowDisclosureInput = {
+export type CreateDisclosureInput = {
   /** Optionally create a flow based on verification mappings */
   mappingVerifications?: InputMaybe<Array<UseMappingVerificationInput>>;
   /** The name of the flow. */
@@ -2903,27 +3928,35 @@ export type CreateFlowDisclosureInput = {
 };
 
 /** Create input */
-export type CreateFlowDisclosureMappingInput = {
+export type CreateDisclosureLabelInput = {
+  /** The UUID of the organization the Label belongs to. */
+  disclosureUuid: Scalars['UUID']['input'];
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateDisclosureMappingInput = {
   /** The UUID of the organization the mapping belongs to. */
-  flowDisclosureUuid: Scalars['UUID']['input'];
+  disclosureUuid: Scalars['UUID']['input'];
   /** The UUID of the verification mapping */
   mappingVerificationUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow disclosure provider by attributes. */
-export type CreateFlowDisclosureProviderByAttributesInput = {
+export type CreateDisclosureProviderByAttributesInput = {
   /** The uuids of all attributes to be created */
   attributeUuids: Array<Scalars['UUID']['input']>;
   /** The uuid of the flow the flow provider belongs to. */
-  flowDisclosureUuid: Scalars['UUID']['input'];
+  disclosureUuid: Scalars['UUID']['input'];
   /** The mode on how to create underlying structure */
-  mode: CreateFlowDisclosureProviderByAttributesMode;
+  mode: CreateDisclosureProviderByAttributesMode;
   /** The uuid of the flow provider app. */
   providerAppUuid: Scalars['UUID']['input'];
 };
 
 /** Modes for creating a flow disclosure provider by attributes. */
-export enum CreateFlowDisclosureProviderByAttributesMode {
+export enum CreateDisclosureProviderByAttributesMode {
   /** Create groups for each credential. */
   Conjunction = 'Conjunction',
   /** Append attributes to existing groups if a credential is found in them; otherwise, create a group for each credential. */
@@ -2935,71 +3968,71 @@ export enum CreateFlowDisclosureProviderByAttributesMode {
 }
 
 /** Create Input */
-export type CreateFlowDisclosureProviderConfigurationNlWalletInput = {
-  /** The FlowDisclosureProvider UUID */
-  flowDisclosureProviderUuid: Scalars['UUID']['input'];
+export type CreateDisclosureProviderConfigurationNlWalletInput = {
+  /** The DisclosureProvider UUID */
+  disclosureProviderUuid: Scalars['UUID']['input'];
   /** The usecase */
   usecase: Scalars['String']['input'];
 };
 
 /** The input for creating a flow disclosure provider. */
-export type CreateFlowDisclosureProviderInput = {
+export type CreateDisclosureProviderInput = {
   /** The uuid of the flow the flow provider belongs to. */
-  flowDisclosureUuid: Scalars['UUID']['input'];
+  disclosureUuid: Scalars['UUID']['input'];
   /** The uuid of the flow provider app. */
   providerAppUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow issuance attribute. */
-export type CreateFlowIssuanceAttributeInput = {
+export type CreateIssuanceAttributeInput = {
   /** The uuid of the flow attribute. */
   attributeUuid: Scalars['UUID']['input'];
   /** The uuid of the query the attribute belongs to. */
-  flowIssuanceCredentialUuid: Scalars['UUID']['input'];
+  issuanceCredentialUuid: Scalars['UUID']['input'];
 };
 
 /** Create input */
-export type CreateFlowIssuanceBrandInput = {
+export type CreateIssuanceBrandInput = {
   /** The UUID of the organization the brand belongs to. */
-  flowIssuanceUuid: Scalars['UUID']['input'];
+  issuanceUuid: Scalars['UUID']['input'];
   /** The UUID of the flow brand */
   organizationBrandUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow issuance field. */
-export type CreateFlowIssuanceCredentialInput = {
+export type CreateIssuanceCredentialInput = {
   /** The uuid of the credential. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the provider the credential belongs to. */
-  flowIssuanceProviderUuid: Scalars['UUID']['input'];
+  issuanceProviderUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
   /** The meta type of the credential */
-  metaType: FlowIssuanceCredentialMetaType;
+  metaType: IssuanceCredentialMetaType;
   /** The uuid of the scheme. */
   schemeUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow credential meta datakeeper */
-export type CreateFlowIssuanceCredentialMetaDatakeeperInput = {
+export type CreateIssuanceCredentialMetaDatakeeperInput = {
   /** The expiration duration, in milliseconds */
   expirationDuration: Scalars['Int']['input'];
   /** The flow issuance credential UUID */
-  flowIssuanceCredentialUuid: Scalars['UUID']['input'];
+  issuanceCredentialUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow credential meta yivi */
-export type CreateFlowIssuanceCredentialMetaYiviInput = {
+export type CreateIssuanceCredentialMetaYiviInput = {
   /** The expiration duration, in milliseconds */
   expirationDuration: Scalars['Int']['input'];
   /** The flow issuance credential UUID */
-  flowIssuanceCredentialUuid: Scalars['UUID']['input'];
+  issuanceCredentialUuid: Scalars['UUID']['input'];
 };
 
 /** Create input */
-export type CreateFlowIssuanceDomainInput = {
+export type CreateIssuanceDomainInput = {
   /** The UUID of the organization the domain belongs to. */
-  flowIssuanceUuid: Scalars['UUID']['input'];
+  issuanceUuid: Scalars['UUID']['input'];
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
@@ -3011,7 +4044,7 @@ export type CreateFlowIssuanceDomainInput = {
 };
 
 /** The input for creating a flow issuance. */
-export type CreateFlowIssuanceInput = {
+export type CreateIssuanceInput = {
   /** The name of the flow. */
   name: Scalars['NonEmpty']['input'];
   /** The uuid of the organization the flow belongs to. */
@@ -3019,135 +4052,35 @@ export type CreateFlowIssuanceInput = {
 };
 
 /** Create input */
-export type CreateFlowIssuanceMappingInput = {
+export type CreateIssuanceLabelInput = {
+  /** The UUID of the organization the Label belongs to. */
+  issuanceUuid: Scalars['UUID']['input'];
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateIssuanceMappingInput = {
   /** The UUID of the organization the mapping belongs to. */
-  flowIssuanceUuid: Scalars['UUID']['input'];
+  issuanceUuid: Scalars['UUID']['input'];
   /** The UUID of the issuance mapping */
   mappingIssuanceUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow issuance attribute. */
-export type CreateFlowIssuanceProviderByAttributesInput = {
+export type CreateIssuanceProviderByAttributesInput = {
   /** The UUIDs of all attributes to be created */
   attributeUuids: Array<Scalars['UUID']['input']>;
   /** The uuid of the flow the flow provider belongs to. */
-  flowIssuanceUuid: Scalars['UUID']['input'];
+  issuanceUuid: Scalars['UUID']['input'];
   /** The uuid of the flow provider app. */
   providerAppUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a flow issuance provider. */
-export type CreateFlowIssuanceProviderInput = {
+export type CreateIssuanceProviderInput = {
   /** The uuid of the flow the flow provider belongs to. */
-  flowIssuanceUuid: Scalars['UUID']['input'];
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['input'];
-};
-
-/** The input for creating a flow signature attribute. */
-export type CreateFlowSignatureAttributeInput = {
-  /** The uuid of the flow attribute. */
-  attributeUuid: Scalars['UUID']['input'];
-  /** The uuid of the query the attribute belongs to. */
-  flowSignatureCredentialUuid: Scalars['UUID']['input'];
-};
-
-/** Create input */
-export type CreateFlowSignatureBrandInput = {
-  /** The UUID of the organization the brand belongs to. */
-  flowSignatureUuid: Scalars['UUID']['input'];
-  /** The UUID of the flow brand */
-  organizationBrandUuid: Scalars['UUID']['input'];
-};
-
-/** The input for creating a flow signature field. */
-export type CreateFlowSignatureCredentialInput = {
-  /** The uuid of the credential. */
-  credentialUuid: Scalars['UUID']['input'];
-  /** The uuid of the group the credential belongs to. */
-  flowSignatureGroupUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
-  /** The uuid of the scheme. */
-  schemeUuid: Scalars['UUID']['input'];
-};
-
-/** Create input */
-export type CreateFlowSignatureDomainInput = {
-  /** The UUID of the organization the domain belongs to. */
-  flowSignatureUuid: Scalars['UUID']['input'];
-  /** The UUID of the flow domain */
-  organizationDomainUuid: Scalars['UUID']['input'];
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
-};
-
-/** The input for creating a flow signature group. */
-export type CreateFlowSignatureGroupInput = {
-  /** The uuid of the provider. */
-  flowSignatureProviderUuid: Scalars['UUID']['input'];
-  /** The group name */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
-/** The input for creating a flow signature. */
-export type CreateFlowSignatureInput = {
-  /** Optionally create a flow based on verification mappings */
-  mappingVerifications?: InputMaybe<Array<UseMappingVerificationInput>>;
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['input'];
-  /** The uuid of the organization the flow belongs to. */
-  organizationUuid: Scalars['UUID']['input'];
-};
-
-/** Create input */
-export type CreateFlowSignatureMappingInput = {
-  /** The UUID of the organization the mapping belongs to. */
-  flowSignatureUuid: Scalars['UUID']['input'];
-  /** The UUID of the verification mapping */
-  mappingVerificationUuid: Scalars['UUID']['input'];
-};
-
-/** The input for creating a flow signature by attributes. */
-export type CreateFlowSignatureProviderByAttributesInput = {
-  /** The UUIDs of all attributes to be created */
-  attributeUuids: Array<Scalars['UUID']['input']>;
-  /** The uuid of the flow the flow provider belongs to. */
-  flowSignatureUuid: Scalars['UUID']['input'];
-  /** The mode on how to create underlying structure */
-  mode: CreateFlowSignatureProviderByAttributesMode;
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['input'];
-};
-
-/** Modes for creating a flow signature provider by attributes. */
-export enum CreateFlowSignatureProviderByAttributesMode {
-  /** Create groups for each credential. */
-  Conjunction = 'Conjunction',
-  /** Append attributes to existing groups if a credential is found in them; otherwise, create a group for each credential. */
-  ConjunctionMerge = 'ConjunctionMerge',
-  /** Create a single group that includes all credentials. */
-  Disjunction = 'Disjunction',
-  /** Append attributes to existing groups if a credential is found in them; otherwise, combine all credentials into a single group. */
-  DisjunctionMerge = 'DisjunctionMerge'
-}
-
-/** Create Input */
-export type CreateFlowSignatureProviderConfigurationNlWalletInput = {
-  /** The FlowSignatureProvider UUID */
-  flowSignatureProviderUuid: Scalars['UUID']['input'];
-  /** The usecase */
-  usecase: Scalars['String']['input'];
-};
-
-/** The input for creating a flow signature provider. */
-export type CreateFlowSignatureProviderInput = {
-  /** The uuid of the flow the flow provider belongs to. */
-  flowSignatureUuid: Scalars['UUID']['input'];
+  issuanceUuid: Scalars['UUID']['input'];
   /** The uuid of the flow provider app. */
   providerAppUuid: Scalars['UUID']['input'];
 };
@@ -3166,6 +4099,14 @@ export type CreateIssuerInput = {
   schemeUuid: Scalars['UUID']['input'];
   /** The type of the issuer */
   type: IssuerType;
+};
+
+/** Create input */
+export type CreateIssuerLabelInput = {
+  /** The UUID of the identity issuer */
+  issuerUuid: Scalars['UUID']['input'];
+  /** The UUID of the label */
+  labelUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a issuer locale. */
@@ -3200,6 +4141,8 @@ export type CreateIssuerMetaOid4VcmdocInput = {
   issuerUuid: Scalars['UUID']['input'];
   /** The issuer's public key as a JWK */
   jwk: Scalars['JSONObject']['input'];
+  /** The issuer's logo image URI */
+  logo?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The input for creating a issuer meta OID4VC. */
@@ -3210,6 +4153,8 @@ export type CreateIssuerMetaOid4VcsdjwtInput = {
   issuerUuid: Scalars['UUID']['input'];
   /** The issuer's public key as a JWK */
   jwk: Scalars['JSONObject']['input'];
+  /** The issuer's logo image URI */
+  logo?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The input for creating a issuer meta yivi. */
@@ -3218,6 +4163,18 @@ export type CreateIssuerMetaYiviInput = {
   id: Scalars['NonEmpty']['input'];
   /** The issuer UUID */
   issuerUuid: Scalars['UUID']['input'];
+};
+
+/** Input for creating a label */
+export type CreateLabelInput = {
+  /** Color string */
+  color: Scalars['NonEmpty']['input'];
+  /** Label name */
+  name: Scalars['NonEmpty']['input'];
+  /** Organization UUID (required for non-catalog scopes) */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** Label scope */
+  scope: LabelScope;
 };
 
 /** The input for creating a localeConfig. */
@@ -3230,6 +4187,22 @@ export type CreateLocaleConfigInput = {
   properties: Array<Scalars['String']['input']>;
   /** The provider UUID */
   providerUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** The input for creating a maintenance. */
+export type CreateMaintenanceInput = {
+  /** The estimated duration in minutes. */
+  estimatedMinutes?: InputMaybe<Scalars['Int']['input']>;
+  /** The URN identifier for the maintenance scope (e.g., maintenance/global, maintenance/oauth/global). */
+  maintenanceURN: Scalars['NonEmpty']['input'];
+  /** The message body. */
+  messageBody?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The message title. */
+  messageTitle?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The name of the maintenance window. */
+  name: Scalars['NonEmpty']['input'];
+  /** The scheduled start time. */
+  scheduledAt?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 /** The input for creating many mappingIssuance attributes. */
@@ -3415,7 +4388,7 @@ export type CreateOrganizationAlertDeprecationInput = {
   /** The flow UUID which is affected */
   flowUuid: Scalars['UUID']['input'];
   /** The deprecated model */
-  model: IdentityModelType;
+  model: CatalogModelType;
   /** The model UUID */
   modelUuid: Scalars['UUID']['input'];
   /** The organization alert UUID */
@@ -3452,12 +4425,22 @@ export type CreateOrganizationAppMetaDatakeeperInput = {
 
 /** The input for creating a organization app meta kiwa. */
 export type CreateOrganizationAppMetaKiwaInput = {
-  /** The certificate serial */
+  /** The issuer ID */
   issuerId?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The private key identifier */
   keyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The organization app UUID */
   organizationAppUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a organization app meta OID4VC. */
+export type CreateOrganizationAppMetaOid4vcInput = {
+  /** The organization app UUID */
+  organizationAppUuid: Scalars['UUID']['input'];
+  /** The verifier certificate identifier */
+  verifierCertIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The verifier key identifier */
+  verifierKeyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** The input for creating a organization app meta yoti. */
@@ -3487,9 +4470,15 @@ export type CreateOrganizationBrandInput = {
 };
 
 /** Create input */
+export type CreateOrganizationBrandLabelInput = {
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+  /** The UUID of the organization the Label belongs to. */
+  organizationBrandUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
 export type CreateOrganizationClientInput = {
-  /** The OAuth entitlements of the token. */
-  entitlements: Array<Scalars['Entitlement']['input']>;
   /** The token name */
   name: Scalars['NonEmpty']['input'];
   /** The UUID of the user organization. */
@@ -3506,6 +4495,14 @@ export type CreateOrganizationDomainInput = {
   organizationUuid: Scalars['UUID']['input'];
 };
 
+/** Create input */
+export type CreateOrganizationDomainLabelInput = {
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+  /** The UUID of the organization the Label belongs to. */
+  organizationDomainUuid: Scalars['UUID']['input'];
+};
+
 /** The input for creating a Provider App. */
 export type CreateOrganizationDomainOAuthProviderInput = {
   /** The UUID of the oauth provider. */
@@ -3514,18 +4511,20 @@ export type CreateOrganizationDomainOAuthProviderInput = {
   organizationDomainUuid: Scalars['UUID']['input'];
 };
 
-/** Input type used to create user organization types. */
+/** Input type used to create DIRECT organizations. */
 export type CreateOrganizationInput = {
   /** The organization description. */
-  description: Scalars['NonEmpty']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
   /** The public email address of the organization. */
-  email: Scalars['Email']['input'];
+  email?: InputMaybe<Scalars['Email']['input']>;
   /** The organization name. */
   name: Scalars['NonEmpty']['input'];
   /** The phone number of the organization. */
   phone?: InputMaybe<Scalars['String']['input']>;
+  /** The organization type (DIRECT or PARTNER). Defaults to DIRECT. */
+  type?: InputMaybe<OrganizationType>;
   /** The url of the website of the organization. */
-  website: Scalars['URL']['input'];
+  website?: InputMaybe<Scalars['URL']['input']>;
 };
 
 /** Input type used to create */
@@ -3567,14 +4566,114 @@ export type CreateOrganizationSecretInput = {
 };
 
 export type CreateOrganizationUserInput = {
-  /** The OAuth entitlements of the user. */
-  entitlements: Array<Scalars['Entitlement']['input']>;
   /** The UUID of the organization the organization user belongs to. */
   organizationUuid: Scalars['UUID']['input'];
   /** The OAuth role of the user. */
   role: OrganizationUserRole;
   /** The UUID of the user the organization user belongs to. */
   userUuid: Scalars['UUID']['input'];
+};
+
+/** Input type used to create pricing catalog entries. */
+export type CreatePricingCatalogInput = {
+  /** The price amount */
+  amount: Scalars['Int']['input'];
+  /** The currency */
+  currency: Currency;
+  /** The currency unit */
+  currencyUnit: CurrencyUnit;
+  /** Unique key identifier */
+  key: Scalars['NonEmpty']['input'];
+};
+
+/** Input type used to create pricing configuration for apps. */
+export type CreatePricingConfigurationAppInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The app UUID */
+  appUuid: Scalars['UUID']['input'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+};
+
+/** Input type used to create pricing configuration for organizations. */
+export type CreatePricingConfigurationOrganizationInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['input'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+};
+
+/** Input type used to create pricing configuration for studio plans. */
+export type CreatePricingConfigurationStudioPlanInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The studio plan UUID */
+  studioPlanUuid: Scalars['UUID']['input'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+};
+
+/** Input type used to create pricing group assignments. */
+export type CreatePricingGroupAssignmentInput = {
+  /** The type of entity being assigned */
+  entityType: PricingGroupAssignmentType;
+  /** The UUID of the entity */
+  entityUuid: Scalars['UUID']['input'];
+  /** The UUID of the pricing group */
+  pricingGroupUuid: Scalars['UUID']['input'];
+};
+
+/** Input type used to create pricing groups. */
+export type CreatePricingGroupInput = {
+  /** Description of the pricing group */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the pricing group */
+  name: Scalars['NonEmpty']['input'];
+};
+
+/** Input type used to create pricing rule constraints. */
+export type CreatePricingRuleConstraintInput = {
+  /** The pricing rule UUID */
+  pricingRuleUuid: Scalars['UUID']['input'];
+  /** The scope */
+  scope: PricingHierarchyLevel;
+  /** Scope group UUIDs */
+  scopeGroupUuids?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  /** Specific scope UUID */
+  scopeUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** Input type used to create pricing rules. */
+export type CreatePricingRuleInput = {
+  /** The app UUID */
+  appUuid: Scalars['UUID']['input'];
+  /** Pricing conditions */
+  conditions?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The pricing layer */
+  layer: PricingLayer;
+  /** The organization UUID (optional, for ORGANIZATION layer) */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The plan UUID (optional, for PLAN layer) */
+  planUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The pricing catalog UUID */
+  pricingCatalogUuid: Scalars['UUID']['input'];
+  /** The pricing type */
+  type: PricingType;
+};
+
+/** Input type used to create pricing rule targets. */
+export type CreatePricingRuleTargetInput = {
+  /** The hierarchy level */
+  level: PricingHierarchyLevel;
+  /** Entity group UUIDs (optional) */
+  levelGroupUuids?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  /** Specific entity UUID (optional) */
+  levelUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The pricing rule UUID */
+  pricingRuleUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a Provider App. */
@@ -3594,11 +4693,13 @@ export type CreateProviderAppMetaOid4VcInput = {
   /** If DCQL is supported */
   dcql?: InputMaybe<Scalars['Boolean']['input']>;
   /** The latest draft version supported by this app */
-  draftVersion: Scalars['Int']['input'];
+  draftVersion?: InputMaybe<Scalars['Int']['input']>;
   /** The protocol */
   protocol?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The ProviderApp UUID */
   providerAppUuid: Scalars['UUID']['input'];
+  /** The spec type supported by this app */
+  specType: ProviderAppMetaOid4VcSpecType;
 };
 
 /** The input for creating a provider. */
@@ -3615,6 +4716,14 @@ export type CreateProviderInput = {
   supportedFlow?: InputMaybe<Array<Scalars['NonEmpty']['input']>>;
   /** The type of the provider */
   type: ProviderType;
+};
+
+/** Create input */
+export type CreateProviderLabelInput = {
+  /** The UUID of the label */
+  labelUuid: Scalars['UUID']['input'];
+  /** The UUID of the identity provider */
+  providerUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a provider locale. */
@@ -3639,6 +4748,14 @@ export type CreateSchemeInput = {
   providerUuid: Scalars['UUID']['input'];
   /** The type of the scheme */
   type: SchemeType;
+};
+
+/** Create input */
+export type CreateSchemeLabelInput = {
+  /** The UUID of the label */
+  labelUuid: Scalars['UUID']['input'];
+  /** The UUID of the identity scheme */
+  schemeUuid: Scalars['UUID']['input'];
 };
 
 /** The input for creating a scheme locale. */
@@ -3691,6 +4808,122 @@ export type CreateScopeResourceInput = {
   name: Scalars['NonEmpty']['input'];
   /** The uuid of the scope, this scope resource belongs to. */
   scopeUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow signature attribute. */
+export type CreateSignatureAttributeInput = {
+  /** The uuid of the flow attribute. */
+  attributeUuid: Scalars['UUID']['input'];
+  /** The uuid of the query the attribute belongs to. */
+  signatureCredentialUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateSignatureBrandInput = {
+  /** The UUID of the flow brand */
+  organizationBrandUuid: Scalars['UUID']['input'];
+  /** The UUID of the organization the brand belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow signature field. */
+export type CreateSignatureCredentialInput = {
+  /** The uuid of the credential. */
+  credentialUuid: Scalars['UUID']['input'];
+  /** The uuid of the issuer. */
+  issuerUuid: Scalars['UUID']['input'];
+  /** The uuid of the scheme. */
+  schemeUuid: Scalars['UUID']['input'];
+  /** The uuid of the group the credential belongs to. */
+  signatureGroupUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateSignatureDomainInput = {
+  /** The UUID of the flow domain */
+  organizationDomainUuid: Scalars['UUID']['input'];
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['input'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['input'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['input'];
+  /** The UUID of the organization the domain belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow signature group. */
+export type CreateSignatureGroupInput = {
+  /** The group name */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The uuid of the provider. */
+  signatureProviderUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow signature. */
+export type CreateSignatureInput = {
+  /** Optionally create a flow based on verification mappings */
+  mappingVerifications?: InputMaybe<Array<UseMappingVerificationInput>>;
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['input'];
+  /** The uuid of the organization the flow belongs to. */
+  organizationUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateSignatureLabelInput = {
+  /** The UUID of the flow Label */
+  labelUuid: Scalars['UUID']['input'];
+  /** The UUID of the organization the Label belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateSignatureMappingInput = {
+  /** The UUID of the verification mapping */
+  mappingVerificationUuid: Scalars['UUID']['input'];
+  /** The UUID of the organization the mapping belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a flow signature by attributes. */
+export type CreateSignatureProviderByAttributesInput = {
+  /** The UUIDs of all attributes to be created */
+  attributeUuids: Array<Scalars['UUID']['input']>;
+  /** The mode on how to create underlying structure */
+  mode: CreateSignatureProviderByAttributesMode;
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['input'];
+  /** The uuid of the flow the flow provider belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
+};
+
+/** Modes for creating a flow signature provider by attributes. */
+export enum CreateSignatureProviderByAttributesMode {
+  /** Create groups for each credential. */
+  Conjunction = 'Conjunction',
+  /** Append attributes to existing groups if a credential is found in them; otherwise, create a group for each credential. */
+  ConjunctionMerge = 'ConjunctionMerge',
+  /** Create a single group that includes all credentials. */
+  Disjunction = 'Disjunction',
+  /** Append attributes to existing groups if a credential is found in them; otherwise, combine all credentials into a single group. */
+  DisjunctionMerge = 'DisjunctionMerge'
+}
+
+/** Create Input */
+export type CreateSignatureProviderConfigurationNlWalletInput = {
+  /** The SignatureProvider UUID */
+  signatureProviderUuid: Scalars['UUID']['input'];
+  /** The usecase */
+  usecase: Scalars['String']['input'];
+};
+
+/** The input for creating a flow signature provider. */
+export type CreateSignatureProviderInput = {
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['input'];
+  /** The uuid of the flow the flow provider belongs to. */
+  signatureUuid: Scalars['UUID']['input'];
 };
 
 /** Create Input */
@@ -3765,16 +4998,21 @@ export type CreateUserInput = {
 export type CreateUserInvitationInput = {
   /** The user email who is being invited. */
   email: Scalars['Email']['input'];
-  /** The OAuth entitlements of the user. */
-  entitlements: Array<Scalars['Entitlement']['input']>;
   /** The first name of the user. */
   firstName: Scalars['NonEmpty']['input'];
+  /** The grant classification of the user. */
+  grant: Scalars['Grant']['input'];
   /** The last name of the user. */
   lastName: Scalars['NonEmpty']['input'];
   /** The organization for which user is invited. */
   organizationUuid: Scalars['UUID']['input'];
   /** The OAuth role of the user. */
   role: OrganizationUserRole;
+};
+
+export type CreateUserResetInput = {
+  /** The email of the user which we're resetting the password of. */
+  email: Scalars['Email']['input'];
 };
 
 /** Credential definition. */
@@ -3848,6 +5086,58 @@ export enum CredentialFilteringField {
   State = 'state',
   Uuid = 'uuid'
 }
+
+/** Identity credential label definition. */
+export type CredentialLabel = Model & {
+  __typename?: 'CredentialLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The identity credential (resolved via federation) */
+  credential: Credential;
+  /** The identity credential UUID (no direct relation - separate database) */
+  credentialUuid: Scalars['UUID']['output'];
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Connection */
+export type CredentialLabelConnection = {
+  __typename?: 'CredentialLabelConnection';
+  edges: Array<CredentialLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Edge */
+export type CredentialLabelEdge = {
+  __typename?: 'CredentialLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: CredentialLabel;
+};
+
+/** Fields which can be used to filter identity credential labels. Value must be camel case. */
+export enum CredentialLabelFilteringField {
+  CredentialUuid = 'credentialUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort identity credential labels. Value must be camel case. */
+export enum CredentialLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting identity credential labels. */
+export type CredentialLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: CredentialLabelSortEnum;
+};
 
 /** Credential locale definition. */
 export type CredentialLocale = Model & {
@@ -4199,12 +5489,20 @@ export type CredentialMetaNectSortInput = {
 /** Credential meta definition. */
 export type CredentialMetaOid4Vcmdoc = Model & {
   __typename?: 'CredentialMetaOID4VCMDOC';
+  /** The credential background color */
+  backgroundColor?: Maybe<Scalars['String']['output']>;
+  /** The credential background image URI */
+  backgroundImage?: Maybe<Scalars['String']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential meta the OID4VC mdoc meta belongs to. */
   credentialMeta: CredentialMeta;
   /** mdoc document type */
   docType: Scalars['NonEmpty']['output'];
+  /** The credential logo (uri and optional alt_text) */
+  logo?: Maybe<Scalars['String']['output']>;
+  /** The credential text color */
+  textColor?: Maybe<Scalars['String']['output']>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -4248,12 +5546,20 @@ export type CredentialMetaOid4VcmdocSortInput = {
 /** Credential meta definition. */
 export type CredentialMetaOid4Vcsdjwt = Model & {
   __typename?: 'CredentialMetaOID4VCSDJWT';
+  /** The credential background color */
+  backgroundColor?: Maybe<Scalars['String']['output']>;
+  /** The credential background image URI */
+  backgroundImage?: Maybe<Scalars['String']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential meta the OID4VC SD-JWT meta belongs to. */
   credentialMeta: CredentialMeta;
   /** SD-JWT Key binding */
   keyBinding: Scalars['Boolean']['output'];
+  /** The credential logo (uri and optional alt_text) */
+  logo?: Maybe<Scalars['String']['output']>;
+  /** The credential text color */
+  textColor?: Maybe<Scalars['String']['output']>;
   /** SD-JWT Type */
   type: Scalars['NonEmpty']['output'];
   /** The update time */
@@ -4530,6 +5836,32 @@ export type CredentialMetaYotiSortInput = {
   field: CredentialMetaYotiSortEnum;
 };
 
+/** The input for filtering attributes */
+export type CredentialNestedFilteringAttributesField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering attributes */
+  input: FindManyAttributesInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering credential meta */
+export type CredentialNestedFilteringCredentialMetaField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering credential meta */
+  input: FindManyCredentialMetaInput;
+};
+
+/** The input for filtering issuer */
+export type CredentialNestedFilteringIssuerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering issuer */
+  input: FindManyIssuersInput;
+};
+
 /** Credential request. */
 export type CredentialRequest = Model & {
   __typename?: 'CredentialRequest';
@@ -4656,6 +5988,10 @@ export type CredentialRequestMeta = Model & {
   credentialRequest: CredentialRequest;
   /** The datakeeper credential request meta */
   datakeeper?: Maybe<CredentialRequestMetaDatakeeper>;
+  /** The OID4VC mdoc credential request meta */
+  oid4vcMdoc?: Maybe<CredentialRequestMetaOid4Vcmdoc>;
+  /** The OID4VC SD-JWT credential request meta */
+  oid4vcSdJwt?: Maybe<CredentialRequestMetaOid4Vcsdjwt>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -4684,6 +6020,8 @@ export type CredentialRequestMetaDatakeeper = Model & {
   credentialRequestMeta: CredentialRequestMeta;
   /** The expiration date of the credential */
   expirationDate?: Maybe<Scalars['DateTime']['output']>;
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -4737,6 +6075,106 @@ export enum CredentialRequestMetaFilteringField {
   CredentialRequestUuid = 'credentialRequestUuid'
 }
 
+/** Credential request meta OID4VC mdoc definition. */
+export type CredentialRequestMetaOid4Vcmdoc = Model & {
+  __typename?: 'CredentialRequestMetaOID4VCMDOC';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** mdoc document type */
+  docType: Scalars['NonEmpty']['output'];
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The credential request meta OID4VC mdoc connection definition. */
+export type CredentialRequestMetaOid4VcmdocConnection = {
+  __typename?: 'CredentialRequestMetaOID4VCMDOCConnection';
+  edges: Array<Maybe<CredentialRequestMetaOid4VcmdocEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The credential request meta OID4VC mdoc edge definition. */
+export type CredentialRequestMetaOid4VcmdocEdge = {
+  __typename?: 'CredentialRequestMetaOID4VCMDOCEdge';
+  cursor: Scalars['String']['output'];
+  node: CredentialRequestMetaOid4Vcmdoc;
+};
+
+/** Fields which can be used to filter credential request meta OID4VC mdoc on. Value must be camel case. */
+export enum CredentialRequestMetaOid4VcmdocFilteringField {
+  CredentialRequestMetaUuid = 'credentialRequestMetaUuid',
+  DocType = 'docType'
+}
+
+/** Fields which can be used to sort credential request meta OID4VC mdoc on. Value must be camel case. */
+export enum CredentialRequestMetaOid4VcmdocSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting credential request meta OID4VC mdoc. */
+export type CredentialRequestMetaOid4VcmdocSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: CredentialRequestMetaOid4VcmdocSortEnum;
+};
+
+/** Credential request meta OID4VC SD-JWT definition. */
+export type CredentialRequestMetaOid4Vcsdjwt = Model & {
+  __typename?: 'CredentialRequestMetaOID4VCSDJWT';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The credential request meta the OID4VC SD-JWT meta belongs to. */
+  credentialRequestMeta: CredentialRequestMeta;
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
+  /** SD-JWT Key binding */
+  keyBinding: Scalars['Boolean']['output'];
+  /** SD-JWT Type */
+  type: Scalars['NonEmpty']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The credential request meta OID4VC SD-JWT connection definition. */
+export type CredentialRequestMetaOid4VcsdjwtConnection = {
+  __typename?: 'CredentialRequestMetaOID4VCSDJWTConnection';
+  edges: Array<Maybe<CredentialRequestMetaOid4VcsdjwtEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The credential request meta OID4VC SD-JWT edge definition. */
+export type CredentialRequestMetaOid4VcsdjwtEdge = {
+  __typename?: 'CredentialRequestMetaOID4VCSDJWTEdge';
+  cursor: Scalars['String']['output'];
+  node: CredentialRequestMetaOid4Vcsdjwt;
+};
+
+/** Fields which can be used to filter credential request meta OID4VC SD-JWT on. Value must be camel case. */
+export enum CredentialRequestMetaOid4VcsdjwtFilteringField {
+  CredentialRequestMetaUuid = 'credentialRequestMetaUuid',
+  Type = 'type'
+}
+
+/** Fields which can be used to sort credential request meta OID4VC SD-JWT on. Value must be camel case. */
+export enum CredentialRequestMetaOid4VcsdjwtSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting credential request meta OID4VC SD-JWT. */
+export type CredentialRequestMetaOid4VcsdjwtSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: CredentialRequestMetaOid4VcsdjwtSortEnum;
+};
+
 /** Fields which can be used to sort credential request meta on. Value must be camel case. */
 export enum CredentialRequestMetaSortEnum {
   CreatedAt = 'createdAt'
@@ -4754,6 +6192,8 @@ export type CredentialRequestMetaSortInput = {
 export enum CredentialRequestMetaType {
   Datakeeper = 'DATAKEEPER',
   None = 'NONE',
+  Oid4VcMdoc = 'OID4VC_MDOC',
+  Oid4VcSdJwt = 'OID4VC_SD_JWT',
   Yivi = 'YIVI',
   Yoti = 'YOTI'
 }
@@ -4767,6 +6207,8 @@ export type CredentialRequestMetaYivi = Model & {
   credentialRequestMeta: CredentialRequestMeta;
   /** The identifier of this credential */
   id?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -4822,6 +6264,8 @@ export type CredentialRequestMetaYoti = Model & {
   identifier: Scalars['NonEmpty']['output'];
   /** The info uri of the credential */
   infoUri: Scalars['URL']['output'];
+  /** The issuer UUID */
+  issuerUuid: Scalars['UUID']['output'];
   /** The display configuration logo of the credential */
   logo?: Maybe<Scalars['NonEmpty']['output']>;
   /** The registered id for credential request */
@@ -4904,6 +6348,8 @@ export type CredentialRequestState = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The collection of credential request workflow . */
   credentialRequestWorkflows: CredentialRequestWorkflowConnection;
+  /** The grants allowed to take action */
+  grants: Array<Scalars['String']['output']>;
   /** The collection of locale */
   locale: CredentialRequestStateLocaleConnection;
   /** The name of the state */
@@ -5310,26 +6756,776 @@ export enum CurrencyUnit {
   Unity = 'UNITY'
 }
 
+/** Flow disclosure definition. */
+export type Disclosure = Model & {
+  __typename?: 'Disclosure';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The associated brand with this disclosure */
+  disclosureBrands: DisclosureBrandConnection;
+  /** The associated domains with this disclosure */
+  disclosureDomains: DisclosureDomainConnection;
+  /** The associated labels with this disclosure */
+  disclosureLabels: DisclosureLabelConnection;
+  /** The associated mappings with this disclosure */
+  disclosureMappings: DisclosureMappingConnection;
+  /** A list of flow providers belonging to this flow disclosure. */
+  disclosureProviders: DisclosureProviderConnection;
+  /** The JWT media type */
+  jwtMediaType: Scalars['JwtMediaType']['output'];
+  /** The meta of the flow. */
+  meta: Scalars['JSONObject']['output'];
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['output'];
+  /** The organization the flow belongs to. */
+  organization: Organization;
+  /** The indicator if explicit consent is required */
+  requireExplicitConsent: Scalars['Boolean']['output'];
+  /** The state of the flow. */
+  state: DisclosureState;
+  /** Shortcut to active studio controls associated to this object */
+  studioControlCompacts: Array<StudioControlCompact>;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow disclosure definition. */
+export type DisclosureDisclosureBrandsArgs = {
+  input?: InputMaybe<FindManyDisclosureBrandsInput>;
+};
+
+
+/** Flow disclosure definition. */
+export type DisclosureDisclosureDomainsArgs = {
+  input?: InputMaybe<FindManyDisclosureDomainsInput>;
+};
+
+
+/** Flow disclosure definition. */
+export type DisclosureDisclosureLabelsArgs = {
+  input?: InputMaybe<FindManyDisclosureLabelsInput>;
+};
+
+
+/** Flow disclosure definition. */
+export type DisclosureDisclosureMappingsArgs = {
+  input?: InputMaybe<FindManyDisclosureMappingsInput>;
+};
+
+
+/** Flow disclosure definition. */
+export type DisclosureDisclosureProvidersArgs = {
+  input?: InputMaybe<FindManyDisclosureProvidersInput>;
+};
+
+/** DisclosureAction */
+export enum DisclosureAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE'
+}
+
+/** Disclosure activity definition. */
+export type DisclosureActivity = Model & {
+  __typename?: 'DisclosureActivity';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The disclosure UUID */
+  disclosureUuid: Scalars['UUID']['output'];
+  /** The event URN */
+  eventURN: Scalars['URN']['output'];
+  /** The metadata */
+  meta: Scalars['JSONObject']['output'];
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** The request UUID */
+  requestUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The disclosure activity connection definition. */
+export type DisclosureActivityConnection = {
+  __typename?: 'DisclosureActivityConnection';
+  edges: Array<Maybe<DisclosureActivityEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The disclosure activity edge definition. */
+export type DisclosureActivityEdge = {
+  __typename?: 'DisclosureActivityEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureActivity;
+};
+
+/** Fields which can be used to filter disclosure activities on. */
+export enum DisclosureActivityFilteringField {
+  CreatedAt = 'createdAt',
+  DisclosureUuid = 'disclosureUuid',
+  EventUrn = 'eventURN',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid'
+}
+
+/** Fields which can be used to sort disclosure activities on. */
+export enum DisclosureActivitySortEnum {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventUrn'
+}
+
+/** Input options for sorting disclosure activities. */
+export type DisclosureActivitySortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureActivitySortEnum;
+};
+
+/** Flow disclosure attribute definition. */
+export type DisclosureAttribute = Model & {
+  __typename?: 'DisclosureAttribute';
+  /** The attribute the attributeUuid belongs to. */
+  attribute: Attribute;
+  /** The uuid of the flow attribute. */
+  attributeUuid: Scalars['UUID']['output'];
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure the flow query belongs to. */
+  disclosureCredential: DisclosureCredential;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow disclosure attribute connection definition. */
+export type DisclosureAttributeConnection = {
+  __typename?: 'DisclosureAttributeConnection';
+  edges: Array<DisclosureAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow disclosure attribute edge definition. */
+export type DisclosureAttributeEdge = {
+  __typename?: 'DisclosureAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureAttribute;
+};
+
+/** Fields which can be used to filter flow disclosure attribute on. Value must be camel case. */
+export enum DisclosureAttributeFilteringField {
+  AttributeUuid = 'attributeUuid',
+  DisclosureCredentialUuid = 'disclosureCredentialUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow disclosure attribute on. Value must be camel case. */
+export enum DisclosureAttributeSortEnum {
+  AttributeUuid = 'attributeUuid',
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow disclosure attribute. */
+export type DisclosureAttributeSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureAttributeSortEnum;
+};
+
+/** Organization brand definition. */
+export type DisclosureBrand = Model & {
+  __typename?: 'DisclosureBrand';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure */
+  disclosure: Disclosure;
+  /** Is default brand */
+  isDefault: Scalars['Boolean']['output'];
+  /** The user organization brand */
+  organizationBrand: OrganizationBrand;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type DisclosureBrandConnection = {
+  __typename?: 'DisclosureBrandConnection';
+  edges: Array<DisclosureBrandEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type DisclosureBrandEdge = {
+  __typename?: 'DisclosureBrandEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureBrand;
+};
+
+/** Fields which can be used to filter brands on. Value must be camel case. */
+export enum DisclosureBrandFilteringField {
+  DisclosureUuid = 'disclosureUuid',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort brands on. Value must be camel case. */
+export enum DisclosureBrandSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting brands. */
+export type DisclosureBrandSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureBrandSortEnum;
+};
+
+/** The flow disclosure connection definition. */
+export type DisclosureConnection = {
+  __typename?: 'DisclosureConnection';
+  edges: Array<Maybe<DisclosureEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** Flow disclosure credential definition. */
+export type DisclosureCredential = Model & {
+  __typename?: 'DisclosureCredential';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The credential the credentialUuid belongs to. */
+  credential: Credential;
+  /** The uuid of the credential. */
+  credentialUuid: Scalars['UUID']['output'];
+  /** The associated fields with this credential */
+  disclosureAttributes: DisclosureAttributeConnection;
+  /** The flow disclosure group the flow disclosure credential belongs to. */
+  disclosureGroup: DisclosureGroup;
+  /** The issuer the issuerUuid belongs to. */
+  issuer: Issuer;
+  /** The uuid of the issuer. */
+  issuerUuid: Scalars['UUID']['output'];
+  /** The scheme the schemeUuid belongs to. */
+  scheme: Scheme;
+  /** The uuid of the scheme. */
+  schemeUuid: Scalars['UUID']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow disclosure credential definition. */
+export type DisclosureCredentialDisclosureAttributesArgs = {
+  input?: InputMaybe<FindManyDisclosureAttributesInput>;
+};
+
+/** The flow disclosure field connection definition. */
+export type DisclosureCredentialConnection = {
+  __typename?: 'DisclosureCredentialConnection';
+  edges: Array<DisclosureCredentialEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow disclosure field edge definition. */
+export type DisclosureCredentialEdge = {
+  __typename?: 'DisclosureCredentialEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureCredential;
+};
+
+/** Fields which can be used to filter flow disclosure field on. Value must be camel case. */
+export enum DisclosureCredentialFilteringField {
+  CredentialUuid = 'credentialUuid',
+  DisclosureGroupUuid = 'disclosureGroupUuid',
+  IssuerUuid = 'issuerUuid',
+  SchemeUuid = 'schemeUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow disclosure field on. Value must be camel case. */
+export enum DisclosureCredentialSortEnum {
+  CreatedAt = 'createdAt',
+  CredentialUuid = 'credentialUuid',
+  IssuerUuid = 'issuerUuid',
+  SchemeUuid = 'schemeUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow disclosure field. */
+export type DisclosureCredentialSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureCredentialSortEnum;
+};
+
+/** Organization domain definition. */
+export type DisclosureDomain = Model & {
+  __typename?: 'DisclosureDomain';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure */
+  disclosure: Disclosure;
+  /** The user organization domain */
+  organizationDomain: OrganizationDomain;
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['output'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['output'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type DisclosureDomainConnection = {
+  __typename?: 'DisclosureDomainConnection';
+  edges: Array<DisclosureDomainEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type DisclosureDomainEdge = {
+  __typename?: 'DisclosureDomainEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureDomain;
+};
+
+/** Fields which can be used to filter domains on. Value must be camel case. */
+export enum DisclosureDomainFilteringField {
+  DisclosureUuid = 'disclosureUuid',
+  OrganizationDomainUuid = 'organizationDomainUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort domains on. Value must be camel case. */
+export enum DisclosureDomainSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting domains. */
+export type DisclosureDomainSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureDomainSortEnum;
+};
+
+/** The flow disclosure edge definition. */
+export type DisclosureEdge = {
+  __typename?: 'DisclosureEdge';
+  cursor: Scalars['String']['output'];
+  node: Disclosure;
+};
+
+/** Fields which can be used to filter flow disclosures on. Value must be camel case. */
+export enum DisclosureFilteringField {
+  Name = 'name',
+  OrganizationUuid = 'organizationUuid',
+  State = 'state',
+  Uuid = 'uuid'
+}
+
+/** Flow disclosure group definition. */
+export type DisclosureGroup = Model & {
+  __typename?: 'DisclosureGroup';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** A list of flow queries belonging to this flow group. */
+  disclosureCredentials: DisclosureCredentialConnection;
+  /** The flow disclosure the flow group belongs to. */
+  disclosureProvider: DisclosureProvider;
+  /** The name */
+  name?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow disclosure group definition. */
+export type DisclosureGroupDisclosureCredentialsArgs = {
+  input?: InputMaybe<FindManyDisclosureCredentialsInput>;
+};
+
+/** The flow disclosure group connection definition. */
+export type DisclosureGroupConnection = {
+  __typename?: 'DisclosureGroupConnection';
+  edges: Array<DisclosureGroupEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow disclosure group edge definition. */
+export type DisclosureGroupEdge = {
+  __typename?: 'DisclosureGroupEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureGroup;
+};
+
+/** Fields which can be used to filter flow disclosure group on. Value must be camel case. */
+export enum DisclosureGroupFilteringField {
+  DisclosureProviderUuid = 'disclosureProviderUuid',
+  Name = 'name',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow disclosure group on. Value must be camel case. */
+export enum DisclosureGroupSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow disclosure group. */
+export type DisclosureGroupSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureGroupSortEnum;
+};
+
+/** Organization Label definition. */
+export type DisclosureLabel = Model & {
+  __typename?: 'DisclosureLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure */
+  disclosure: Disclosure;
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type DisclosureLabelConnection = {
+  __typename?: 'DisclosureLabelConnection';
+  edges: Array<DisclosureLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type DisclosureLabelEdge = {
+  __typename?: 'DisclosureLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum DisclosureLabelFilteringField {
+  DisclosureUuid = 'disclosureUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum DisclosureLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type DisclosureLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureLabelSortEnum;
+};
+
+/** Organization mapping definition. */
+export type DisclosureMapping = Model & {
+  __typename?: 'DisclosureMapping';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure */
+  disclosure: Disclosure;
+  /** The user verification mapping */
+  mappingVerification: MappingVerification;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type DisclosureMappingConnection = {
+  __typename?: 'DisclosureMappingConnection';
+  edges: Array<DisclosureMappingEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type DisclosureMappingEdge = {
+  __typename?: 'DisclosureMappingEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureMapping;
+};
+
+/** Fields which can be used to filter mappings on. Value must be camel case. */
+export enum DisclosureMappingFilteringField {
+  DisclosureUuid = 'disclosureUuid',
+  MappingVerificationUuid = 'mappingVerificationUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort mappings on. Value must be camel case. */
+export enum DisclosureMappingSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting mappings. */
+export type DisclosureMappingSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureMappingSortEnum;
+};
+
+/** The input for filtering flow disclosure brands in nested filtering. */
+export type DisclosureNestedFilteringDisclosureBrandField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow disclosure brands */
+  input: FindManyDisclosureBrandsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering flow disclosure labels in nested filtering. */
+export type DisclosureNestedFilteringDisclosureLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow disclosure labels */
+  input: FindManyDisclosureLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** Flow disclosure provider definition. */
+export type DisclosureProvider = Model & {
+  __typename?: 'DisclosureProvider';
+  /** The flow disclosure provider configuration. */
+  configuration?: Maybe<DisclosureProviderConfiguration>;
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow disclosure the flow provider belongs to. */
+  disclosure: Disclosure;
+  /** A list of flow queries belonging to this flow provider. */
+  disclosureGroups: DisclosureGroupConnection;
+  /** The provider the providerAppUuid belongs to. */
+  providerApp: ProviderApp;
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['output'];
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow disclosure provider definition. */
+export type DisclosureProviderDisclosureGroupsArgs = {
+  input?: InputMaybe<FindManyDisclosureGroupsInput>;
+};
+
+/** Flow disclosure provider configuration definition */
+export type DisclosureProviderConfiguration = Model & {
+  __typename?: 'DisclosureProviderConfiguration';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The DisclosureProvider this configuration belongs to */
+  disclosureProvider: DisclosureProvider;
+  /** The NL Wallet flow disclosure provider configuration */
+  nlWallet?: Maybe<DisclosureProviderConfigurationNlWallet>;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The DisclosureProviderConfiguration connection definition. */
+export type DisclosureProviderConfigurationConnection = {
+  __typename?: 'DisclosureProviderConfigurationConnection';
+  edges: Array<Maybe<DisclosureProviderConfigurationEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The DisclosureProviderConfiguration edge definition. */
+export type DisclosureProviderConfigurationEdge = {
+  __typename?: 'DisclosureProviderConfigurationEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureProviderConfiguration;
+};
+
+/** Fields which can be used to filter DisclosureProviderConfiguration on. Value must be camel case. */
+export enum DisclosureProviderConfigurationFilteringField {
+  DisclosureProviderUuid = 'disclosureProviderUuid'
+}
+
+/** DisclosureProviderConfigurationNLWallet definition */
+export type DisclosureProviderConfigurationNlWallet = Model & {
+  __typename?: 'DisclosureProviderConfigurationNLWallet';
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The DisclosureProviderConfiguration this object belongs to. */
+  disclosureProviderConfiguration: DisclosureProviderConfiguration;
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The usecase */
+  usecase: Scalars['String']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The DisclosureProviderConfigurationNLWallet connection definition. */
+export type DisclosureProviderConfigurationNlWalletConnection = {
+  __typename?: 'DisclosureProviderConfigurationNLWalletConnection';
+  edges: Array<Maybe<DisclosureProviderConfigurationNlWalletEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The DisclosureProviderConfigurationNLWallet edge definition. */
+export type DisclosureProviderConfigurationNlWalletEdge = {
+  __typename?: 'DisclosureProviderConfigurationNLWalletEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureProviderConfigurationNlWallet;
+};
+
+/** Fields which can be used to filter DisclosureProviderConfigurationNLWallet on. Value must be camel case. */
+export enum DisclosureProviderConfigurationNlWalletFilteringField {
+  DisclosureProviderConfigurationUuid = 'disclosureProviderConfigurationUuid',
+  Intent = 'intent'
+}
+
+/** Fields which can be used to sort DisclosureProviderConfigurationNLWallet on. Value must be camel case. */
+export enum DisclosureProviderConfigurationNlWalletSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting DisclosureProviderConfigurationNLWallet. */
+export type DisclosureProviderConfigurationNlWalletSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureProviderConfigurationNlWalletSortEnum;
+};
+
+/** Fields which can be used to sort DisclosureProviderConfiguration on. Value must be camel case. */
+export enum DisclosureProviderConfigurationSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting DisclosureProviderConfiguration. */
+export type DisclosureProviderConfigurationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureProviderConfigurationSortEnum;
+};
+
+/** The flow disclosure provider connection definition. */
+export type DisclosureProviderConnection = {
+  __typename?: 'DisclosureProviderConnection';
+  edges: Array<DisclosureProviderEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow disclosure provider edge definition. */
+export type DisclosureProviderEdge = {
+  __typename?: 'DisclosureProviderEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureProvider;
+};
+
+/** Fields which can be used to filter flow disclosure providers on. Value must be camel case. */
+export enum DisclosureProviderFilteringField {
+  DisclosureUuid = 'disclosureUuid',
+  ProviderAppUuid = 'providerAppUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow disclosure providers on. Value must be camel case. */
+export enum DisclosureProviderSortEnum {
+  CreatedAt = 'createdAt',
+  ProviderAppUuid = 'providerAppUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow disclosure providers. */
+export type DisclosureProviderSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureProviderSortEnum;
+};
+
+/** Fields which can be used to sort flow disclosures on. Value must be camel case. */
+export enum DisclosureSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  State = 'state',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow disclosures. */
+export type DisclosureSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureSortEnum;
+};
+
+/** DisclosureState */
+export enum DisclosureState {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
+
 /** Update Input */
-export type DuplicateFlowAuthenticationInput = {
+export type DuplicateAuthenticationInput = {
   /** The name of the new flow authentication. */
   name: Scalars['NonEmpty']['input'];
 };
 
 /** Update Input */
-export type DuplicateFlowDisclosureInput = {
+export type DuplicateDisclosureInput = {
   /** The name of the new flow disclosure. */
   name: Scalars['NonEmpty']['input'];
 };
 
 /** Update Input */
-export type DuplicateFlowIssuanceInput = {
+export type DuplicateIssuanceInput = {
   /** The name of the new flow issuance. */
   name: Scalars['NonEmpty']['input'];
 };
 
 /** Update Input */
-export type DuplicateFlowSignatureInput = {
+export type DuplicateSignatureInput = {
   /** The name of the new flow signature. */
   name: Scalars['NonEmpty']['input'];
 };
@@ -5528,6 +7724,30 @@ export type FindManyAppsInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<AppSortInput>;
+};
+
+/** Input for filtering identity attribute labels */
+export type FindManyAttributeLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AttributeLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many identity attribute labels on filters, pagination and sorting. */
+export type FindManyAttributeLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAttributeLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AttributeLabelSortInput>;
 };
 
 /** Input for filtering attribute locale on provided fields. */
@@ -5914,6 +8134,54 @@ export type FindManyAttributeRequestMetaInput = {
   sorting?: InputMaybe<AttributeRequestMetaSortInput>;
 };
 
+/** Input for filtering attribute request meta OID4VC mdoc on provided fields. */
+export type FindManyAttributeRequestMetaOid4VcmdocFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AttributeRequestMetaOid4VcmdocFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many attribute request meta OID4VC mdoc on filters, pagination and sorting. */
+export type FindManyAttributeRequestMetaOid4VcmdocInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAttributeRequestMetaOid4VcmdocFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AttributeRequestMetaOid4VcmdocSortInput>;
+};
+
+/** Input for filtering attribute request meta OID4VC SD-JWT on provided fields. */
+export type FindManyAttributeRequestMetaOid4VcsdjwtFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AttributeRequestMetaOid4VcsdjwtFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many attribute request meta OID4VC SD-JWT on filters, pagination and sorting. */
+export type FindManyAttributeRequestMetaOid4VcsdjwtInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAttributeRequestMetaOid4VcsdjwtFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AttributeRequestMetaOid4VcsdjwtSortInput>;
+};
+
 /** Input for filtering attribute request meta yivi on provided fields. */
 export type FindManyAttributeRequestMetaYiviFilter = {
   /** The query connector */
@@ -6004,10 +8272,246 @@ export type FindManyAttributesFilter = {
 export type FindManyAttributesInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyAttributesFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyAttributesNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<AttributeSortInput>;
+};
+
+/** Input for filtering attributes on nested fields. */
+export type FindManyAttributesNestedFilter = {
+  /** Attribute meta nested filter */
+  attributeMeta?: InputMaybe<AttributeNestedFilteringAttributeMetaField>;
+  /** Credential nested filter */
+  credential?: InputMaybe<AttributeNestedFilteringCredentialField>;
+};
+
+/** Input for filtering authentication activities on provided fields. */
+export type FindManyAuthenticationActivitiesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationActivityFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many authentication activities. */
+export type FindManyAuthenticationActivitiesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationActivitiesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationActivitySortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManyAuthenticationBrandsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationBrandFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many brands on filters, pagination and sorting. */
+export type FindManyAuthenticationBrandsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationBrandsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationBrandSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManyAuthenticationDomainsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationDomainFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many domains on filters, pagination and sorting. */
+export type FindManyAuthenticationDomainsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationDomainsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationDomainSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManyAuthenticationLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManyAuthenticationLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationLabelSortInput>;
+};
+
+/** Input for filtering finding many AuthenticationProviderConfigurationNLWallet. */
+export type FindManyAuthenticationProviderConfigurationNlWalletsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationProviderConfigurationNlWalletFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for finding many AuthenticationProviderConfigurationNLWallet. */
+export type FindManyAuthenticationProviderConfigurationNlWalletsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationProviderConfigurationNlWalletsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationProviderConfigurationNlWalletSortInput>;
+};
+
+/** Input for filtering AuthenticationProviderConfiguration on provided fields. */
+export type FindManyAuthenticationProviderConfigurationsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationProviderConfigurationFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many AuthenticationProviderConfiguration on filters, pagination and sorting. */
+export type FindManyAuthenticationProviderConfigurationsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationProviderConfigurationsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationProviderConfigurationSortInput>;
+};
+
+/** Input for filtering flow authentication provider on provided fields. */
+export type FindManyAuthenticationProvidersFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationProviderFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow authentication providers on filters, pagination and sorting. */
+export type FindManyAuthenticationProvidersInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationProvidersFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationProviderSortInput>;
+};
+
+/** Input for filtering flow authentication scope on provided fields. */
+export type FindManyAuthenticationScopesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationScopeFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow authentication scope on filters, pagination and sorting. */
+export type FindManyAuthenticationScopesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationScopesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationScopeSortInput>;
+};
+
+/** Input for filtering flow authentication on provided fields. */
+export type FindManyAuthenticationsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow authentications on filters, pagination and sorting. */
+export type FindManyAuthenticationsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyAuthenticationsNestedFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationSortInput>;
+};
+
+/** Input for filtering flow authentications on nested fields. */
+export type FindManyAuthenticationsNestedFilter = {
+  /** Flow authentication brands nested filter */
+  authenticationBrands?: InputMaybe<AuthenticationNestedFilteringAuthenticationBrandField>;
+  /** Flow authentication labels nested filter */
+  authenticationLabels?: InputMaybe<AuthenticationNestedFilteringAuthenticationLabelField>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -6035,30 +8539,6 @@ export type FindManyBillingMethodsInput = {
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyBillingPlanPaymentsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: BillingPlanPaymentFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many billing on filters, pagination and sorting. */
-export type FindManyBillingPlanPaymentsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyBillingPlanPaymentsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<BillingPlanPaymentSortInput>;
-};
-
-/** Input for filtering user on provided fields. */
 export type FindManyBillingPlansFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
@@ -6082,12 +8562,12 @@ export type FindManyBillingPlansInput = {
   sorting?: InputMaybe<BillingPlanSortInput>;
 };
 
-/** Input for filtering user on provided fields. */
-export type FindManyBillingWalletPaymentsFilter = {
+/** Input for filtering billing wallet transaction meta flow attributes on provided fields. */
+export type FindManyBillingWalletTransactionMetaFlowAttributesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: BillingWalletPaymentFilteringField;
+  field: BillingWalletTransactionMetaFlowAttributeFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -6096,14 +8576,126 @@ export type FindManyBillingWalletPaymentsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many billing on filters, pagination and sorting. */
-export type FindManyBillingWalletPaymentsInput = {
+/** Input for filtering many billing wallet transaction meta flow attributes on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetaFlowAttributesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyBillingWalletPaymentsFilter>>;
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaFlowAttributesFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<BillingWalletPaymentSortInput>;
+  sorting?: InputMaybe<BillingWalletTransactionMetaFlowAttributeSortInput>;
+};
+
+/** Input for filtering billing wallet transaction meta flows on provided fields. */
+export type FindManyBillingWalletTransactionMetaFlowsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingWalletTransactionMetaFlowFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many billing wallet transaction meta flows on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetaFlowsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaFlowsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingWalletTransactionMetaFlowSortInput>;
+};
+
+/** Input for filtering billing wallet transaction meta on nested fields. */
+export type FindManyBillingWalletTransactionMetaNestedFilter = {
+  /** Billing Wallet Transaction nested filter */
+  billingWalletTransaction: BillingWalletTransactionMetaNestedFilteringBillingWalletTransactionField;
+};
+
+/** Input for filtering billing wallet transaction meta plans on provided fields. */
+export type FindManyBillingWalletTransactionMetaPlansFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingWalletTransactionMetaPlanFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many billing wallet transaction meta plans on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetaPlansInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaPlansFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingWalletTransactionMetaPlanSortInput>;
+};
+
+/** Input for filtering billing wallet transaction meta wallets on provided fields. */
+export type FindManyBillingWalletTransactionMetaWalletsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingWalletTransactionMetaWalletFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many billing wallet transaction meta wallets on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetaWalletsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaWalletsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaWalletsNestedFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingWalletTransactionMetaWalletSortInput>;
+};
+
+/** Input for filtering billing wallet transaction meta wallets on nested fields. */
+export type FindManyBillingWalletTransactionMetaWalletsNestedFilter = {
+  /** Billing Wallet Transaction Meta nested filter */
+  billingWalletTransactionMeta?: InputMaybe<BillingWalletTransactionMetaWalletNestedFilteringBillingWalletTransactionMetaField>;
+};
+
+/** Input for filtering billing wallet transaction metas on provided fields. */
+export type FindManyBillingWalletTransactionMetasFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingWalletTransactionMetaFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many billing wallet transaction metas on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetasInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetasFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaNestedFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingWalletTransactionMetaSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -6176,6 +8768,30 @@ export type FindManyBillingsInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<BillingSortInput>;
+};
+
+/** Input for filtering identity credential labels */
+export type FindManyCredentialLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: CredentialLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many identity credential labels on filters, pagination and sorting. */
+export type FindManyCredentialLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyCredentialLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<CredentialLabelSortInput>;
 };
 
 /** Input for filtering credential locale on provided fields. */
@@ -6562,6 +9178,54 @@ export type FindManyCredentialRequestMetaInput = {
   sorting?: InputMaybe<CredentialRequestMetaSortInput>;
 };
 
+/** Input for filtering credential request meta OID4VC mdoc on provided fields. */
+export type FindManyCredentialRequestMetaOid4VcmdocFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: CredentialRequestMetaOid4VcmdocFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many credential request meta OID4VC mdoc on filters, pagination and sorting. */
+export type FindManyCredentialRequestMetaOid4VcmdocInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyCredentialRequestMetaOid4VcmdocFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<CredentialRequestMetaOid4VcmdocSortInput>;
+};
+
+/** Input for filtering credential request meta OID4VC SD-JWT on provided fields. */
+export type FindManyCredentialRequestMetaOid4VcsdjwtFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: CredentialRequestMetaOid4VcsdjwtFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many credential request meta OID4VC SD-JWT on filters, pagination and sorting. */
+export type FindManyCredentialRequestMetaOid4VcsdjwtInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyCredentialRequestMetaOid4VcsdjwtFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<CredentialRequestMetaOid4VcsdjwtSortInput>;
+};
+
 /** Input for filtering credential request meta yivi on provided fields. */
 export type FindManyCredentialRequestMetaYiviFilter = {
   /** The query connector */
@@ -6724,18 +9388,30 @@ export type FindManyCredentialsFilter = {
 export type FindManyCredentialsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyCredentialsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyCredentialsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<CredentialSortInput>;
 };
 
-/** Input for filtering user on provided fields. */
-export type FindManyFlowAuthenticationBrandsFilter = {
+/** Input for filtering credentials on nested fields. */
+export type FindManyCredentialsNestedFilter = {
+  /** Attributes nested filter */
+  attributes?: InputMaybe<CredentialNestedFilteringAttributesField>;
+  /** Credential meta nested filter */
+  credentialMeta?: InputMaybe<CredentialNestedFilteringCredentialMetaField>;
+  /** Issuer nested filter */
+  issuer?: InputMaybe<CredentialNestedFilteringIssuerField>;
+};
+
+/** Input for filtering disclosure activities on provided fields. */
+export type FindManyDisclosureActivitiesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowAuthenticationBrandFilteringField;
+  field: DisclosureActivityFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -6744,190 +9420,22 @@ export type FindManyFlowAuthenticationBrandsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many brands on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationBrandsInput = {
+/** Input for filtering many disclosure activities. */
+export type FindManyDisclosureActivitiesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationBrandsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureActivitiesFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationBrandSortInput>;
-};
-
-/** Input for filtering user on provided fields. */
-export type FindManyFlowAuthenticationDomainsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationDomainFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many domains on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationDomainsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationDomainsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationDomainSortInput>;
-};
-
-/** Input for filtering flow authentication log on provided fields. */
-export type FindManyFlowAuthenticationLogsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationLogFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow authentications on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationLogsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationLogsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationLogSortInput>;
-};
-
-/** Input for filtering finding many FlowAuthenticationProviderConfigurationNLWallet. */
-export type FindManyFlowAuthenticationProviderConfigurationNlWalletsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationProviderConfigurationNlWalletFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for finding many FlowAuthenticationProviderConfigurationNLWallet. */
-export type FindManyFlowAuthenticationProviderConfigurationNlWalletsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationProviderConfigurationNlWalletsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationProviderConfigurationNlWalletSortInput>;
-};
-
-/** Input for filtering FlowAuthenticationProviderConfiguration on provided fields. */
-export type FindManyFlowAuthenticationProviderConfigurationsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationProviderConfigurationFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many FlowAuthenticationProviderConfiguration on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationProviderConfigurationsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationProviderConfigurationsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationProviderConfigurationSortInput>;
-};
-
-/** Input for filtering flow authentication provider on provided fields. */
-export type FindManyFlowAuthenticationProvidersFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationProviderFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow authentication providers on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationProvidersInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationProvidersFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationProviderSortInput>;
-};
-
-/** Input for filtering flow authentication scope on provided fields. */
-export type FindManyFlowAuthenticationScopesFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationScopeFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow authentication scope on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationScopesInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationScopesFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationScopeSortInput>;
-};
-
-/** Input for filtering flow authentication on provided fields. */
-export type FindManyFlowAuthenticationsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowAuthenticationFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow authentications on filters, pagination and sorting. */
-export type FindManyFlowAuthenticationsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowAuthenticationsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowAuthenticationSortInput>;
+  sorting?: InputMaybe<DisclosureActivitySortInput>;
 };
 
 /** Input for filtering flow disclosure attribute on provided attributes. */
-export type FindManyFlowDisclosureAttributesFilter = {
+export type FindManyDisclosureAttributesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureAttributeFilteringField;
+  field: DisclosureAttributeFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -6937,21 +9445,21 @@ export type FindManyFlowDisclosureAttributesFilter = {
 };
 
 /** Input for filtering many flow disclosure attribute on filters, pagination and sorting. */
-export type FindManyFlowDisclosureAttributesInput = {
+export type FindManyDisclosureAttributesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureAttributesFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureAttributesFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureAttributeSortInput>;
+  sorting?: InputMaybe<DisclosureAttributeSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowDisclosureBrandsFilter = {
+export type FindManyDisclosureBrandsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureBrandFilteringField;
+  field: DisclosureBrandFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -6961,21 +9469,21 @@ export type FindManyFlowDisclosureBrandsFilter = {
 };
 
 /** Input for filtering many brands on filters, pagination and sorting. */
-export type FindManyFlowDisclosureBrandsInput = {
+export type FindManyDisclosureBrandsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureBrandsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureBrandsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureBrandSortInput>;
+  sorting?: InputMaybe<DisclosureBrandSortInput>;
 };
 
 /** Input for filtering flow disclosure field on provided fields. */
-export type FindManyFlowDisclosureCredentialsFilter = {
+export type FindManyDisclosureCredentialsFilter = {
   /** The connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureCredentialFilteringField;
+  field: DisclosureCredentialFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -6985,21 +9493,21 @@ export type FindManyFlowDisclosureCredentialsFilter = {
 };
 
 /** Input for filtering many flow disclosure field on filters, pagination and sorting. */
-export type FindManyFlowDisclosureCredentialsInput = {
+export type FindManyDisclosureCredentialsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureCredentialsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureCredentialsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureCredentialSortInput>;
+  sorting?: InputMaybe<DisclosureCredentialSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowDisclosureDomainsFilter = {
+export type FindManyDisclosureDomainsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureDomainFilteringField;
+  field: DisclosureDomainFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7009,21 +9517,21 @@ export type FindManyFlowDisclosureDomainsFilter = {
 };
 
 /** Input for filtering many domains on filters, pagination and sorting. */
-export type FindManyFlowDisclosureDomainsInput = {
+export type FindManyDisclosureDomainsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureDomainsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureDomainsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureDomainSortInput>;
+  sorting?: InputMaybe<DisclosureDomainSortInput>;
 };
 
 /** Input for filtering flow disclosure group on provided fields. */
-export type FindManyFlowDisclosureGroupsFilter = {
+export type FindManyDisclosureGroupsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureGroupFilteringField;
+  field: DisclosureGroupFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7033,21 +9541,21 @@ export type FindManyFlowDisclosureGroupsFilter = {
 };
 
 /** Input for filtering many flow disclosure group on filters, pagination and sorting. */
-export type FindManyFlowDisclosureGroupsInput = {
+export type FindManyDisclosureGroupsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureGroupsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureGroupsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureGroupSortInput>;
+  sorting?: InputMaybe<DisclosureGroupSortInput>;
 };
 
-/** Input for filtering flow disclosure log on provided fields. */
-export type FindManyFlowDisclosureLogsFilter = {
+/** Input for filtering user on provided fields. */
+export type FindManyDisclosureLabelsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureLogFilteringField;
+  field: DisclosureLabelFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7056,22 +9564,22 @@ export type FindManyFlowDisclosureLogsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many flow disclosures on filters, pagination and sorting. */
-export type FindManyFlowDisclosureLogsInput = {
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManyDisclosureLabelsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureLogsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureLabelsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureLogSortInput>;
+  sorting?: InputMaybe<DisclosureLabelSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowDisclosureMappingsFilter = {
+export type FindManyDisclosureMappingsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureMappingFilteringField;
+  field: DisclosureMappingFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7081,21 +9589,21 @@ export type FindManyFlowDisclosureMappingsFilter = {
 };
 
 /** Input for filtering many mappings on filters, pagination and sorting. */
-export type FindManyFlowDisclosureMappingsInput = {
+export type FindManyDisclosureMappingsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureMappingsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureMappingsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureMappingSortInput>;
+  sorting?: InputMaybe<DisclosureMappingSortInput>;
 };
 
-/** Input for filtering finding many FlowDisclosureProviderConfigurationNLWallet. */
-export type FindManyFlowDisclosureProviderConfigurationNlWalletsFilter = {
+/** Input for filtering finding many DisclosureProviderConfigurationNLWallet. */
+export type FindManyDisclosureProviderConfigurationNlWalletsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureProviderConfigurationNlWalletFilteringField;
+  field: DisclosureProviderConfigurationNlWalletFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7104,22 +9612,22 @@ export type FindManyFlowDisclosureProviderConfigurationNlWalletsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for finding many FlowDisclosureProviderConfigurationNLWallet. */
-export type FindManyFlowDisclosureProviderConfigurationNlWalletsInput = {
+/** Input for finding many DisclosureProviderConfigurationNLWallet. */
+export type FindManyDisclosureProviderConfigurationNlWalletsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureProviderConfigurationNlWalletsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureProviderConfigurationNlWalletsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureProviderConfigurationNlWalletSortInput>;
+  sorting?: InputMaybe<DisclosureProviderConfigurationNlWalletSortInput>;
 };
 
-/** Input for filtering FlowDisclosureProviderConfiguration on provided fields. */
-export type FindManyFlowDisclosureProviderConfigurationsFilter = {
+/** Input for filtering DisclosureProviderConfiguration on provided fields. */
+export type FindManyDisclosureProviderConfigurationsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureProviderConfigurationFilteringField;
+  field: DisclosureProviderConfigurationFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7128,22 +9636,22 @@ export type FindManyFlowDisclosureProviderConfigurationsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many FlowDisclosureProviderConfiguration on filters, pagination and sorting. */
-export type FindManyFlowDisclosureProviderConfigurationsInput = {
+/** Input for filtering many DisclosureProviderConfiguration on filters, pagination and sorting. */
+export type FindManyDisclosureProviderConfigurationsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureProviderConfigurationsFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureProviderConfigurationsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureProviderConfigurationSortInput>;
+  sorting?: InputMaybe<DisclosureProviderConfigurationSortInput>;
 };
 
 /** Input for filtering flow disclosure provider on provided fields. */
-export type FindManyFlowDisclosureProvidersFilter = {
+export type FindManyDisclosureProvidersFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureProviderFilteringField;
+  field: DisclosureProviderFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7153,21 +9661,21 @@ export type FindManyFlowDisclosureProvidersFilter = {
 };
 
 /** Input for filtering many flow disclosure providers on filters, pagination and sorting. */
-export type FindManyFlowDisclosureProvidersInput = {
+export type FindManyDisclosureProvidersInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosureProvidersFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosureProvidersFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureProviderSortInput>;
+  sorting?: InputMaybe<DisclosureProviderSortInput>;
 };
 
 /** Input for filtering flow disclosure on provided fields. */
-export type FindManyFlowDisclosuresFilter = {
+export type FindManyDisclosuresFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowDisclosureFilteringField;
+  field: DisclosureFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7177,21 +9685,55 @@ export type FindManyFlowDisclosuresFilter = {
 };
 
 /** Input for filtering many flow disclosures on filters, pagination and sorting. */
-export type FindManyFlowDisclosuresInput = {
+export type FindManyDisclosuresInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowDisclosuresFilter>>;
+  filtering?: InputMaybe<Array<FindManyDisclosuresFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyDisclosuresNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowDisclosureSortInput>;
+  sorting?: InputMaybe<DisclosureSortInput>;
 };
 
-/** Input for filtering flow issuance attribute on provided attributes. */
-export type FindManyFlowIssuanceAttributesFilter = {
+/** Input for filtering flow disclosures on nested fields. */
+export type FindManyDisclosuresNestedFilter = {
+  /** Flow disclosure brands nested filter */
+  disclosureBrands?: InputMaybe<DisclosureNestedFilteringDisclosureBrandField>;
+  /** Flow disclosure labels nested filter */
+  disclosureLabels?: InputMaybe<DisclosureNestedFilteringDisclosureLabelField>;
+};
+
+/** Input for filtering issuance activities on provided fields. */
+export type FindManyIssuanceActivitiesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceAttributeFilteringField;
+  field: IssuanceActivityFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many issuance activities. */
+export type FindManyIssuanceActivitiesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyIssuanceActivitiesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<IssuanceActivitySortInput>;
+};
+
+/** Input for filtering flow issuance attribute on provided attributes. */
+export type FindManyIssuanceAttributesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: IssuanceAttributeFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7201,21 +9743,21 @@ export type FindManyFlowIssuanceAttributesFilter = {
 };
 
 /** Input for filtering many flow issuance attribute on filters, pagination and sorting. */
-export type FindManyFlowIssuanceAttributesInput = {
+export type FindManyIssuanceAttributesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceAttributesFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceAttributesFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceAttributeSortInput>;
+  sorting?: InputMaybe<IssuanceAttributeSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowIssuanceBrandsFilter = {
+export type FindManyIssuanceBrandsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceBrandFilteringField;
+  field: IssuanceBrandFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7225,21 +9767,21 @@ export type FindManyFlowIssuanceBrandsFilter = {
 };
 
 /** Input for filtering many brands on filters, pagination and sorting. */
-export type FindManyFlowIssuanceBrandsInput = {
+export type FindManyIssuanceBrandsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceBrandsFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceBrandsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceBrandSortInput>;
+  sorting?: InputMaybe<IssuanceBrandSortInput>;
 };
 
 /** Input for filtering flow issuance credential meta datakeeper on provided fields. */
-export type FindManyFlowIssuanceCredentialMetaDatakeeperFilter = {
+export type FindManyIssuanceCredentialMetaDatakeeperFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceCredentialMetaDatakeeperFilteringField;
+  field: IssuanceCredentialMetaDatakeeperFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7249,21 +9791,21 @@ export type FindManyFlowIssuanceCredentialMetaDatakeeperFilter = {
 };
 
 /** Input for filtering many credential meta datakeeper on filters, pagination and sorting. */
-export type FindManyFlowIssuanceCredentialMetaDatakeeperInput = {
+export type FindManyIssuanceCredentialMetaDatakeeperInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceCredentialMetaDatakeeperFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceCredentialMetaDatakeeperFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceCredentialMetaDatakeeperSortInput>;
+  sorting?: InputMaybe<IssuanceCredentialMetaDatakeeperSortInput>;
 };
 
 /** Input for filtering flow issuance credential meta on provided fields. */
-export type FindManyFlowIssuanceCredentialMetaFilter = {
+export type FindManyIssuanceCredentialMetaFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceCredentialMetaFilteringField;
+  field: IssuanceCredentialMetaFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7273,21 +9815,21 @@ export type FindManyFlowIssuanceCredentialMetaFilter = {
 };
 
 /** Input for filtering many flow issuance credential meta on filters, pagination and sorting. */
-export type FindManyFlowIssuanceCredentialMetaInput = {
+export type FindManyIssuanceCredentialMetaInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceCredentialMetaFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceCredentialMetaFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceCredentialMetaSortInput>;
+  sorting?: InputMaybe<IssuanceCredentialMetaSortInput>;
 };
 
 /** Input for filtering flow issuance credential meta yivi on provided fields. */
-export type FindManyFlowIssuanceCredentialMetaYiviFilter = {
+export type FindManyIssuanceCredentialMetaYiviFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceCredentialMetaYiviFilteringField;
+  field: IssuanceCredentialMetaYiviFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7297,21 +9839,21 @@ export type FindManyFlowIssuanceCredentialMetaYiviFilter = {
 };
 
 /** Input for filtering many credential meta yivi on filters, pagination and sorting. */
-export type FindManyFlowIssuanceCredentialMetaYiviInput = {
+export type FindManyIssuanceCredentialMetaYiviInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceCredentialMetaYiviFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceCredentialMetaYiviFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceCredentialMetaYiviSortInput>;
+  sorting?: InputMaybe<IssuanceCredentialMetaYiviSortInput>;
 };
 
 /** Input for filtering flow issuance field on provided fields. */
-export type FindManyFlowIssuanceCredentialsFilter = {
+export type FindManyIssuanceCredentialsFilter = {
   /** The connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceCredentialFilteringField;
+  field: IssuanceCredentialFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7321,21 +9863,21 @@ export type FindManyFlowIssuanceCredentialsFilter = {
 };
 
 /** Input for filtering many flow issuance field on filters, pagination and sorting. */
-export type FindManyFlowIssuanceCredentialsInput = {
+export type FindManyIssuanceCredentialsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceCredentialsFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceCredentialsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceCredentialSortInput>;
+  sorting?: InputMaybe<IssuanceCredentialSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowIssuanceDomainsFilter = {
+export type FindManyIssuanceDomainsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceDomainFilteringField;
+  field: IssuanceDomainFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7345,21 +9887,21 @@ export type FindManyFlowIssuanceDomainsFilter = {
 };
 
 /** Input for filtering many domains on filters, pagination and sorting. */
-export type FindManyFlowIssuanceDomainsInput = {
+export type FindManyIssuanceDomainsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceDomainsFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceDomainsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceDomainSortInput>;
+  sorting?: InputMaybe<IssuanceDomainSortInput>;
 };
 
-/** Input for filtering flow issuance log on provided fields. */
-export type FindManyFlowIssuanceLogsFilter = {
+/** Input for filtering user on provided fields. */
+export type FindManyIssuanceLabelsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceLogFilteringField;
+  field: IssuanceLabelFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7368,22 +9910,22 @@ export type FindManyFlowIssuanceLogsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many flow issuances on filters, pagination and sorting. */
-export type FindManyFlowIssuanceLogsInput = {
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManyIssuanceLabelsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceLogsFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceLabelsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceLogSortInput>;
+  sorting?: InputMaybe<IssuanceLabelSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
-export type FindManyFlowIssuanceMappingsFilter = {
+export type FindManyIssuanceMappingsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceMappingFilteringField;
+  field: IssuanceMappingFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7393,21 +9935,21 @@ export type FindManyFlowIssuanceMappingsFilter = {
 };
 
 /** Input for filtering many mappings on filters, pagination and sorting. */
-export type FindManyFlowIssuanceMappingsInput = {
+export type FindManyIssuanceMappingsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceMappingsFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceMappingsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceMappingSortInput>;
+  sorting?: InputMaybe<IssuanceMappingSortInput>;
 };
 
 /** Input for filtering flow issuance provider on provided fields. */
-export type FindManyFlowIssuanceProvidersFilter = {
+export type FindManyIssuanceProvidersFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceProviderFilteringField;
+  field: IssuanceProviderFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7417,21 +9959,21 @@ export type FindManyFlowIssuanceProvidersFilter = {
 };
 
 /** Input for filtering many flow issuance providers on filters, pagination and sorting. */
-export type FindManyFlowIssuanceProvidersInput = {
+export type FindManyIssuanceProvidersInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuanceProvidersFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuanceProvidersFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceProviderSortInput>;
+  sorting?: InputMaybe<IssuanceProviderSortInput>;
 };
 
 /** Input for filtering flow issuance on provided fields. */
-export type FindManyFlowIssuancesFilter = {
+export type FindManyIssuancesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowIssuanceFilteringField;
+  field: IssuanceFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7441,21 +9983,31 @@ export type FindManyFlowIssuancesFilter = {
 };
 
 /** Input for filtering many flow issuances on filters, pagination and sorting. */
-export type FindManyFlowIssuancesInput = {
+export type FindManyIssuancesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowIssuancesFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuancesFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyIssuancesNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowIssuanceSortInput>;
+  sorting?: InputMaybe<IssuanceSortInput>;
 };
 
-/** Input for filtering flow signature attribute on provided attributes. */
-export type FindManyFlowSignatureAttributesFilter = {
+/** Input for filtering flow issuances on nested fields. */
+export type FindManyIssuancesNestedFilter = {
+  /** Flow issuance brands nested filter */
+  issuanceBrands?: InputMaybe<IssuanceNestedFilteringIssuanceBrandField>;
+  /** Flow issuance labels nested filter */
+  issuanceLabels?: InputMaybe<IssuanceNestedFilteringIssuanceLabelField>;
+};
+
+/** Input for filtering identity issuer labels */
+export type FindManyIssuerLabelsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: FlowSignatureAttributeFilteringField;
+  field: IssuerLabelFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -7464,254 +10016,14 @@ export type FindManyFlowSignatureAttributesFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many flow signature attribute on filters, pagination and sorting. */
-export type FindManyFlowSignatureAttributesInput = {
+/** Input for filtering many identity issuer labels on filters, pagination and sorting. */
+export type FindManyIssuerLabelsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureAttributesFilter>>;
+  filtering?: InputMaybe<Array<FindManyIssuerLabelsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureAttributeSortInput>;
-};
-
-/** Input for filtering user on provided fields. */
-export type FindManyFlowSignatureBrandsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureBrandFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many brands on filters, pagination and sorting. */
-export type FindManyFlowSignatureBrandsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureBrandsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureBrandSortInput>;
-};
-
-/** Input for filtering flow signature field on provided fields. */
-export type FindManyFlowSignatureCredentialsFilter = {
-  /** The connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureCredentialFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow signature field on filters, pagination and sorting. */
-export type FindManyFlowSignatureCredentialsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureCredentialsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureCredentialSortInput>;
-};
-
-/** Input for filtering user on provided fields. */
-export type FindManyFlowSignatureDomainsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureDomainFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many domains on filters, pagination and sorting. */
-export type FindManyFlowSignatureDomainsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureDomainsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureDomainSortInput>;
-};
-
-/** Input for filtering flow signature group on provided fields. */
-export type FindManyFlowSignatureGroupsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureGroupFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow signature group on filters, pagination and sorting. */
-export type FindManyFlowSignatureGroupsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureGroupsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureGroupSortInput>;
-};
-
-/** Input for filtering flow signature log on provided fields. */
-export type FindManyFlowSignatureLogsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureLogFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow signatures on filters, pagination and sorting. */
-export type FindManyFlowSignatureLogsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureLogsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureLogSortInput>;
-};
-
-/** Input for filtering user on provided fields. */
-export type FindManyFlowSignatureMappingsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureMappingFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many mappings on filters, pagination and sorting. */
-export type FindManyFlowSignatureMappingsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureMappingsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureMappingSortInput>;
-};
-
-/** Input for filtering finding many FlowSignatureProviderConfigurationNLWallet. */
-export type FindManyFlowSignatureProviderConfigurationNlWalletsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureProviderConfigurationNlWalletFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for finding many FlowSignatureProviderConfigurationNLWallet. */
-export type FindManyFlowSignatureProviderConfigurationNlWalletsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureProviderConfigurationNlWalletsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureProviderConfigurationNlWalletSortInput>;
-};
-
-/** Input for filtering FlowSignatureProviderConfiguration on provided fields. */
-export type FindManyFlowSignatureProviderConfigurationsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureProviderConfigurationFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many FlowSignatureProviderConfiguration on filters, pagination and sorting. */
-export type FindManyFlowSignatureProviderConfigurationsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureProviderConfigurationsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureProviderConfigurationSortInput>;
-};
-
-/** Input for filtering flow signature provider on provided fields. */
-export type FindManyFlowSignatureProvidersFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureProviderFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow signature providers on filters, pagination and sorting. */
-export type FindManyFlowSignatureProvidersInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignatureProvidersFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureProviderSortInput>;
-};
-
-/** Input for filtering flow signature on provided fields. */
-export type FindManyFlowSignaturesFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: FlowSignatureFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many flow signatures on filters, pagination and sorting. */
-export type FindManyFlowSignaturesInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyFlowSignaturesFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<FlowSignatureSortInput>;
+  sorting?: InputMaybe<IssuerLabelSortInput>;
 };
 
 /** Input for filtering issuer locale on provided fields. */
@@ -7900,10 +10212,46 @@ export type FindManyIssuersFilter = {
 export type FindManyIssuersInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyIssuersFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyIssuersNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<IssuerSortInput>;
+};
+
+/** Input for filtering issuers on nested fields. */
+export type FindManyIssuersNestedFilter = {
+  /** Credentials nested filter */
+  credentials?: InputMaybe<IssuerNestedFilteringCredentialsField>;
+  /** Issuer meta nested filter */
+  issuerMeta?: InputMaybe<IssuerNestedFilteringIssuerMetaField>;
+  /** Scheme nested filter */
+  scheme?: InputMaybe<IssuerNestedFilteringSchemeField>;
+};
+
+/** Input for filtering labels on provided fields. */
+export type FindManyLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: LabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many labels on filters, pagination and sorting. */
+export type FindManyLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<LabelSortInput>;
 };
 
 /** Input for filtering localeConfig on provided fields. */
@@ -7928,6 +10276,30 @@ export type FindManyLocaleConfigsInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<LocaleConfigSortInput>;
+};
+
+/** Input for filtering maintenance on provided fields. */
+export type FindManyMaintenancesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: MaintenanceFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many maintenances on filters, pagination and sorting. */
+export type FindManyMaintenancesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyMaintenancesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<MaintenanceSortInput>;
 };
 
 /** Input for filtering mappingIssuance attribute on provided fields. */
@@ -8266,6 +10638,30 @@ export type FindManyOrganizationAppMetaKiwaInput = {
   sorting?: InputMaybe<OrganizationAppMetaKiwaSortInput>;
 };
 
+/** Input for filtering organization app meta OID4VC on provided fields. */
+export type FindManyOrganizationAppMetaOid4vcFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: OrganizationAppMetaOid4vcFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many organization app meta OID4VC on filters, pagination and sorting. */
+export type FindManyOrganizationAppMetaOid4vcInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyOrganizationAppMetaOid4vcFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<OrganizationAppMetaOid4vcSortInput>;
+};
+
 /** Input for filtering organization app meta yoti on provided fields. */
 export type FindManyOrganizationAppMetaYotiFilter = {
   /** The query connector */
@@ -8356,10 +10752,42 @@ export type FindManyOrganizationAppsFilter = {
 export type FindManyOrganizationAppsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyOrganizationAppsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyOrganizationAppsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<OrganizationAppSortInput>;
+};
+
+/** Input for filtering organization apps on nested fields. */
+export type FindManyOrganizationAppsNestedFilter = {
+  /** App nested filter */
+  app?: InputMaybe<OrganizationAppNestedFilteringAppField>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManyOrganizationBrandLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: OrganizationBrandLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManyOrganizationBrandLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyOrganizationBrandLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<OrganizationBrandLabelSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -8380,10 +10808,18 @@ export type FindManyOrganizationBrandsFilter = {
 export type FindManyOrganizationBrandsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyOrganizationBrandsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyOrganizationBrandsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<OrganizationBrandSortInput>;
+};
+
+/** Input for filtering organization brands on nested fields. */
+export type FindManyOrganizationBrandsNestedFilter = {
+  /** Organization brand labels nested filter */
+  organizationBrandLabels?: InputMaybe<OrganizationBrandNestedFilteringOrganizationBrandLabelField>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -8408,6 +10844,30 @@ export type FindManyOrganizationClientsInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<OrganizationClientSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManyOrganizationDomainLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: OrganizationDomainLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManyOrganizationDomainLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyOrganizationDomainLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<OrganizationDomainLabelSortInput>;
 };
 
 /** Input for filtering OrganizationDomainOAuthProvider on provided fields. */
@@ -8476,10 +10936,18 @@ export type FindManyOrganizationDomainsFilter = {
 export type FindManyOrganizationDomainsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyOrganizationDomainsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyOrganizationDomainsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<OrganizationDomainSortInput>;
+};
+
+/** Input for filtering organization domains on nested fields. */
+export type FindManyOrganizationDomainsNestedFilter = {
+  /** Organization domain labels nested filter */
+  organizationDomainLabels?: InputMaybe<OrganizationDomainNestedFilteringOrganizationDomainLabelField>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -8596,10 +11064,18 @@ export type FindManyOrganizationUsersFilter = {
 export type FindManyOrganizationUsersInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyOrganizationUsersFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyOrganizationUsersNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<OrganizationUserSortInput>;
+};
+
+/** Input for filtering organization users on nested fields. */
+export type FindManyOrganizationUsersNestedFilter = {
+  /** User nested filter. */
+  user?: InputMaybe<OrganizationUserNestedFilteringUserField>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -8746,6 +11222,222 @@ export type FindManyPaymentProvidersInput = {
   sorting?: InputMaybe<PaymentProviderSortInput>;
 };
 
+/** Input for filtering pricing catalogs on provided fields. */
+export type FindManyPricingCatalogsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingCatalogFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing catalogs on filters, pagination and sorting. */
+export type FindManyPricingCatalogsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingCatalogsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingCatalogSortInput>;
+};
+
+/** Input for filtering pricing configuration apps on provided fields. */
+export type FindManyPricingConfigurationAppsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingConfigurationAppFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing configuration apps on filters, pagination and sorting. */
+export type FindManyPricingConfigurationAppsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingConfigurationAppsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingConfigurationAppSortInput>;
+};
+
+/** Input for filtering pricing configuration organizations on provided fields. */
+export type FindManyPricingConfigurationOrganizationsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingConfigurationOrganizationFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing configuration organizations on filters, pagination and sorting. */
+export type FindManyPricingConfigurationOrganizationsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingConfigurationOrganizationsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingConfigurationOrganizationSortInput>;
+};
+
+/** Input for filtering pricing configuration studio plans on provided fields. */
+export type FindManyPricingConfigurationStudioPlansFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingConfigurationStudioPlanFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing configuration studio plans on filters, pagination and sorting. */
+export type FindManyPricingConfigurationStudioPlansInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingConfigurationStudioPlansFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingConfigurationStudioPlanSortInput>;
+};
+
+/** Input for filtering pricing group assignments on provided fields. */
+export type FindManyPricingGroupAssignmentsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingGroupAssignmentFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing group assignments on filters, pagination and sorting. */
+export type FindManyPricingGroupAssignmentsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingGroupAssignmentsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingGroupAssignmentSortInput>;
+};
+
+/** Input for filtering pricing groups on provided fields. */
+export type FindManyPricingGroupsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingGroupFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing groups on filters, pagination and sorting. */
+export type FindManyPricingGroupsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingGroupsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingGroupSortInput>;
+};
+
+/** Input for filtering pricing rule constraints on provided fields. */
+export type FindManyPricingRuleConstraintsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingRuleConstraintFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing rule constraints on filters, pagination and sorting. */
+export type FindManyPricingRuleConstraintsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingRuleConstraintsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingRuleConstraintSortInput>;
+};
+
+/** Input for filtering pricing rule targets on provided fields. */
+export type FindManyPricingRuleTargetsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingRuleTargetFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing rule targets on filters, pagination and sorting. */
+export type FindManyPricingRuleTargetsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingRuleTargetsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingRuleTargetSortInput>;
+};
+
+/** Input for filtering pricing rules on provided fields. */
+export type FindManyPricingRulesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: PricingRuleFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many pricing rules on filters, pagination and sorting. */
+export type FindManyPricingRulesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyPricingRulesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<PricingRuleSortInput>;
+};
+
 /** Filtering input */
 export type FindManyProviderAppMetaFilter = {
   /** The query connector */
@@ -8818,6 +11510,30 @@ export type FindManyProviderAppsInput = {
   sorting?: InputMaybe<ProviderAppSortInput>;
 };
 
+/** Input for filtering identity provider labels */
+export type FindManyProviderLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: ProviderLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many identity provider labels on filters, pagination and sorting. */
+export type FindManyProviderLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyProviderLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<ProviderLabelSortInput>;
+};
+
 /** Input for filtering provider locale on provided fields. */
 export type FindManyProviderLocaleFilter = {
   /** The query connector */
@@ -8878,6 +11594,30 @@ export type FindManyProvidersInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<ProviderSortInput>;
+};
+
+/** Input for filtering identity scheme labels */
+export type FindManySchemeLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SchemeLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many identity scheme labels on filters, pagination and sorting. */
+export type FindManySchemeLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySchemeLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SchemeLabelSortInput>;
 };
 
 /** Input for filtering scheme locale on provided fields. */
@@ -9022,6 +11762,304 @@ export type FindManyScopesInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<ScopeSortInput>;
+};
+
+/** Input for filtering signature activities on provided fields. */
+export type FindManySignatureActivitiesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureActivityFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many signature activities. */
+export type FindManySignatureActivitiesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureActivitiesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureActivitySortInput>;
+};
+
+/** Input for filtering flow signature attribute on provided attributes. */
+export type FindManySignatureAttributesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureAttributeFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow signature attribute on filters, pagination and sorting. */
+export type FindManySignatureAttributesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureAttributesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureAttributeSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManySignatureBrandsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureBrandFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many brands on filters, pagination and sorting. */
+export type FindManySignatureBrandsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureBrandsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureBrandSortInput>;
+};
+
+/** Input for filtering flow signature field on provided fields. */
+export type FindManySignatureCredentialsFilter = {
+  /** The connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureCredentialFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow signature field on filters, pagination and sorting. */
+export type FindManySignatureCredentialsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureCredentialsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureCredentialSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManySignatureDomainsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureDomainFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many domains on filters, pagination and sorting. */
+export type FindManySignatureDomainsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureDomainsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureDomainSortInput>;
+};
+
+/** Input for filtering flow signature group on provided fields. */
+export type FindManySignatureGroupsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureGroupFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow signature group on filters, pagination and sorting. */
+export type FindManySignatureGroupsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureGroupsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureGroupSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManySignatureLabelsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureLabelFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many Labels on filters, pagination and sorting. */
+export type FindManySignatureLabelsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureLabelsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureLabelSortInput>;
+};
+
+/** Input for filtering user on provided fields. */
+export type FindManySignatureMappingsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureMappingFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many mappings on filters, pagination and sorting. */
+export type FindManySignatureMappingsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureMappingsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureMappingSortInput>;
+};
+
+/** Input for filtering finding many SignatureProviderConfigurationNLWallet. */
+export type FindManySignatureProviderConfigurationNlWalletsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureProviderConfigurationNlWalletFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for finding many SignatureProviderConfigurationNLWallet. */
+export type FindManySignatureProviderConfigurationNlWalletsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureProviderConfigurationNlWalletsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureProviderConfigurationNlWalletSortInput>;
+};
+
+/** Input for filtering SignatureProviderConfiguration on provided fields. */
+export type FindManySignatureProviderConfigurationsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureProviderConfigurationFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many SignatureProviderConfiguration on filters, pagination and sorting. */
+export type FindManySignatureProviderConfigurationsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureProviderConfigurationsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureProviderConfigurationSortInput>;
+};
+
+/** Input for filtering flow signature provider on provided fields. */
+export type FindManySignatureProvidersFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureProviderFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow signature providers on filters, pagination and sorting. */
+export type FindManySignatureProvidersInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignatureProvidersFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureProviderSortInput>;
+};
+
+/** Input for filtering flow signature on provided fields. */
+export type FindManySignaturesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: SignatureFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many flow signatures on filters, pagination and sorting. */
+export type FindManySignaturesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManySignaturesFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManySignaturesNestedFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<SignatureSortInput>;
+};
+
+/** Input for filtering flow signatures on nested fields. */
+export type FindManySignaturesNestedFilter = {
+  /** Flow signature brands nested filter */
+  signatureBrands?: InputMaybe<SignatureNestedFilteringSignatureBrandField>;
+  /** Flow signature labels nested filter */
+  signatureLabels?: InputMaybe<SignatureNestedFilteringSignatureLabelField>;
 };
 
 /** Input for filtering StudioPlanControlOverride on provided fields. */
@@ -9202,2498 +12240,6 @@ export type FindOAuthMethodsByOrganizationDomainInput = {
   redirectUri: Scalars['URL']['input'];
 };
 
-/** Flow authentication definition. */
-export type FlowAuthentication = Model & {
-  __typename?: 'FlowAuthentication';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The associated brands with this authentication */
-  flowAuthenticationBrands: FlowAuthenticationBrandConnection;
-  /** The associated domains with this authentication */
-  flowAuthenticationDomains: FlowAuthenticationDomainConnection;
-  /** A list of flow providers belonging to this flow authentication. */
-  flowAuthenticationProviders: FlowAuthenticationProviderConnection;
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['output'];
-  /** The organization the flow belongs to. */
-  organization: Organization;
-  /** The state of the flow. */
-  state: FlowAuthenticationState;
-  /** Shortcut to active studio controls associated to this object */
-  studioControlCompacts: Array<StudioControlCompact>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow authentication definition. */
-export type FlowAuthenticationFlowAuthenticationBrandsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationBrandsInput>;
-};
-
-
-/** Flow authentication definition. */
-export type FlowAuthenticationFlowAuthenticationDomainsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationDomainsInput>;
-};
-
-
-/** Flow authentication definition. */
-export type FlowAuthenticationFlowAuthenticationProvidersArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationProvidersInput>;
-};
-
-/** FlowAuthenticationAction */
-export enum FlowAuthenticationAction {
-  Activate = 'ACTIVATE',
-  Deactivate = 'DEACTIVATE'
-}
-
-/** Organization brand definition. */
-export type FlowAuthenticationBrand = Model & {
-  __typename?: 'FlowAuthenticationBrand';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow authentication  */
-  flowAuthentication: FlowAuthentication;
-  /** Is default branding */
-  isDefault: Scalars['Boolean']['output'];
-  /** The user organization brand */
-  organizationBrand: OrganizationBrand;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowAuthenticationBrandConnection = {
-  __typename?: 'FlowAuthenticationBrandConnection';
-  edges: Array<FlowAuthenticationBrandEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowAuthenticationBrandEdge = {
-  __typename?: 'FlowAuthenticationBrandEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationBrand;
-};
-
-/** Fields which can be used to filter brands on. Value must be camel case. */
-export enum FlowAuthenticationBrandFilteringField {
-  FlowAuthenticationUuid = 'flowAuthenticationUuid',
-  OrganizationBrandUuid = 'organizationBrandUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort brands on. Value must be camel case. */
-export enum FlowAuthenticationBrandSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting brands. */
-export type FlowAuthenticationBrandSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationBrandSortEnum;
-};
-
-/** The flow authentication connection definition. */
-export type FlowAuthenticationConnection = {
-  __typename?: 'FlowAuthenticationConnection';
-  edges: Array<Maybe<FlowAuthenticationEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** Organization domain definition. */
-export type FlowAuthenticationDomain = Model & {
-  __typename?: 'FlowAuthenticationDomain';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow authentication  */
-  flowAuthentication: FlowAuthentication;
-  /** The user organization domain */
-  organizationDomain: OrganizationDomain;
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowAuthenticationDomainConnection = {
-  __typename?: 'FlowAuthenticationDomainConnection';
-  edges: Array<FlowAuthenticationDomainEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowAuthenticationDomainEdge = {
-  __typename?: 'FlowAuthenticationDomainEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationDomain;
-};
-
-/** Fields which can be used to filter domains on. Value must be camel case. */
-export enum FlowAuthenticationDomainFilteringField {
-  FlowAuthenticationUuid = 'flowAuthenticationUuid',
-  OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort domains on. Value must be camel case. */
-export enum FlowAuthenticationDomainSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting domains. */
-export type FlowAuthenticationDomainSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationDomainSortEnum;
-};
-
-/** The flow authentication edge definition. */
-export type FlowAuthenticationEdge = {
-  __typename?: 'FlowAuthenticationEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthentication;
-};
-
-/** Fields which can be used to filter flow authentications on. Value must be camel case. */
-export enum FlowAuthenticationFilteringField {
-  Name = 'name',
-  OrganizationUuid = 'organizationUuid',
-  State = 'state',
-  Uuid = 'uuid'
-}
-
-/** Flow authentication log definition. */
-export type FlowAuthenticationLog = Model & {
-  __typename?: 'FlowAuthenticationLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow authentication */
-  flowAuthentication: FlowAuthentication;
-  /** The flow authentication UUID */
-  flowAuthenticationUuid: Scalars['UUID']['output'];
-  /** The log urn */
-  logURN: Scalars['URN']['output'];
-  /** The meta of the log */
-  meta: Scalars['JSONObject']['output'];
-  /** The request UUID */
-  requestUuid: Scalars['UUID']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow authentication log connection definition. */
-export type FlowAuthenticationLogConnection = {
-  __typename?: 'FlowAuthenticationLogConnection';
-  edges: Array<Maybe<FlowAuthenticationLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow authentication log edge definition. */
-export type FlowAuthenticationLogEdge = {
-  __typename?: 'FlowAuthenticationLogEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationLog;
-};
-
-/** Fields which can be used to filter flow authentications log on. Value must be camel case. */
-export enum FlowAuthenticationLogFilteringField {
-  CreatedAt = 'createdAt',
-  FlowAuthenticationUuid = 'flowAuthenticationUuid',
-  LogUrn = 'logURN',
-  OrganizationUuid = 'organizationUuid',
-  RequestUuid = 'requestUuid'
-}
-
-/** Fields which can be used to sort flow authentications log on. Value must be camel case. */
-export enum FlowAuthenticationLogSortEnum {
-  CreatedAt = 'createdAt',
-  LogUrn = 'logURN'
-}
-
-/** Input options for sorting flow authentications log. */
-export type FlowAuthenticationLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationLogSortEnum;
-};
-
-/** Flow authentication provider definition. */
-export type FlowAuthenticationProvider = Model & {
-  __typename?: 'FlowAuthenticationProvider';
-  /** The flow authentication provider configuration. */
-  configuration?: Maybe<FlowAuthenticationProviderConfiguration>;
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow authentication the flow provider belongs to. */
-  flowAuthentication: FlowAuthentication;
-  /** A list of flow queries belonging to this flow provider. */
-  flowAuthenticationScopes: FlowAuthenticationScopeConnection;
-  /** The provider app the providerAppUuid belongs to. */
-  providerApp: ProviderApp;
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['output'];
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow authentication provider definition. */
-export type FlowAuthenticationProviderFlowAuthenticationScopesArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationScopesInput>;
-};
-
-/** Flow authentication provider configuration definition */
-export type FlowAuthenticationProviderConfiguration = Model & {
-  __typename?: 'FlowAuthenticationProviderConfiguration';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowAuthenticationProvider this configuration belongs to */
-  flowAuthenticationProvider: FlowAuthenticationProvider;
-  /** The NL Wallet flow authentication provider configuration */
-  nlWallet?: Maybe<FlowAuthenticationProviderConfigurationNlWallet>;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowAuthenticationProviderConfiguration connection definition. */
-export type FlowAuthenticationProviderConfigurationConnection = {
-  __typename?: 'FlowAuthenticationProviderConfigurationConnection';
-  edges: Array<Maybe<FlowAuthenticationProviderConfigurationEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowAuthenticationProviderConfiguration edge definition. */
-export type FlowAuthenticationProviderConfigurationEdge = {
-  __typename?: 'FlowAuthenticationProviderConfigurationEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationProviderConfiguration;
-};
-
-/** Fields which can be used to filter FlowAuthenticationProviderConfiguration on. Value must be camel case. */
-export enum FlowAuthenticationProviderConfigurationFilteringField {
-  FlowAuthenticationProviderUuid = 'flowAuthenticationProviderUuid'
-}
-
-/** FlowAuthenticationProviderConfigurationNLWallet definition */
-export type FlowAuthenticationProviderConfigurationNlWallet = Model & {
-  __typename?: 'FlowAuthenticationProviderConfigurationNLWallet';
-  /** The creation timestamp */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowAuthenticationProviderConfiguration this object belongs to. */
-  flowAuthenticationProviderConfiguration: FlowAuthenticationProviderConfiguration;
-  /** The timestamp of when the type has been last updated */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The usecase */
-  usecase: Scalars['String']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowAuthenticationProviderConfigurationNLWallet connection definition. */
-export type FlowAuthenticationProviderConfigurationNlWalletConnection = {
-  __typename?: 'FlowAuthenticationProviderConfigurationNLWalletConnection';
-  edges: Array<Maybe<FlowAuthenticationProviderConfigurationNlWalletEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowAuthenticationProviderConfigurationNLWallet edge definition. */
-export type FlowAuthenticationProviderConfigurationNlWalletEdge = {
-  __typename?: 'FlowAuthenticationProviderConfigurationNLWalletEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationProviderConfigurationNlWallet;
-};
-
-/** Fields which can be used to filter FlowAuthenticationProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowAuthenticationProviderConfigurationNlWalletFilteringField {
-  FlowAuthenticationProviderConfigurationUuid = 'flowAuthenticationProviderConfigurationUuid',
-  Intent = 'intent'
-}
-
-/** Fields which can be used to sort FlowAuthenticationProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowAuthenticationProviderConfigurationNlWalletSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowAuthenticationProviderConfigurationNLWallet. */
-export type FlowAuthenticationProviderConfigurationNlWalletSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationProviderConfigurationNlWalletSortEnum;
-};
-
-/** Fields which can be used to sort FlowAuthenticationProviderConfiguration on. Value must be camel case. */
-export enum FlowAuthenticationProviderConfigurationSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowAuthenticationProviderConfiguration. */
-export type FlowAuthenticationProviderConfigurationSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationProviderConfigurationSortEnum;
-};
-
-/** The flow authentication provider connection definition. */
-export type FlowAuthenticationProviderConnection = {
-  __typename?: 'FlowAuthenticationProviderConnection';
-  edges: Array<FlowAuthenticationProviderEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow authentication provider edge definition. */
-export type FlowAuthenticationProviderEdge = {
-  __typename?: 'FlowAuthenticationProviderEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationProvider;
-};
-
-/** Fields which can be used to filter flow authentication providers on. Value must be camel case. */
-export enum FlowAuthenticationProviderFilteringField {
-  FlowAuthenticationUuid = 'flowAuthenticationUuid',
-  ProviderAppUuid = 'providerAppUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow authentication providers on. Value must be camel case. */
-export enum FlowAuthenticationProviderSortEnum {
-  CreatedAt = 'createdAt',
-  ProviderAppUuid = 'providerAppUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow authentication providers. */
-export type FlowAuthenticationProviderSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationProviderSortEnum;
-};
-
-/** Flow authentication scope definition. */
-export type FlowAuthenticationScope = Model & {
-  __typename?: 'FlowAuthenticationScope';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow authentication the flow scope belongs to. */
-  flowAuthenticationProvider: FlowAuthenticationProvider;
-  /** The scope the scopeUuid belongs to. */
-  scope: Scope;
-  /** The name */
-  scopeUuid: Scalars['UUID']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow authentication scope connection definition. */
-export type FlowAuthenticationScopeConnection = {
-  __typename?: 'FlowAuthenticationScopeConnection';
-  edges: Array<FlowAuthenticationScopeEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow authentication scope edge definition. */
-export type FlowAuthenticationScopeEdge = {
-  __typename?: 'FlowAuthenticationScopeEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowAuthenticationScope;
-};
-
-/** Fields which can be used to filter flow authentication scope on. Value must be camel case. */
-export enum FlowAuthenticationScopeFilteringField {
-  FlowAuthenticationProviderUuid = 'flowAuthenticationProviderUuid',
-  ScopeUuid = 'scopeUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow authentication scope on. Value must be camel case. */
-export enum FlowAuthenticationScopeSortEnum {
-  CreatedAt = 'createdAt',
-  ScopeUuid = 'scopeUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow authentication scope. */
-export type FlowAuthenticationScopeSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationScopeSortEnum;
-};
-
-/** Fields which can be used to sort flow authentications on. Value must be camel case. */
-export enum FlowAuthenticationSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  State = 'state',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow authentications. */
-export type FlowAuthenticationSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowAuthenticationSortEnum;
-};
-
-/** FlowAuthenticationState */
-export enum FlowAuthenticationState {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
-}
-
-/** Flow disclosure definition. */
-export type FlowDisclosure = Model & {
-  __typename?: 'FlowDisclosure';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The associated brand with this disclosure */
-  flowDisclosureBrands: FlowDisclosureBrandConnection;
-  /** The associated domains with this disclosure */
-  flowDisclosureDomains: FlowDisclosureDomainConnection;
-  /** The associated mappings with this disclosure */
-  flowDisclosureMappings: FlowDisclosureMappingConnection;
-  /** A list of flow providers belonging to this flow disclosure. */
-  flowDisclosureProviders: FlowDisclosureProviderConnection;
-  /** The JWT media type */
-  jwtMediaType: Scalars['JwtMediaType']['output'];
-  /** The meta of the flow. */
-  meta: Scalars['JSONObject']['output'];
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['output'];
-  /** The organization the flow belongs to. */
-  organization: Organization;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
-  /** The state of the flow. */
-  state: FlowDisclosureState;
-  /** Shortcut to active studio controls associated to this object */
-  studioControlCompacts: Array<StudioControlCompact>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow disclosure definition. */
-export type FlowDisclosureFlowDisclosureBrandsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureBrandsInput>;
-};
-
-
-/** Flow disclosure definition. */
-export type FlowDisclosureFlowDisclosureDomainsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureDomainsInput>;
-};
-
-
-/** Flow disclosure definition. */
-export type FlowDisclosureFlowDisclosureMappingsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureMappingsInput>;
-};
-
-
-/** Flow disclosure definition. */
-export type FlowDisclosureFlowDisclosureProvidersArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureProvidersInput>;
-};
-
-/** FlowDisclosureAction */
-export enum FlowDisclosureAction {
-  Activate = 'ACTIVATE',
-  Deactivate = 'DEACTIVATE'
-}
-
-/** Flow disclosure attribute definition. */
-export type FlowDisclosureAttribute = Model & {
-  __typename?: 'FlowDisclosureAttribute';
-  /** The attribute the attributeUuid belongs to. */
-  attribute: Attribute;
-  /** The uuid of the flow attribute. */
-  attributeUuid: Scalars['UUID']['output'];
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure the flow query belongs to. */
-  flowDisclosureCredential: FlowDisclosureCredential;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow disclosure attribute connection definition. */
-export type FlowDisclosureAttributeConnection = {
-  __typename?: 'FlowDisclosureAttributeConnection';
-  edges: Array<FlowDisclosureAttributeEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow disclosure attribute edge definition. */
-export type FlowDisclosureAttributeEdge = {
-  __typename?: 'FlowDisclosureAttributeEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureAttribute;
-};
-
-/** Fields which can be used to filter flow disclosure attribute on. Value must be camel case. */
-export enum FlowDisclosureAttributeFilteringField {
-  AttributeUuid = 'attributeUuid',
-  FlowDisclosureCredentialUuid = 'flowDisclosureCredentialUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow disclosure attribute on. Value must be camel case. */
-export enum FlowDisclosureAttributeSortEnum {
-  AttributeUuid = 'attributeUuid',
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow disclosure attribute. */
-export type FlowDisclosureAttributeSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureAttributeSortEnum;
-};
-
-/** Organization brand definition. */
-export type FlowDisclosureBrand = Model & {
-  __typename?: 'FlowDisclosureBrand';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure  */
-  flowDisclosure: FlowDisclosure;
-  /** Is default brand */
-  isDefault: Scalars['Boolean']['output'];
-  /** The user organization brand */
-  organizationBrand: OrganizationBrand;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowDisclosureBrandConnection = {
-  __typename?: 'FlowDisclosureBrandConnection';
-  edges: Array<FlowDisclosureBrandEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowDisclosureBrandEdge = {
-  __typename?: 'FlowDisclosureBrandEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureBrand;
-};
-
-/** Fields which can be used to filter brands on. Value must be camel case. */
-export enum FlowDisclosureBrandFilteringField {
-  FlowDisclosureUuid = 'flowDisclosureUuid',
-  OrganizationBrandUuid = 'organizationBrandUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort brands on. Value must be camel case. */
-export enum FlowDisclosureBrandSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting brands. */
-export type FlowDisclosureBrandSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureBrandSortEnum;
-};
-
-/** The flow disclosure connection definition. */
-export type FlowDisclosureConnection = {
-  __typename?: 'FlowDisclosureConnection';
-  edges: Array<Maybe<FlowDisclosureEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** Flow disclosure credential definition. */
-export type FlowDisclosureCredential = Model & {
-  __typename?: 'FlowDisclosureCredential';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
-  credentialUuid: Scalars['UUID']['output'];
-  /** The associated fields with this credential */
-  flowDisclosureAttributes: FlowDisclosureAttributeConnection;
-  /** The flow disclosure group the flow disclosure credential belongs to. */
-  flowDisclosureGroup: FlowDisclosureGroup;
-  /** The issuer the issuerUuid belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
-  /** The scheme the schemeUuid belongs to. */
-  scheme: Scheme;
-  /** The uuid of the scheme. */
-  schemeUuid: Scalars['UUID']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow disclosure credential definition. */
-export type FlowDisclosureCredentialFlowDisclosureAttributesArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureAttributesInput>;
-};
-
-/** The flow disclosure field connection definition. */
-export type FlowDisclosureCredentialConnection = {
-  __typename?: 'FlowDisclosureCredentialConnection';
-  edges: Array<FlowDisclosureCredentialEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow disclosure field edge definition. */
-export type FlowDisclosureCredentialEdge = {
-  __typename?: 'FlowDisclosureCredentialEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureCredential;
-};
-
-/** Fields which can be used to filter flow disclosure field on. Value must be camel case. */
-export enum FlowDisclosureCredentialFilteringField {
-  CredentialUuid = 'credentialUuid',
-  FlowDisclosureGroupUuid = 'flowDisclosureGroupUuid',
-  IssuerUuid = 'issuerUuid',
-  SchemeUuid = 'schemeUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow disclosure field on. Value must be camel case. */
-export enum FlowDisclosureCredentialSortEnum {
-  CreatedAt = 'createdAt',
-  CredentialUuid = 'credentialUuid',
-  IssuerUuid = 'issuerUuid',
-  SchemeUuid = 'schemeUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow disclosure field. */
-export type FlowDisclosureCredentialSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureCredentialSortEnum;
-};
-
-/** Organization domain definition. */
-export type FlowDisclosureDomain = Model & {
-  __typename?: 'FlowDisclosureDomain';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure  */
-  flowDisclosure: FlowDisclosure;
-  /** The user organization domain */
-  organizationDomain: OrganizationDomain;
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowDisclosureDomainConnection = {
-  __typename?: 'FlowDisclosureDomainConnection';
-  edges: Array<FlowDisclosureDomainEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowDisclosureDomainEdge = {
-  __typename?: 'FlowDisclosureDomainEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureDomain;
-};
-
-/** Fields which can be used to filter domains on. Value must be camel case. */
-export enum FlowDisclosureDomainFilteringField {
-  FlowDisclosureUuid = 'flowDisclosureUuid',
-  OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort domains on. Value must be camel case. */
-export enum FlowDisclosureDomainSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting domains. */
-export type FlowDisclosureDomainSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureDomainSortEnum;
-};
-
-/** The flow disclosure edge definition. */
-export type FlowDisclosureEdge = {
-  __typename?: 'FlowDisclosureEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosure;
-};
-
-/** Fields which can be used to filter flow disclosures on. Value must be camel case. */
-export enum FlowDisclosureFilteringField {
-  Name = 'name',
-  OrganizationUuid = 'organizationUuid',
-  State = 'state',
-  Uuid = 'uuid'
-}
-
-/** Flow disclosure group definition. */
-export type FlowDisclosureGroup = Model & {
-  __typename?: 'FlowDisclosureGroup';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** A list of flow queries belonging to this flow group. */
-  flowDisclosureCredentials: FlowDisclosureCredentialConnection;
-  /** The flow disclosure the flow group belongs to. */
-  flowDisclosureProvider: FlowDisclosureProvider;
-  /** The name */
-  name?: Maybe<Scalars['NonEmpty']['output']>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow disclosure group definition. */
-export type FlowDisclosureGroupFlowDisclosureCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureCredentialsInput>;
-};
-
-/** The flow disclosure group connection definition. */
-export type FlowDisclosureGroupConnection = {
-  __typename?: 'FlowDisclosureGroupConnection';
-  edges: Array<FlowDisclosureGroupEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow disclosure group edge definition. */
-export type FlowDisclosureGroupEdge = {
-  __typename?: 'FlowDisclosureGroupEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureGroup;
-};
-
-/** Fields which can be used to filter flow disclosure group on. Value must be camel case. */
-export enum FlowDisclosureGroupFilteringField {
-  FlowDisclosureProviderUuid = 'flowDisclosureProviderUuid',
-  Name = 'name',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow disclosure group on. Value must be camel case. */
-export enum FlowDisclosureGroupSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow disclosure group. */
-export type FlowDisclosureGroupSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureGroupSortEnum;
-};
-
-/** Flow disclosure log definition. */
-export type FlowDisclosureLog = Model & {
-  __typename?: 'FlowDisclosureLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure */
-  flowDisclosure: FlowDisclosure;
-  /** The flow disclosure UUID */
-  flowDisclosureUuid: Scalars['UUID']['output'];
-  /** The log urn */
-  logURN: Scalars['URN']['output'];
-  /** The meta of the log */
-  meta: Scalars['JSONObject']['output'];
-  /** The request UUID */
-  requestUuid: Scalars['UUID']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow disclosure log connection definition. */
-export type FlowDisclosureLogConnection = {
-  __typename?: 'FlowDisclosureLogConnection';
-  edges: Array<Maybe<FlowDisclosureLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow disclosure log edge definition. */
-export type FlowDisclosureLogEdge = {
-  __typename?: 'FlowDisclosureLogEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureLog;
-};
-
-/** Fields which can be used to filter flow disclosures log on. Value must be camel case. */
-export enum FlowDisclosureLogFilteringField {
-  CreatedAt = 'createdAt',
-  FlowDisclosureUuid = 'flowDisclosureUuid',
-  LogUrn = 'logURN',
-  OrganizationUuid = 'organizationUuid',
-  RequestUuid = 'requestUuid'
-}
-
-/** Fields which can be used to sort flow disclosures log on. Value must be camel case. */
-export enum FlowDisclosureLogSortEnum {
-  CreatedAt = 'createdAt',
-  LogUrn = 'logURN'
-}
-
-/** Input options for sorting flow disclosures log. */
-export type FlowDisclosureLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureLogSortEnum;
-};
-
-/** Organization mapping definition. */
-export type FlowDisclosureMapping = Model & {
-  __typename?: 'FlowDisclosureMapping';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure  */
-  flowDisclosure: FlowDisclosure;
-  /** The user verification mapping */
-  mappingVerification: MappingVerification;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowDisclosureMappingConnection = {
-  __typename?: 'FlowDisclosureMappingConnection';
-  edges: Array<FlowDisclosureMappingEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowDisclosureMappingEdge = {
-  __typename?: 'FlowDisclosureMappingEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureMapping;
-};
-
-/** Fields which can be used to filter mappings on. Value must be camel case. */
-export enum FlowDisclosureMappingFilteringField {
-  FlowDisclosureUuid = 'flowDisclosureUuid',
-  MappingVerificationUuid = 'mappingVerificationUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort mappings on. Value must be camel case. */
-export enum FlowDisclosureMappingSortEnum {
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting mappings. */
-export type FlowDisclosureMappingSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureMappingSortEnum;
-};
-
-/** Flow disclosure provider definition. */
-export type FlowDisclosureProvider = Model & {
-  __typename?: 'FlowDisclosureProvider';
-  /** The flow disclosure provider configuration. */
-  configuration?: Maybe<FlowDisclosureProviderConfiguration>;
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow disclosure the flow provider belongs to. */
-  flowDisclosure: FlowDisclosure;
-  /** A list of flow queries belonging to this flow provider. */
-  flowDisclosureGroups: FlowDisclosureGroupConnection;
-  /** The provider the providerAppUuid belongs to. */
-  providerApp: ProviderApp;
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['output'];
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow disclosure provider definition. */
-export type FlowDisclosureProviderFlowDisclosureGroupsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureGroupsInput>;
-};
-
-/** Flow disclosure provider configuration definition */
-export type FlowDisclosureProviderConfiguration = Model & {
-  __typename?: 'FlowDisclosureProviderConfiguration';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowDisclosureProvider this configuration belongs to */
-  flowDisclosureProvider: FlowDisclosureProvider;
-  /** The NL Wallet flow disclosure provider configuration */
-  nlWallet?: Maybe<FlowDisclosureProviderConfigurationNlWallet>;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowDisclosureProviderConfiguration connection definition. */
-export type FlowDisclosureProviderConfigurationConnection = {
-  __typename?: 'FlowDisclosureProviderConfigurationConnection';
-  edges: Array<Maybe<FlowDisclosureProviderConfigurationEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowDisclosureProviderConfiguration edge definition. */
-export type FlowDisclosureProviderConfigurationEdge = {
-  __typename?: 'FlowDisclosureProviderConfigurationEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureProviderConfiguration;
-};
-
-/** Fields which can be used to filter FlowDisclosureProviderConfiguration on. Value must be camel case. */
-export enum FlowDisclosureProviderConfigurationFilteringField {
-  FlowDisclosureProviderUuid = 'flowDisclosureProviderUuid'
-}
-
-/** FlowDisclosureProviderConfigurationNLWallet definition */
-export type FlowDisclosureProviderConfigurationNlWallet = Model & {
-  __typename?: 'FlowDisclosureProviderConfigurationNLWallet';
-  /** The creation timestamp */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowDisclosureProviderConfiguration this object belongs to. */
-  flowDisclosureProviderConfiguration: FlowDisclosureProviderConfiguration;
-  /** The timestamp of when the type has been last updated */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The usecase */
-  usecase: Scalars['String']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowDisclosureProviderConfigurationNLWallet connection definition. */
-export type FlowDisclosureProviderConfigurationNlWalletConnection = {
-  __typename?: 'FlowDisclosureProviderConfigurationNLWalletConnection';
-  edges: Array<Maybe<FlowDisclosureProviderConfigurationNlWalletEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowDisclosureProviderConfigurationNLWallet edge definition. */
-export type FlowDisclosureProviderConfigurationNlWalletEdge = {
-  __typename?: 'FlowDisclosureProviderConfigurationNLWalletEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureProviderConfigurationNlWallet;
-};
-
-/** Fields which can be used to filter FlowDisclosureProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowDisclosureProviderConfigurationNlWalletFilteringField {
-  FlowDisclosureProviderConfigurationUuid = 'flowDisclosureProviderConfigurationUuid',
-  Intent = 'intent'
-}
-
-/** Fields which can be used to sort FlowDisclosureProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowDisclosureProviderConfigurationNlWalletSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowDisclosureProviderConfigurationNLWallet. */
-export type FlowDisclosureProviderConfigurationNlWalletSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureProviderConfigurationNlWalletSortEnum;
-};
-
-/** Fields which can be used to sort FlowDisclosureProviderConfiguration on. Value must be camel case. */
-export enum FlowDisclosureProviderConfigurationSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowDisclosureProviderConfiguration. */
-export type FlowDisclosureProviderConfigurationSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureProviderConfigurationSortEnum;
-};
-
-/** The flow disclosure provider connection definition. */
-export type FlowDisclosureProviderConnection = {
-  __typename?: 'FlowDisclosureProviderConnection';
-  edges: Array<FlowDisclosureProviderEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow disclosure provider edge definition. */
-export type FlowDisclosureProviderEdge = {
-  __typename?: 'FlowDisclosureProviderEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowDisclosureProvider;
-};
-
-/** Fields which can be used to filter flow disclosure providers on. Value must be camel case. */
-export enum FlowDisclosureProviderFilteringField {
-  FlowDisclosureUuid = 'flowDisclosureUuid',
-  ProviderAppUuid = 'providerAppUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow disclosure providers on. Value must be camel case. */
-export enum FlowDisclosureProviderSortEnum {
-  CreatedAt = 'createdAt',
-  ProviderAppUuid = 'providerAppUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow disclosure providers. */
-export type FlowDisclosureProviderSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureProviderSortEnum;
-};
-
-/** Fields which can be used to sort flow disclosures on. Value must be camel case. */
-export enum FlowDisclosureSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  State = 'state',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow disclosures. */
-export type FlowDisclosureSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowDisclosureSortEnum;
-};
-
-/** FlowDisclosureState */
-export enum FlowDisclosureState {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
-}
-
-/** Flow issuance definition. */
-export type FlowIssuance = Model & {
-  __typename?: 'FlowIssuance';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The associated brands with this issuance */
-  flowIssuanceBrands: FlowIssuanceBrandConnection;
-  /** The associated domains with this issuance */
-  flowIssuanceDomains: FlowIssuanceDomainConnection;
-  /** The associated mappings with this issuance */
-  flowIssuanceMappings: FlowIssuanceMappingConnection;
-  /** A list of flow providers belonging to this flow issuance. */
-  flowIssuanceProviders: FlowIssuanceProviderConnection;
-  /** The JWT media type */
-  jwtMediaType: Scalars['JwtMediaType']['output'];
-  /** The meta of the flow. */
-  meta: Scalars['JSONObject']['output'];
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['output'];
-  /** The organization the flow belongs to. */
-  organization: Organization;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
-  /** The state of the flow. */
-  state: FlowIssuanceState;
-  /** Shortcut to active studio controls associated to this object */
-  studioControlCompacts: Array<StudioControlCompact>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow issuance definition. */
-export type FlowIssuanceFlowIssuanceBrandsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceBrandsInput>;
-};
-
-
-/** Flow issuance definition. */
-export type FlowIssuanceFlowIssuanceDomainsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceDomainsInput>;
-};
-
-
-/** Flow issuance definition. */
-export type FlowIssuanceFlowIssuanceMappingsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceMappingsInput>;
-};
-
-
-/** Flow issuance definition. */
-export type FlowIssuanceFlowIssuanceProvidersArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceProvidersInput>;
-};
-
-/** FlowIssuanceAction */
-export enum FlowIssuanceAction {
-  Activate = 'ACTIVATE',
-  Deactivate = 'DEACTIVATE'
-}
-
-/** Flow issuance attribute definition. */
-export type FlowIssuanceAttribute = Model & {
-  __typename?: 'FlowIssuanceAttribute';
-  /** The attribute the attributeURN belongs to. */
-  attribute: Attribute;
-  /** The uuid of the flow attribute. */
-  attributeUuid: Scalars['UUID']['output'];
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance the flow query belongs to. */
-  flowIssuanceCredential: FlowIssuanceCredential;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow issuance attribute connection definition. */
-export type FlowIssuanceAttributeConnection = {
-  __typename?: 'FlowIssuanceAttributeConnection';
-  edges: Array<FlowIssuanceAttributeEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow issuance attribute edge definition. */
-export type FlowIssuanceAttributeEdge = {
-  __typename?: 'FlowIssuanceAttributeEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceAttribute;
-};
-
-/** Fields which can be used to filter flow issuance attribute on. Value must be camel case. */
-export enum FlowIssuanceAttributeFilteringField {
-  AttributeUrn = 'attributeURN',
-  FlowIssuanceCredentialUuid = 'flowIssuanceCredentialUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow issuance attribute on. Value must be camel case. */
-export enum FlowIssuanceAttributeSortEnum {
-  AttributeUrn = 'attributeURN',
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow issuance attribute. */
-export type FlowIssuanceAttributeSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceAttributeSortEnum;
-};
-
-/** Organization brand definition. */
-export type FlowIssuanceBrand = Model & {
-  __typename?: 'FlowIssuanceBrand';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance  */
-  flowIssuance: FlowIssuance;
-  /** Is default branding */
-  isDefault: Scalars['Boolean']['output'];
-  /** The user organization brand */
-  organizationBrand: OrganizationBrand;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowIssuanceBrandConnection = {
-  __typename?: 'FlowIssuanceBrandConnection';
-  edges: Array<FlowIssuanceBrandEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowIssuanceBrandEdge = {
-  __typename?: 'FlowIssuanceBrandEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceBrand;
-};
-
-/** Fields which can be used to filter brands on. Value must be camel case. */
-export enum FlowIssuanceBrandFilteringField {
-  FlowIssuanceUuid = 'flowIssuanceUuid',
-  OrganizationBrandUuid = 'organizationBrandUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort brands on. Value must be camel case. */
-export enum FlowIssuanceBrandSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting brands. */
-export type FlowIssuanceBrandSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceBrandSortEnum;
-};
-
-/** The flow issuance connection definition. */
-export type FlowIssuanceConnection = {
-  __typename?: 'FlowIssuanceConnection';
-  edges: Array<Maybe<FlowIssuanceEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** Flow issuance credential definition. */
-export type FlowIssuanceCredential = Model & {
-  __typename?: 'FlowIssuanceCredential';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialURN belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
-  credentialUuid: Scalars['UUID']['output'];
-  /** The associated fields with this credential */
-  flowIssuanceAttributes: FlowIssuanceAttributeConnection;
-  /** The flow issuance the flow provider belongs to. */
-  flowIssuanceProvider: FlowIssuanceProvider;
-  /** The issuer the issuerURN belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
-  /** The meta */
-  meta?: Maybe<FlowIssuanceCredentialMeta>;
-  /** The meta type of the credential */
-  metaType: FlowIssuanceCredentialMetaType;
-  /** The scheme the schemeURN belongs to. */
-  scheme: Scheme;
-  /** The uuid of the scheme. */
-  schemeUuid: Scalars['UUID']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow issuance credential definition. */
-export type FlowIssuanceCredentialFlowIssuanceAttributesArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceAttributesInput>;
-};
-
-/** The flow issuance field connection definition. */
-export type FlowIssuanceCredentialConnection = {
-  __typename?: 'FlowIssuanceCredentialConnection';
-  edges: Array<FlowIssuanceCredentialEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow issuance field edge definition. */
-export type FlowIssuanceCredentialEdge = {
-  __typename?: 'FlowIssuanceCredentialEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceCredential;
-};
-
-/** Fields which can be used to filter flow issuance field on. Value must be camel case. */
-export enum FlowIssuanceCredentialFilteringField {
-  CredentialUrn = 'credentialURN',
-  FlowIssuanceProviderUuid = 'flowIssuanceProviderUuid',
-  IssuerUrn = 'issuerURN',
-  MetaType = 'metaType',
-  SchemeUrn = 'schemeURN',
-  Uuid = 'uuid'
-}
-
-/** Flow issuance credential meta definition. */
-export type FlowIssuanceCredentialMeta = Model & {
-  __typename?: 'FlowIssuanceCredentialMeta';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The datakeeper credential meta */
-  datakeeper?: Maybe<FlowIssuanceCredentialMetaDatakeeper>;
-  /** The flow issuance credential the meta belongs to. */
-  flowIssuanceCredential: FlowIssuanceCredential;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-  /** The yivi credential meta */
-  yivi?: Maybe<FlowIssuanceCredentialMetaYivi>;
-};
-
-/** The flow issuance credential meta connection definition. */
-export type FlowIssuanceCredentialMetaConnection = {
-  __typename?: 'FlowIssuanceCredentialMetaConnection';
-  edges: Array<Maybe<FlowIssuanceCredentialMetaEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** Flow issuance credential meta datakapeer definition. */
-export type FlowIssuanceCredentialMetaDatakeeper = Model & {
-  __typename?: 'FlowIssuanceCredentialMetaDatakeeper';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The expiration duration, in milliseconds */
-  expirationDuration: Scalars['Int']['output'];
-  /** The flow issuance credential meta the datakeeper meta belongs to. */
-  flowIssuanceCredentialMeta: FlowIssuanceCredentialMeta;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow credential meta datakeeper connection definition. */
-export type FlowIssuanceCredentialMetaDatakeeperConnection = {
-  __typename?: 'FlowIssuanceCredentialMetaDatakeeperConnection';
-  edges: Array<Maybe<FlowIssuanceCredentialMetaDatakeeperEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow credential meta datakeeper edge definition. */
-export type FlowIssuanceCredentialMetaDatakeeperEdge = {
-  __typename?: 'FlowIssuanceCredentialMetaDatakeeperEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceCredentialMetaDatakeeper;
-};
-
-/** Fields which can be used to filter flow issuance credential meta datakeeper on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaDatakeeperFilteringField {
-  Context = 'context',
-  FlowIssuanceCredentialMetaUuid = 'flowIssuanceCredentialMetaUuid'
-}
-
-/** Fields which can be used to sort flow issuance credential meta datakeeper on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaDatakeeperSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting flow issuance credential meta datakeeper. */
-export type FlowIssuanceCredentialMetaDatakeeperSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceCredentialMetaDatakeeperSortEnum;
-};
-
-/** The flow issuance credential meta edge definition. */
-export type FlowIssuanceCredentialMetaEdge = {
-  __typename?: 'FlowIssuanceCredentialMetaEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceCredentialMeta;
-};
-
-/** Fields which can be used to filter flow issuance credential meta on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaFilteringField {
-  FlowIssuanceCredentialUuid = 'flowIssuanceCredentialUuid'
-}
-
-/** Fields which can be used to sort flow issuance credential meta on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting flow issuance credential meta. */
-export type FlowIssuanceCredentialMetaSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceCredentialMetaSortEnum;
-};
-
-/** Flow issuance credential meta type. */
-export enum FlowIssuanceCredentialMetaType {
-  Datakeeper = 'DATAKEEPER',
-  None = 'NONE',
-  Yivi = 'YIVI'
-}
-
-/** Flow issuance credential meta datakapeer definition. */
-export type FlowIssuanceCredentialMetaYivi = Model & {
-  __typename?: 'FlowIssuanceCredentialMetaYivi';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The expiration duration, in milliseconds */
-  expirationDuration: Scalars['Int']['output'];
-  /** The flow issuance credential meta the yivi meta belongs to. */
-  flowIssuanceCredentialMeta: FlowIssuanceCredentialMeta;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow credential meta yivi connection definition. */
-export type FlowIssuanceCredentialMetaYiviConnection = {
-  __typename?: 'FlowIssuanceCredentialMetaYiviConnection';
-  edges: Array<Maybe<FlowIssuanceCredentialMetaYiviEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow credential meta yivi edge definition. */
-export type FlowIssuanceCredentialMetaYiviEdge = {
-  __typename?: 'FlowIssuanceCredentialMetaYiviEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceCredentialMetaYivi;
-};
-
-/** Fields which can be used to filter flow issuance credential meta yivi on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaYiviFilteringField {
-  FlowIssuanceCredentialMetaUuid = 'flowIssuanceCredentialMetaUuid'
-}
-
-/** Fields which can be used to sort flow issuance credential meta yivi on. Value must be camel case. */
-export enum FlowIssuanceCredentialMetaYiviSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting flow issuance credential meta yivi. */
-export type FlowIssuanceCredentialMetaYiviSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceCredentialMetaYiviSortEnum;
-};
-
-/** Fields which can be used to sort flow issuance field on. Value must be camel case. */
-export enum FlowIssuanceCredentialSortEnum {
-  CreatedAt = 'createdAt',
-  CredentialUrn = 'credentialURN',
-  IssuerUrn = 'issuerURN',
-  SchemeUrn = 'schemeURN',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow issuance field. */
-export type FlowIssuanceCredentialSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceCredentialSortEnum;
-};
-
-/** Organization domain definition. */
-export type FlowIssuanceDomain = Model & {
-  __typename?: 'FlowIssuanceDomain';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance  */
-  flowIssuance: FlowIssuance;
-  /** The user organization domain */
-  organizationDomain: OrganizationDomain;
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowIssuanceDomainConnection = {
-  __typename?: 'FlowIssuanceDomainConnection';
-  edges: Array<FlowIssuanceDomainEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowIssuanceDomainEdge = {
-  __typename?: 'FlowIssuanceDomainEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceDomain;
-};
-
-/** Fields which can be used to filter domains on. Value must be camel case. */
-export enum FlowIssuanceDomainFilteringField {
-  FlowIssuanceUuid = 'flowIssuanceUuid',
-  OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort domains on. Value must be camel case. */
-export enum FlowIssuanceDomainSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting domains. */
-export type FlowIssuanceDomainSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceDomainSortEnum;
-};
-
-/** The flow issuance edge definition. */
-export type FlowIssuanceEdge = {
-  __typename?: 'FlowIssuanceEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuance;
-};
-
-/** Fields which can be used to filter flow issuances on. Value must be camel case. */
-export enum FlowIssuanceFilteringField {
-  Name = 'name',
-  OrganizationUuid = 'organizationUuid',
-  State = 'state',
-  Uuid = 'uuid'
-}
-
-/** Flow issuance log definition. */
-export type FlowIssuanceLog = Model & {
-  __typename?: 'FlowIssuanceLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance */
-  flowIssuance: FlowIssuance;
-  /** The flow issuance UUID */
-  flowIssuanceUuid: Scalars['UUID']['output'];
-  /** The log urn */
-  logURN: Scalars['URN']['output'];
-  /** The meta of the log */
-  meta: Scalars['JSONObject']['output'];
-  /** The request UUID */
-  requestUuid: Scalars['UUID']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow issuance log connection definition. */
-export type FlowIssuanceLogConnection = {
-  __typename?: 'FlowIssuanceLogConnection';
-  edges: Array<Maybe<FlowIssuanceLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow issuance log edge definition. */
-export type FlowIssuanceLogEdge = {
-  __typename?: 'FlowIssuanceLogEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceLog;
-};
-
-/** Fields which can be used to filter flow issuances log on. Value must be camel case. */
-export enum FlowIssuanceLogFilteringField {
-  CreatedAt = 'createdAt',
-  FlowIssuanceUuid = 'flowIssuanceUuid',
-  LogUrn = 'logURN',
-  OrganizationUuid = 'organizationUuid',
-  RequestUuid = 'requestUuid'
-}
-
-/** Fields which can be used to sort flow issuances log on. Value must be camel case. */
-export enum FlowIssuanceLogSortEnum {
-  CreatedAt = 'createdAt',
-  LogUrn = 'logURN'
-}
-
-/** Input options for sorting flow issuances log. */
-export type FlowIssuanceLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceLogSortEnum;
-};
-
-/** Organization mapping definition. */
-export type FlowIssuanceMapping = Model & {
-  __typename?: 'FlowIssuanceMapping';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance  */
-  flowIssuance: FlowIssuance;
-  /** The user mapping */
-  mappingIssuance: MappingIssuance;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowIssuanceMappingConnection = {
-  __typename?: 'FlowIssuanceMappingConnection';
-  edges: Array<FlowIssuanceMappingEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowIssuanceMappingEdge = {
-  __typename?: 'FlowIssuanceMappingEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceMapping;
-};
-
-/** Fields which can be used to filter mappings on. Value must be camel case. */
-export enum FlowIssuanceMappingFilteringField {
-  FlowIssuanceUuid = 'flowIssuanceUuid',
-  MappingIssuanceUuid = 'mappingIssuanceUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort mappings on. Value must be camel case. */
-export enum FlowIssuanceMappingSortEnum {
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting mappings. */
-export type FlowIssuanceMappingSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceMappingSortEnum;
-};
-
-/** Flow issuance provider definition. */
-export type FlowIssuanceProvider = Model & {
-  __typename?: 'FlowIssuanceProvider';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow issuance the flow provider belongs to. */
-  flowIssuance: FlowIssuance;
-  /** A list of flow queries belonging to this flow provider. */
-  flowIssuanceCredentials: FlowIssuanceCredentialConnection;
-  /** The provider app the providerAppUuid belongs to. */
-  providerApp: ProviderApp;
-  /** The uuid of the flow provider app. */
-  providerAppUuid: Scalars['UUID']['output'];
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow issuance provider definition. */
-export type FlowIssuanceProviderFlowIssuanceCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceCredentialsInput>;
-};
-
-/** The flow issuance provider connection definition. */
-export type FlowIssuanceProviderConnection = {
-  __typename?: 'FlowIssuanceProviderConnection';
-  edges: Array<FlowIssuanceProviderEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow issuance provider edge definition. */
-export type FlowIssuanceProviderEdge = {
-  __typename?: 'FlowIssuanceProviderEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowIssuanceProvider;
-};
-
-/** Fields which can be used to filter flow issuance providers on. Value must be camel case. */
-export enum FlowIssuanceProviderFilteringField {
-  FlowIssuanceUuid = 'flowIssuanceUuid',
-  ProviderAppUuid = 'providerAppUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow issuance providers on. Value must be camel case. */
-export enum FlowIssuanceProviderSortEnum {
-  CreatedAt = 'createdAt',
-  ProviderAppUuid = 'providerAppUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow issuance providers. */
-export type FlowIssuanceProviderSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceProviderSortEnum;
-};
-
-/** Fields which can be used to sort flow issuances on. Value must be camel case. */
-export enum FlowIssuanceSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  State = 'state',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow issuances. */
-export type FlowIssuanceSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowIssuanceSortEnum;
-};
-
-/** FlowIssuanceState */
-export enum FlowIssuanceState {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
-}
-
-/** Flow signature definition. */
-export type FlowSignature = Model & {
-  __typename?: 'FlowSignature';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The associated brands with this signature */
-  flowSignatureBrands: FlowSignatureBrandConnection;
-  /** The associated domains with this signature */
-  flowSignatureDomains: FlowSignatureDomainConnection;
-  /** The associated mappings with this signature */
-  flowSignatureMappings: FlowSignatureMappingConnection;
-  /** A list of flow providers belonging to this flow signature. */
-  flowSignatureProviders: FlowSignatureProviderConnection;
-  /** The JWT media type */
-  jwtMediaType: Scalars['JwtMediaType']['output'];
-  /** The meta of the flow. */
-  meta: Scalars['JSONObject']['output'];
-  /** The name of the flow. */
-  name: Scalars['NonEmpty']['output'];
-  /** The organization the flow belongs to. */
-  organization: Organization;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
-  /** The state of the flow. */
-  state: FlowSignatureState;
-  /** Shortcut to active studio controls associated to this object */
-  studioControlCompacts: Array<StudioControlCompact>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow signature definition. */
-export type FlowSignatureFlowSignatureBrandsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureBrandsInput>;
-};
-
-
-/** Flow signature definition. */
-export type FlowSignatureFlowSignatureDomainsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureDomainsInput>;
-};
-
-
-/** Flow signature definition. */
-export type FlowSignatureFlowSignatureMappingsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureMappingsInput>;
-};
-
-
-/** Flow signature definition. */
-export type FlowSignatureFlowSignatureProvidersArgs = {
-  input?: InputMaybe<FindManyFlowSignatureProvidersInput>;
-};
-
-/** FlowSignatureAction */
-export enum FlowSignatureAction {
-  Activate = 'ACTIVATE',
-  Deactivate = 'DEACTIVATE'
-}
-
-/** Flow signature attribute definition. */
-export type FlowSignatureAttribute = Model & {
-  __typename?: 'FlowSignatureAttribute';
-  /** The attribute the attributeUuid belongs to. */
-  attribute: Attribute;
-  /** The uuid of the flow attribute. */
-  attributeUuid: Scalars['UUID']['output'];
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature the flow query belongs to. */
-  flowSignatureCredential: FlowSignatureCredential;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow signature attribute connection definition. */
-export type FlowSignatureAttributeConnection = {
-  __typename?: 'FlowSignatureAttributeConnection';
-  edges: Array<FlowSignatureAttributeEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow signature attribute edge definition. */
-export type FlowSignatureAttributeEdge = {
-  __typename?: 'FlowSignatureAttributeEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureAttribute;
-};
-
-/** Fields which can be used to filter flow signature attribute on. Value must be camel case. */
-export enum FlowSignatureAttributeFilteringField {
-  AttributeUuid = 'attributeUuid',
-  FlowSignatureCredentialUuid = 'flowSignatureCredentialUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow signature attribute on. Value must be camel case. */
-export enum FlowSignatureAttributeSortEnum {
-  AttributeUuid = 'attributeUuid',
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow signature attribute. */
-export type FlowSignatureAttributeSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureAttributeSortEnum;
-};
-
-/** Organization brand definition. */
-export type FlowSignatureBrand = Model & {
-  __typename?: 'FlowSignatureBrand';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature  */
-  flowSignature: FlowSignature;
-  /** Is default branding */
-  isDefault: Scalars['Boolean']['output'];
-  /** The user organization brand */
-  organizationBrand: OrganizationBrand;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowSignatureBrandConnection = {
-  __typename?: 'FlowSignatureBrandConnection';
-  edges: Array<FlowSignatureBrandEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowSignatureBrandEdge = {
-  __typename?: 'FlowSignatureBrandEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureBrand;
-};
-
-/** Fields which can be used to filter brands on. Value must be camel case. */
-export enum FlowSignatureBrandFilteringField {
-  FlowSignatureUuid = 'flowSignatureUuid',
-  OrganizationBrandUuid = 'organizationBrandUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort brands on. Value must be camel case. */
-export enum FlowSignatureBrandSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting brands. */
-export type FlowSignatureBrandSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureBrandSortEnum;
-};
-
-/** The flow signature connection definition. */
-export type FlowSignatureConnection = {
-  __typename?: 'FlowSignatureConnection';
-  edges: Array<Maybe<FlowSignatureEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** Flow signature credential definition. */
-export type FlowSignatureCredential = Model & {
-  __typename?: 'FlowSignatureCredential';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
-  credentialUuid: Scalars['UUID']['output'];
-  /** The associated fields with this credential */
-  flowSignatureAttributes: FlowSignatureAttributeConnection;
-  /** The flow signature group the flow signature credential belongs to. */
-  flowSignatureGroup: FlowSignatureGroup;
-  /** The issuer the issuerUuid belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
-  /** The scheme the schemeUuid belongs to. */
-  scheme: Scheme;
-  /** The uuid of the scheme. */
-  schemeUuid: Scalars['UUID']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow signature credential definition. */
-export type FlowSignatureCredentialFlowSignatureAttributesArgs = {
-  input?: InputMaybe<FindManyFlowSignatureAttributesInput>;
-};
-
-/** The flow signature field connection definition. */
-export type FlowSignatureCredentialConnection = {
-  __typename?: 'FlowSignatureCredentialConnection';
-  edges: Array<FlowSignatureCredentialEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow signature field edge definition. */
-export type FlowSignatureCredentialEdge = {
-  __typename?: 'FlowSignatureCredentialEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureCredential;
-};
-
-/** Fields which can be used to filter flow signature field on. Value must be camel case. */
-export enum FlowSignatureCredentialFilteringField {
-  CredentialUuid = 'credentialUuid',
-  FlowSignatureGroupUuid = 'flowSignatureGroupUuid',
-  IssuerUuid = 'issuerUuid',
-  SchemeUuid = 'schemeUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow signature field on. Value must be camel case. */
-export enum FlowSignatureCredentialSortEnum {
-  CreatedAt = 'createdAt',
-  CredentialUuid = 'credentialUuid',
-  IssuerUuid = 'issuerUuid',
-  SchemeUuid = 'schemeUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow signature field. */
-export type FlowSignatureCredentialSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureCredentialSortEnum;
-};
-
-/** Organization domain definition. */
-export type FlowSignatureDomain = Model & {
-  __typename?: 'FlowSignatureDomain';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature  */
-  flowSignature: FlowSignature;
-  /** The user organization domain */
-  organizationDomain: OrganizationDomain;
-  /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
-  /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
-  /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowSignatureDomainConnection = {
-  __typename?: 'FlowSignatureDomainConnection';
-  edges: Array<FlowSignatureDomainEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowSignatureDomainEdge = {
-  __typename?: 'FlowSignatureDomainEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureDomain;
-};
-
-/** Fields which can be used to filter domains on. Value must be camel case. */
-export enum FlowSignatureDomainFilteringField {
-  FlowSignatureUuid = 'flowSignatureUuid',
-  OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort domains on. Value must be camel case. */
-export enum FlowSignatureDomainSortEnum {
-  CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting domains. */
-export type FlowSignatureDomainSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureDomainSortEnum;
-};
-
-/** The flow signature edge definition. */
-export type FlowSignatureEdge = {
-  __typename?: 'FlowSignatureEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignature;
-};
-
-/** Fields which can be used to filter flow signatures on. Value must be camel case. */
-export enum FlowSignatureFilteringField {
-  Name = 'name',
-  OrganizationUuid = 'organizationUuid',
-  State = 'state',
-  Uuid = 'uuid'
-}
-
-/** Flow signature group definition. */
-export type FlowSignatureGroup = Model & {
-  __typename?: 'FlowSignatureGroup';
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** A list of flow queries belonging to this flow group. */
-  flowSignatureCredentials: FlowSignatureCredentialConnection;
-  /** The flow signature the flow group belongs to. */
-  flowSignatureProvider: FlowSignatureProvider;
-  /** The name */
-  name?: Maybe<Scalars['NonEmpty']['output']>;
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow signature group definition. */
-export type FlowSignatureGroupFlowSignatureCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureCredentialsInput>;
-};
-
-/** The flow signature group connection definition. */
-export type FlowSignatureGroupConnection = {
-  __typename?: 'FlowSignatureGroupConnection';
-  edges: Array<FlowSignatureGroupEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow signature group edge definition. */
-export type FlowSignatureGroupEdge = {
-  __typename?: 'FlowSignatureGroupEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureGroup;
-};
-
-/** Fields which can be used to filter flow signature group on. Value must be camel case. */
-export enum FlowSignatureGroupFilteringField {
-  FlowSignatureProviderUuid = 'flowSignatureProviderUuid',
-  Name = 'name',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow signature group on. Value must be camel case. */
-export enum FlowSignatureGroupSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow signature group. */
-export type FlowSignatureGroupSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureGroupSortEnum;
-};
-
-/** Flow signature log definition. */
-export type FlowSignatureLog = Model & {
-  __typename?: 'FlowSignatureLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature */
-  flowSignature: FlowSignature;
-  /** The flow signature UUID */
-  flowSignatureUuid: Scalars['UUID']['output'];
-  /** The log urn */
-  logURN: Scalars['URN']['output'];
-  /** The meta of the log */
-  meta: Scalars['JSONObject']['output'];
-  /** The request UUID */
-  requestUuid: Scalars['UUID']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The flow signature log connection definition. */
-export type FlowSignatureLogConnection = {
-  __typename?: 'FlowSignatureLogConnection';
-  edges: Array<Maybe<FlowSignatureLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The flow signature log edge definition. */
-export type FlowSignatureLogEdge = {
-  __typename?: 'FlowSignatureLogEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureLog;
-};
-
-/** Fields which can be used to filter flow signatures log on. Value must be camel case. */
-export enum FlowSignatureLogFilteringField {
-  CreatedAt = 'createdAt',
-  FlowSignatureUuid = 'flowSignatureUuid',
-  LogUrn = 'logURN',
-  OrganizationUuid = 'organizationUuid',
-  RequestUuid = 'requestUuid'
-}
-
-/** Fields which can be used to sort flow signatures log on. Value must be camel case. */
-export enum FlowSignatureLogSortEnum {
-  CreatedAt = 'createdAt',
-  LogUrn = 'logURN'
-}
-
-/** Input options for sorting flow signatures log. */
-export type FlowSignatureLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureLogSortEnum;
-};
-
-/** Organization mapping definition. */
-export type FlowSignatureMapping = Model & {
-  __typename?: 'FlowSignatureMapping';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature  */
-  flowSignature: FlowSignature;
-  /** The user verification mapping */
-  mappingVerification: MappingVerification;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** An Connection */
-export type FlowSignatureMappingConnection = {
-  __typename?: 'FlowSignatureMappingConnection';
-  edges: Array<FlowSignatureMappingEdge>;
-  pageInfo: PageInfo;
-};
-
-/** An edge */
-export type FlowSignatureMappingEdge = {
-  __typename?: 'FlowSignatureMappingEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureMapping;
-};
-
-/** Fields which can be used to filter mappings on. Value must be camel case. */
-export enum FlowSignatureMappingFilteringField {
-  FlowSignatureUuid = 'flowSignatureUuid',
-  MappingVerificationUuid = 'mappingVerificationUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort mappings on. Value must be camel case. */
-export enum FlowSignatureMappingSortEnum {
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting mappings. */
-export type FlowSignatureMappingSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureMappingSortEnum;
-};
-
-/** Flow signature provider definition. */
-export type FlowSignatureProvider = Model & {
-  __typename?: 'FlowSignatureProvider';
-  /** The flow signature provider configuration. */
-  configuration?: Maybe<FlowSignatureProviderConfiguration>;
-  /** The creation timestamp. */
-  createdAt: Scalars['DateTime']['output'];
-  /** The flow signature the flow provider belongs to. */
-  flowSignature: FlowSignature;
-  /** A list of flow queries belonging to this flow provider. */
-  flowSignatureGroups: FlowSignatureGroupConnection;
-  /** The provider the providerUuid belongs to. */
-  providerApp: ProviderApp;
-  /** The URN of the flow provider. */
-  providerAppUuid: Scalars['UUID']['output'];
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['output'];
-  /** The timestamp of when the type has been last updated. */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID. */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Flow signature provider definition. */
-export type FlowSignatureProviderFlowSignatureGroupsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureGroupsInput>;
-};
-
-/** Flow signature provider configuration definition */
-export type FlowSignatureProviderConfiguration = Model & {
-  __typename?: 'FlowSignatureProviderConfiguration';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowSignatureProvider this configuration belongs to */
-  flowSignatureProvider: FlowSignatureProvider;
-  /** The NL Wallet flow signature provider configuration */
-  nlWallet?: Maybe<FlowSignatureProviderConfigurationNlWallet>;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowSignatureProviderConfiguration connection definition. */
-export type FlowSignatureProviderConfigurationConnection = {
-  __typename?: 'FlowSignatureProviderConfigurationConnection';
-  edges: Array<Maybe<FlowSignatureProviderConfigurationEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowSignatureProviderConfiguration edge definition. */
-export type FlowSignatureProviderConfigurationEdge = {
-  __typename?: 'FlowSignatureProviderConfigurationEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureProviderConfiguration;
-};
-
-/** Fields which can be used to filter FlowSignatureProviderConfiguration on. Value must be camel case. */
-export enum FlowSignatureProviderConfigurationFilteringField {
-  FlowSignatureProviderUuid = 'flowSignatureProviderUuid'
-}
-
-/** FlowSignatureProviderConfigurationNLWallet definition */
-export type FlowSignatureProviderConfigurationNlWallet = Model & {
-  __typename?: 'FlowSignatureProviderConfigurationNLWallet';
-  /** The creation timestamp */
-  createdAt: Scalars['DateTime']['output'];
-  /** The FlowSignatureProviderConfiguration this object belongs to. */
-  flowSignatureProviderConfiguration: FlowSignatureProviderConfiguration;
-  /** The timestamp of when the type has been last updated */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The usecase */
-  usecase: Scalars['String']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-/** The FlowSignatureProviderConfigurationNLWallet connection definition. */
-export type FlowSignatureProviderConfigurationNlWalletConnection = {
-  __typename?: 'FlowSignatureProviderConfigurationNLWalletConnection';
-  edges: Array<Maybe<FlowSignatureProviderConfigurationNlWalletEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The FlowSignatureProviderConfigurationNLWallet edge definition. */
-export type FlowSignatureProviderConfigurationNlWalletEdge = {
-  __typename?: 'FlowSignatureProviderConfigurationNLWalletEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureProviderConfigurationNlWallet;
-};
-
-/** Fields which can be used to filter FlowSignatureProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowSignatureProviderConfigurationNlWalletFilteringField {
-  FlowSignatureProviderConfigurationUuid = 'flowSignatureProviderConfigurationUuid',
-  Intent = 'intent'
-}
-
-/** Fields which can be used to sort FlowSignatureProviderConfigurationNLWallet on. Value must be camel case. */
-export enum FlowSignatureProviderConfigurationNlWalletSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowSignatureProviderConfigurationNLWallet. */
-export type FlowSignatureProviderConfigurationNlWalletSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureProviderConfigurationNlWalletSortEnum;
-};
-
-/** Fields which can be used to sort FlowSignatureProviderConfiguration on. Value must be camel case. */
-export enum FlowSignatureProviderConfigurationSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting FlowSignatureProviderConfiguration. */
-export type FlowSignatureProviderConfigurationSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureProviderConfigurationSortEnum;
-};
-
-/** The flow signature provider connection definition. */
-export type FlowSignatureProviderConnection = {
-  __typename?: 'FlowSignatureProviderConnection';
-  edges: Array<FlowSignatureProviderEdge>;
-  pageInfo: PageInfo;
-};
-
-/** The flow signature provider edge definition. */
-export type FlowSignatureProviderEdge = {
-  __typename?: 'FlowSignatureProviderEdge';
-  cursor: Scalars['String']['output'];
-  node: FlowSignatureProvider;
-};
-
-/** Fields which can be used to filter flow signature providers on. Value must be camel case. */
-export enum FlowSignatureProviderFilteringField {
-  FlowSignatureUuid = 'flowSignatureUuid',
-  ProviderUuid = 'providerUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort flow signature providers on. Value must be camel case. */
-export enum FlowSignatureProviderSortEnum {
-  CreatedAt = 'createdAt',
-  ProviderUuid = 'providerUuid',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow signature providers. */
-export type FlowSignatureProviderSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureProviderSortEnum;
-};
-
-/** Fields which can be used to sort flow signatures on. Value must be camel case. */
-export enum FlowSignatureSortEnum {
-  CreatedAt = 'createdAt',
-  Name = 'name',
-  State = 'state',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting flow signatures. */
-export type FlowSignatureSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: FlowSignatureSortEnum;
-};
-
-/** FlowSignatureState */
-export enum FlowSignatureState {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
-}
-
 /** FlowType */
 export enum FlowType {
   Authentication = 'AUTHENTICATION',
@@ -11713,23 +12259,762 @@ export enum IdentityModel {
   Scope = 'SCOPE'
 }
 
-/** IdentityModelType */
-export enum IdentityModelType {
-  App = 'APP',
-  Attribute = 'ATTRIBUTE',
-  Credential = 'CREDENTIAL',
-  Issuer = 'ISSUER',
-  Provider = 'PROVIDER',
-  Scheme = 'SCHEME',
-  Scope = 'SCOPE'
-}
-
 /** Recurring intervals */
 export enum Interval {
   Monthly = 'MONTHLY',
   None = 'NONE',
   Quarterly = 'QUARTERLY',
   Yearly = 'YEARLY'
+}
+
+/** Flow issuance definition. */
+export type Issuance = Model & {
+  __typename?: 'Issuance';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The associated brands with this issuance */
+  issuanceBrands: IssuanceBrandConnection;
+  /** The associated domains with this issuance */
+  issuanceDomains: IssuanceDomainConnection;
+  /** The associated labels with this issuance */
+  issuanceLabels: IssuanceLabelConnection;
+  /** The associated mappings with this issuance */
+  issuanceMappings: IssuanceMappingConnection;
+  /** A list of flow providers belonging to this flow issuance. */
+  issuanceProviders: IssuanceProviderConnection;
+  /** The JWT media type */
+  jwtMediaType: Scalars['JwtMediaType']['output'];
+  /** The meta of the flow. */
+  meta: Scalars['JSONObject']['output'];
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['output'];
+  /** The organization the flow belongs to. */
+  organization: Organization;
+  /** The indicator if explicit consent is required */
+  requireExplicitConsent: Scalars['Boolean']['output'];
+  /** The state of the flow. */
+  state: IssuanceState;
+  /** Shortcut to active studio controls associated to this object */
+  studioControlCompacts: Array<StudioControlCompact>;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow issuance definition. */
+export type IssuanceIssuanceBrandsArgs = {
+  input?: InputMaybe<FindManyIssuanceBrandsInput>;
+};
+
+
+/** Flow issuance definition. */
+export type IssuanceIssuanceDomainsArgs = {
+  input?: InputMaybe<FindManyIssuanceDomainsInput>;
+};
+
+
+/** Flow issuance definition. */
+export type IssuanceIssuanceLabelsArgs = {
+  input?: InputMaybe<FindManyIssuanceLabelsInput>;
+};
+
+
+/** Flow issuance definition. */
+export type IssuanceIssuanceMappingsArgs = {
+  input?: InputMaybe<FindManyIssuanceMappingsInput>;
+};
+
+
+/** Flow issuance definition. */
+export type IssuanceIssuanceProvidersArgs = {
+  input?: InputMaybe<FindManyIssuanceProvidersInput>;
+};
+
+/** IssuanceAction */
+export enum IssuanceAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE'
+}
+
+/** Issuance activity definition. */
+export type IssuanceActivity = Model & {
+  __typename?: 'IssuanceActivity';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The event URN */
+  eventURN: Scalars['URN']['output'];
+  /** The issuance UUID */
+  issuanceUuid: Scalars['UUID']['output'];
+  /** The metadata */
+  meta: Scalars['JSONObject']['output'];
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** The request UUID */
+  requestUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The issuance activity connection definition. */
+export type IssuanceActivityConnection = {
+  __typename?: 'IssuanceActivityConnection';
+  edges: Array<Maybe<IssuanceActivityEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The issuance activity edge definition. */
+export type IssuanceActivityEdge = {
+  __typename?: 'IssuanceActivityEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceActivity;
+};
+
+/** Fields which can be used to filter issuance activities on. */
+export enum IssuanceActivityFilteringField {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventURN',
+  IssuanceUuid = 'issuanceUuid',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid'
+}
+
+/** Fields which can be used to sort issuance activities on. */
+export enum IssuanceActivitySortEnum {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventUrn'
+}
+
+/** Input options for sorting issuance activities. */
+export type IssuanceActivitySortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceActivitySortEnum;
+};
+
+/** Flow issuance attribute definition. */
+export type IssuanceAttribute = Model & {
+  __typename?: 'IssuanceAttribute';
+  /** The attribute the attributeURN belongs to. */
+  attribute: Attribute;
+  /** The uuid of the flow attribute. */
+  attributeUuid: Scalars['UUID']['output'];
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow issuance the flow query belongs to. */
+  issuanceCredential: IssuanceCredential;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow issuance attribute connection definition. */
+export type IssuanceAttributeConnection = {
+  __typename?: 'IssuanceAttributeConnection';
+  edges: Array<IssuanceAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow issuance attribute edge definition. */
+export type IssuanceAttributeEdge = {
+  __typename?: 'IssuanceAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceAttribute;
+};
+
+/** Fields which can be used to filter flow issuance attribute on. Value must be camel case. */
+export enum IssuanceAttributeFilteringField {
+  AttributeUrn = 'attributeURN',
+  IssuanceCredentialUuid = 'issuanceCredentialUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow issuance attribute on. Value must be camel case. */
+export enum IssuanceAttributeSortEnum {
+  AttributeUrn = 'attributeURN',
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow issuance attribute. */
+export type IssuanceAttributeSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceAttributeSortEnum;
+};
+
+/** Organization brand definition. */
+export type IssuanceBrand = Model & {
+  __typename?: 'IssuanceBrand';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Is default branding */
+  isDefault: Scalars['Boolean']['output'];
+  /** The flow issuance */
+  issuance: Issuance;
+  /** The user organization brand */
+  organizationBrand: OrganizationBrand;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type IssuanceBrandConnection = {
+  __typename?: 'IssuanceBrandConnection';
+  edges: Array<IssuanceBrandEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type IssuanceBrandEdge = {
+  __typename?: 'IssuanceBrandEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceBrand;
+};
+
+/** Fields which can be used to filter brands on. Value must be camel case. */
+export enum IssuanceBrandFilteringField {
+  IssuanceUuid = 'issuanceUuid',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort brands on. Value must be camel case. */
+export enum IssuanceBrandSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting brands. */
+export type IssuanceBrandSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceBrandSortEnum;
+};
+
+/** The flow issuance connection definition. */
+export type IssuanceConnection = {
+  __typename?: 'IssuanceConnection';
+  edges: Array<Maybe<IssuanceEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** Flow issuance credential definition. */
+export type IssuanceCredential = Model & {
+  __typename?: 'IssuanceCredential';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The credential the credentialURN belongs to. */
+  credential: Credential;
+  /** The uuid of the credential. */
+  credentialUuid: Scalars['UUID']['output'];
+  /** The associated fields with this credential */
+  issuanceAttributes: IssuanceAttributeConnection;
+  /** The flow issuance the flow provider belongs to. */
+  issuanceProvider: IssuanceProvider;
+  /** The issuer the issuerURN belongs to. */
+  issuer: Issuer;
+  /** The uuid of the issuer. */
+  issuerUuid: Scalars['UUID']['output'];
+  /** The meta */
+  meta?: Maybe<IssuanceCredentialMeta>;
+  /** The meta type of the credential */
+  metaType: IssuanceCredentialMetaType;
+  /** The scheme the schemeURN belongs to. */
+  scheme: Scheme;
+  /** The uuid of the scheme. */
+  schemeUuid: Scalars['UUID']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow issuance credential definition. */
+export type IssuanceCredentialIssuanceAttributesArgs = {
+  input?: InputMaybe<FindManyIssuanceAttributesInput>;
+};
+
+/** The flow issuance field connection definition. */
+export type IssuanceCredentialConnection = {
+  __typename?: 'IssuanceCredentialConnection';
+  edges: Array<IssuanceCredentialEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow issuance field edge definition. */
+export type IssuanceCredentialEdge = {
+  __typename?: 'IssuanceCredentialEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceCredential;
+};
+
+/** Fields which can be used to filter flow issuance field on. Value must be camel case. */
+export enum IssuanceCredentialFilteringField {
+  CredentialUrn = 'credentialURN',
+  IssuanceProviderUuid = 'issuanceProviderUuid',
+  IssuerUrn = 'issuerURN',
+  MetaType = 'metaType',
+  SchemeUrn = 'schemeURN',
+  Uuid = 'uuid'
+}
+
+/** Flow issuance credential meta definition. */
+export type IssuanceCredentialMeta = Model & {
+  __typename?: 'IssuanceCredentialMeta';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The datakeeper credential meta */
+  datakeeper?: Maybe<IssuanceCredentialMetaDatakeeper>;
+  /** The flow issuance credential the meta belongs to. */
+  issuanceCredential: IssuanceCredential;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+  /** The yivi credential meta */
+  yivi?: Maybe<IssuanceCredentialMetaYivi>;
+};
+
+/** The flow issuance credential meta connection definition. */
+export type IssuanceCredentialMetaConnection = {
+  __typename?: 'IssuanceCredentialMetaConnection';
+  edges: Array<Maybe<IssuanceCredentialMetaEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** Flow issuance credential meta datakapeer definition. */
+export type IssuanceCredentialMetaDatakeeper = Model & {
+  __typename?: 'IssuanceCredentialMetaDatakeeper';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The expiration duration, in milliseconds */
+  expirationDuration: Scalars['Int']['output'];
+  /** The flow issuance credential meta the datakeeper meta belongs to. */
+  issuanceCredentialMeta: IssuanceCredentialMeta;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow credential meta datakeeper connection definition. */
+export type IssuanceCredentialMetaDatakeeperConnection = {
+  __typename?: 'IssuanceCredentialMetaDatakeeperConnection';
+  edges: Array<Maybe<IssuanceCredentialMetaDatakeeperEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The flow credential meta datakeeper edge definition. */
+export type IssuanceCredentialMetaDatakeeperEdge = {
+  __typename?: 'IssuanceCredentialMetaDatakeeperEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceCredentialMetaDatakeeper;
+};
+
+/** Fields which can be used to filter flow issuance credential meta datakeeper on. Value must be camel case. */
+export enum IssuanceCredentialMetaDatakeeperFilteringField {
+  Context = 'context',
+  IssuanceCredentialMetaUuid = 'issuanceCredentialMetaUuid'
+}
+
+/** Fields which can be used to sort flow issuance credential meta datakeeper on. Value must be camel case. */
+export enum IssuanceCredentialMetaDatakeeperSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting flow issuance credential meta datakeeper. */
+export type IssuanceCredentialMetaDatakeeperSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceCredentialMetaDatakeeperSortEnum;
+};
+
+/** The flow issuance credential meta edge definition. */
+export type IssuanceCredentialMetaEdge = {
+  __typename?: 'IssuanceCredentialMetaEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceCredentialMeta;
+};
+
+/** Fields which can be used to filter flow issuance credential meta on. Value must be camel case. */
+export enum IssuanceCredentialMetaFilteringField {
+  IssuanceCredentialUuid = 'issuanceCredentialUuid'
+}
+
+/** Fields which can be used to sort flow issuance credential meta on. Value must be camel case. */
+export enum IssuanceCredentialMetaSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting flow issuance credential meta. */
+export type IssuanceCredentialMetaSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceCredentialMetaSortEnum;
+};
+
+/** Flow issuance credential meta type. */
+export enum IssuanceCredentialMetaType {
+  Datakeeper = 'DATAKEEPER',
+  None = 'NONE',
+  Yivi = 'YIVI'
+}
+
+/** Flow issuance credential meta datakapeer definition. */
+export type IssuanceCredentialMetaYivi = Model & {
+  __typename?: 'IssuanceCredentialMetaYivi';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The expiration duration, in milliseconds */
+  expirationDuration: Scalars['Int']['output'];
+  /** The flow issuance credential meta the yivi meta belongs to. */
+  issuanceCredentialMeta: IssuanceCredentialMeta;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow credential meta yivi connection definition. */
+export type IssuanceCredentialMetaYiviConnection = {
+  __typename?: 'IssuanceCredentialMetaYiviConnection';
+  edges: Array<Maybe<IssuanceCredentialMetaYiviEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The flow credential meta yivi edge definition. */
+export type IssuanceCredentialMetaYiviEdge = {
+  __typename?: 'IssuanceCredentialMetaYiviEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceCredentialMetaYivi;
+};
+
+/** Fields which can be used to filter flow issuance credential meta yivi on. Value must be camel case. */
+export enum IssuanceCredentialMetaYiviFilteringField {
+  IssuanceCredentialMetaUuid = 'issuanceCredentialMetaUuid'
+}
+
+/** Fields which can be used to sort flow issuance credential meta yivi on. Value must be camel case. */
+export enum IssuanceCredentialMetaYiviSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting flow issuance credential meta yivi. */
+export type IssuanceCredentialMetaYiviSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceCredentialMetaYiviSortEnum;
+};
+
+/** Fields which can be used to sort flow issuance field on. Value must be camel case. */
+export enum IssuanceCredentialSortEnum {
+  CreatedAt = 'createdAt',
+  CredentialUrn = 'credentialURN',
+  IssuerUrn = 'issuerURN',
+  SchemeUrn = 'schemeURN',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow issuance field. */
+export type IssuanceCredentialSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceCredentialSortEnum;
+};
+
+/** Organization domain definition. */
+export type IssuanceDomain = Model & {
+  __typename?: 'IssuanceDomain';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow issuance */
+  issuance: Issuance;
+  /** The user organization domain */
+  organizationDomain: OrganizationDomain;
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['output'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['output'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type IssuanceDomainConnection = {
+  __typename?: 'IssuanceDomainConnection';
+  edges: Array<IssuanceDomainEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type IssuanceDomainEdge = {
+  __typename?: 'IssuanceDomainEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceDomain;
+};
+
+/** Fields which can be used to filter domains on. Value must be camel case. */
+export enum IssuanceDomainFilteringField {
+  IssuanceUuid = 'issuanceUuid',
+  OrganizationDomainUuid = 'organizationDomainUuid',
+  RedirectPath = 'redirectPath',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort domains on. Value must be camel case. */
+export enum IssuanceDomainSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting domains. */
+export type IssuanceDomainSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceDomainSortEnum;
+};
+
+/** The flow issuance edge definition. */
+export type IssuanceEdge = {
+  __typename?: 'IssuanceEdge';
+  cursor: Scalars['String']['output'];
+  node: Issuance;
+};
+
+/** Fields which can be used to filter flow issuances on. Value must be camel case. */
+export enum IssuanceFilteringField {
+  Name = 'name',
+  OrganizationUuid = 'organizationUuid',
+  State = 'state',
+  Uuid = 'uuid'
+}
+
+/** Organization Label definition. */
+export type IssuanceLabel = Model & {
+  __typename?: 'IssuanceLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow issuance */
+  issuance: Issuance;
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type IssuanceLabelConnection = {
+  __typename?: 'IssuanceLabelConnection';
+  edges: Array<IssuanceLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type IssuanceLabelEdge = {
+  __typename?: 'IssuanceLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum IssuanceLabelFilteringField {
+  IssuanceUuid = 'issuanceUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum IssuanceLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type IssuanceLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceLabelSortEnum;
+};
+
+/** Organization mapping definition. */
+export type IssuanceMapping = Model & {
+  __typename?: 'IssuanceMapping';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow issuance */
+  issuance: Issuance;
+  /** The user mapping */
+  mappingIssuance: MappingIssuance;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type IssuanceMappingConnection = {
+  __typename?: 'IssuanceMappingConnection';
+  edges: Array<IssuanceMappingEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type IssuanceMappingEdge = {
+  __typename?: 'IssuanceMappingEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceMapping;
+};
+
+/** Fields which can be used to filter mappings on. Value must be camel case. */
+export enum IssuanceMappingFilteringField {
+  IssuanceUuid = 'issuanceUuid',
+  MappingIssuanceUuid = 'mappingIssuanceUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort mappings on. Value must be camel case. */
+export enum IssuanceMappingSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting mappings. */
+export type IssuanceMappingSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceMappingSortEnum;
+};
+
+/** The input for filtering flow issuance brands in nested filtering. */
+export type IssuanceNestedFilteringIssuanceBrandField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow issuance brands */
+  input: FindManyIssuanceBrandsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering flow issuance labels in nested filtering. */
+export type IssuanceNestedFilteringIssuanceLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow issuance labels */
+  input: FindManyIssuanceLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** Flow issuance provider definition. */
+export type IssuanceProvider = Model & {
+  __typename?: 'IssuanceProvider';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow issuance the flow provider belongs to. */
+  issuance: Issuance;
+  /** A list of flow queries belonging to this flow provider. */
+  issuanceCredentials: IssuanceCredentialConnection;
+  /** The provider app the providerAppUuid belongs to. */
+  providerApp: ProviderApp;
+  /** The uuid of the flow provider app. */
+  providerAppUuid: Scalars['UUID']['output'];
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['output'];
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow issuance provider definition. */
+export type IssuanceProviderIssuanceCredentialsArgs = {
+  input?: InputMaybe<FindManyIssuanceCredentialsInput>;
+};
+
+/** The flow issuance provider connection definition. */
+export type IssuanceProviderConnection = {
+  __typename?: 'IssuanceProviderConnection';
+  edges: Array<IssuanceProviderEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow issuance provider edge definition. */
+export type IssuanceProviderEdge = {
+  __typename?: 'IssuanceProviderEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceProvider;
+};
+
+/** Fields which can be used to filter flow issuance providers on. Value must be camel case. */
+export enum IssuanceProviderFilteringField {
+  IssuanceUuid = 'issuanceUuid',
+  ProviderAppUuid = 'providerAppUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow issuance providers on. Value must be camel case. */
+export enum IssuanceProviderSortEnum {
+  CreatedAt = 'createdAt',
+  ProviderAppUuid = 'providerAppUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow issuance providers. */
+export type IssuanceProviderSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceProviderSortEnum;
+};
+
+/** Fields which can be used to sort flow issuances on. Value must be camel case. */
+export enum IssuanceSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  State = 'state',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow issuances. */
+export type IssuanceSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceSortEnum;
+};
+
+/** IssuanceState */
+export enum IssuanceState {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
 }
 
 /** Issuer definition. */
@@ -11808,6 +13093,58 @@ export enum IssuerFilteringField {
   Type = 'type',
   Uuid = 'uuid'
 }
+
+/** Identity issuer label definition. */
+export type IssuerLabel = Model & {
+  __typename?: 'IssuerLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The identity issuer (resolved via federation) */
+  issuer: Issuer;
+  /** The identity issuer UUID (no direct relation - separate database) */
+  issuerUuid: Scalars['UUID']['output'];
+  /** The Label */
+  label: Label;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Connection */
+export type IssuerLabelConnection = {
+  __typename?: 'IssuerLabelConnection';
+  edges: Array<IssuerLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Edge */
+export type IssuerLabelEdge = {
+  __typename?: 'IssuerLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuerLabel;
+};
+
+/** Fields which can be used to filter identity issuer labels. Value must be camel case. */
+export enum IssuerLabelFilteringField {
+  IssuerUuid = 'issuerUuid',
+  LabelUuid = 'labelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort identity issuer labels. Value must be camel case. */
+export enum IssuerLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting identity issuer labels. */
+export type IssuerLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuerLabelSortEnum;
+};
 
 /** Issuer locale definition. */
 export type IssuerLocale = Model & {
@@ -12005,6 +13342,8 @@ export type IssuerMetaOid4Vcmdoc = Model & {
   issuerMeta: IssuerMeta;
   /** The issuer's public key as a JWK */
   jwk: Scalars['JSONObject']['output'];
+  /** The issuer's logo image URI */
+  logo?: Maybe<Scalars['String']['output']>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -12054,6 +13393,8 @@ export type IssuerMetaOid4Vcsdjwt = Model & {
   issuerMeta: IssuerMeta;
   /** The issuer's public key as a JWK */
   jwk: Scalars['JSONObject']['output'];
+  /** The issuer's logo image URI */
+  logo?: Maybe<Scalars['String']['output']>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -12164,6 +13505,32 @@ export type IssuerMetaYiviSortInput = {
   field: IssuerMetaYiviSortEnum;
 };
 
+/** The input for filtering credentials */
+export type IssuerNestedFilteringCredentialsField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering credentials */
+  input: FindManyCredentialsInput;
+  /** The type of nested filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering issuer meta */
+export type IssuerNestedFilteringIssuerMetaField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering issuer meta */
+  input: FindManyIssuerMetaInput;
+};
+
+/** The input for filtering scheme */
+export type IssuerNestedFilteringSchemeField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering scheme */
+  input: FindManySchemesInput;
+};
+
 /** Fields which can be used to sort issuer on. Value must be camel case. */
 export enum IssuerSortEnum {
   CreatedAt = 'createdAt',
@@ -12185,6 +13552,161 @@ export enum IssuerType {
   Demo = 'DEMO',
   System = 'SYSTEM'
 }
+
+/** Label type for categorizing and visually distinguishing entities */
+export type Label = Model & {
+  __typename?: 'Label';
+  /** Identity attribute labels using this label */
+  attributeLabels: AttributeLabelConnection;
+  /** Flow authentication labels using this label */
+  authenticationLabels: AuthenticationLabelConnection;
+  /** Color string (e.g., '#FF5733') */
+  color: Scalars['NonEmpty']['output'];
+  /** Creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** Identity credential labels using this label */
+  credentialLabels: CredentialLabelConnection;
+  /** Flow disclosure labels using this label */
+  disclosureLabels: DisclosureLabelConnection;
+  /** Flow issuance labels using this label */
+  issuanceLabels: IssuanceLabelConnection;
+  /** Identity issuer labels using this label */
+  issuerLabels: IssuerLabelConnection;
+  /** The name (e.g., 'trust:high', 'category:bank') */
+  name: Scalars['NonEmpty']['output'];
+  /** The organization (null for admin labels) */
+  organization?: Maybe<Organization>;
+  /** Organization brand labels using this label */
+  organizationBrandLabels: OrganizationBrandLabelConnection;
+  /** Organization domain labels using this label */
+  organizationDomainLabels: OrganizationDomainLabelConnection;
+  /** Identity provider labels using this label */
+  providerLabels: ProviderLabelConnection;
+  /** Identity scheme labels using this label */
+  schemeLabels: SchemeLabelConnection;
+  /** The scope of the label */
+  scope: LabelScope;
+  /** Flow signature labels using this label */
+  signatureLabels: SignatureLabelConnection;
+  /** Last update timestamp */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelAttributeLabelsArgs = {
+  input?: InputMaybe<FindManyAttributeLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelAuthenticationLabelsArgs = {
+  input?: InputMaybe<FindManyAuthenticationLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelCredentialLabelsArgs = {
+  input?: InputMaybe<FindManyCredentialLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelDisclosureLabelsArgs = {
+  input?: InputMaybe<FindManyDisclosureLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelIssuanceLabelsArgs = {
+  input?: InputMaybe<FindManyIssuanceLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelIssuerLabelsArgs = {
+  input?: InputMaybe<FindManyIssuerLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelOrganizationBrandLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationBrandLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelOrganizationDomainLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationDomainLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelProviderLabelsArgs = {
+  input?: InputMaybe<FindManyProviderLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelSchemeLabelsArgs = {
+  input?: InputMaybe<FindManySchemeLabelsInput>;
+};
+
+
+/** Label type for categorizing and visually distinguishing entities */
+export type LabelSignatureLabelsArgs = {
+  input?: InputMaybe<FindManySignatureLabelsInput>;
+};
+
+/** Label connection for pagination */
+export type LabelConnection = {
+  __typename?: 'LabelConnection';
+  edges: Array<LabelEdge>;
+  pageInfo: PageInfo;
+};
+
+export type LabelEdge = {
+  __typename?: 'LabelEdge';
+  cursor: Scalars['String']['output'];
+  node: Label;
+};
+
+/** Fields which can be used to filter labels on. Value must be camel case. */
+export enum LabelFilteringField {
+  Color = 'color',
+  Name = 'name',
+  OrganizationUuid = 'organizationUuid',
+  Scope = 'scope',
+  Uuid = 'uuid'
+}
+
+/** Label scope determines where labels can be applied and who can manage them */
+export enum LabelScope {
+  /** Admin-only labels for catalog entities */
+  Catalog = 'CATALOG',
+  /** Organization-level labels for platform entities */
+  Platform = 'PLATFORM'
+}
+
+/** Fields which can be used to sort labels on. Value must be camel case. */
+export enum LabelSortEnum {
+  Color = 'color',
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  Scope = 'scope',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting labels. */
+export type LabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: LabelSortEnum;
+};
 
 /** LocaleConfig definition. */
 export type LocaleConfig = Model & {
@@ -12239,13 +13761,129 @@ export type LocaleConfigSortInput = {
   field: LocaleConfigSortEnum;
 };
 
+/** Login by client credentials input */
+export type LoginByClientCredentialsInput = {
+  /** The client identifier */
+  client_id: Scalars['NonEmpty']['input'];
+  /** The client secret */
+  client_secret: Scalars['NonEmpty']['input'];
+};
+
+/** Login by OpenID token input */
+export type LoginByOpenIdTokenInput = {
+  /** The OAuth provider UUID */
+  oauthProviderUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The organization UUID. */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The open id token which is obtained via SSI or an external OAuth provider. */
+  token: Scalars['NonEmpty']['input'];
+};
+
+/** Login by password input */
+export type LoginByPasswordInput = {
+  /** The email which we should use to log in the user. */
+  email: Scalars['Email']['input'];
+  /** The organization UUID. */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The password which we should use to log in the user. */
+  password: Scalars['Password']['input'];
+};
+
+/** Maintenance window definition. */
+export type Maintenance = Model & {
+  __typename?: 'Maintenance';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The actual end time. */
+  endedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The estimated duration in minutes. */
+  estimatedMinutes?: Maybe<Scalars['Int']['output']>;
+  /** The URN identifier for the maintenance scope. */
+  maintenanceURN: Scalars['NonEmpty']['output'];
+  /** The message body displayed to users. */
+  messageBody?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The message title displayed to users. */
+  messageTitle?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The name of the maintenance window. */
+  name: Scalars['NonEmpty']['output'];
+  /** The scheduled start time. */
+  scheduledAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The actual start time. */
+  startedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The state of the maintenance. */
+  state: MaintenanceState;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** MaintenanceAction */
+export enum MaintenanceAction {
+  Activate = 'ACTIVATE',
+  Complete = 'COMPLETE',
+  Deactivate = 'DEACTIVATE',
+  Start = 'START'
+}
+
+/** The maintenance connection definition. */
+export type MaintenanceConnection = {
+  __typename?: 'MaintenanceConnection';
+  edges: Array<Maybe<MaintenanceEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The maintenance edge definition. */
+export type MaintenanceEdge = {
+  __typename?: 'MaintenanceEdge';
+  cursor: Scalars['String']['output'];
+  node: Maintenance;
+};
+
+/** Fields which can be used to filter maintenances on. Value must be camel case. */
+export enum MaintenanceFilteringField {
+  Name = 'name',
+  State = 'state',
+  Urn = 'urn',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort maintenances on. Value must be camel case. */
+export enum MaintenanceSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  ScheduledAt = 'scheduledAt',
+  State = 'state',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting maintenances. */
+export type MaintenanceSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: MaintenanceSortEnum;
+};
+
+/** MaintenanceState */
+export enum MaintenanceState {
+  Active = 'ACTIVE',
+  Completed = 'COMPLETED',
+  Inactive = 'INACTIVE',
+  Pending = 'PENDING'
+}
+
 /** MappingIssuance definition. */
 export type MappingIssuance = Model & {
   __typename?: 'MappingIssuance';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
+  /** The associated issuance flow mappings. */
+  issuanceMappings: IssuanceMappingConnection;
   /** The issuance payload */
   issuancePayload: Scalars['JSONObject']['output'];
+  /** The collection of defined attributes. */
+  mappingIssuanceAttributes: MappingIssuanceAttributeConnection;
   /** A list of links belonging to this mapping. */
   mappingIssuanceLinks: MappingIssuanceLinkConnection;
   /** The name of the mappingIssuance. */
@@ -12258,6 +13896,18 @@ export type MappingIssuance = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID. */
   uuid: Scalars['UUID']['output'];
+};
+
+
+/** MappingIssuance definition. */
+export type MappingIssuanceIssuanceMappingsArgs = {
+  input?: InputMaybe<FindManyIssuanceMappingsInput>;
+};
+
+
+/** MappingIssuance definition. */
+export type MappingIssuanceMappingIssuanceAttributesArgs = {
+  input?: InputMaybe<FindManyMappingIssuanceAttributesInput>;
 };
 
 
@@ -12447,8 +14097,14 @@ export type MappingVerification = Model & {
   __typename?: 'MappingVerification';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
+  /** The associated disclosures with this mapping */
+  disclosureMappings: DisclosureMappingConnection;
+  /** The collection of defined attributes. */
+  mappingVerificationAttributes: MappingVerificationAttributeConnection;
   /** The collection of defined claims */
   mappingVerificationClaims: MappingVerificationClaimConnection;
+  /** A list of links belonging to this verification. */
+  mappingVerificationLinks: MappingVerificationLinkConnection;
   /** The name of the mappingVerification. */
   name: Scalars['NonEmpty']['output'];
   /** The organization, this mappingVerification belongs to. */
@@ -12463,8 +14119,26 @@ export type MappingVerification = Model & {
 
 
 /** MappingVerification definition. */
+export type MappingVerificationDisclosureMappingsArgs = {
+  input?: InputMaybe<FindManyDisclosureMappingsInput>;
+};
+
+
+/** MappingVerification definition. */
+export type MappingVerificationMappingVerificationAttributesArgs = {
+  input?: InputMaybe<FindManyMappingVerificationAttributesInput>;
+};
+
+
+/** MappingVerification definition. */
 export type MappingVerificationMappingVerificationClaimsArgs = {
   input?: InputMaybe<FindManyMappingVerificationClaimsInput>;
+};
+
+
+/** MappingVerification definition. */
+export type MappingVerificationMappingVerificationLinksArgs = {
+  input?: InputMaybe<FindManyMappingVerificationLinksInput>;
 };
 
 /** MappingVerification actions */
@@ -12726,17 +14400,17 @@ export type Money = {
 };
 
 /** Moves credentials from groups */
-export type MoveFlowDisclosureCredentialInput = {
+export type MoveDisclosureCredentialInput = {
   /** The credential to move */
-  flowDisclosureCredentialUuid: Scalars['NonEmpty']['input'];
+  disclosureCredentialUuid: Scalars['NonEmpty']['input'];
   /** Optionally provide options */
-  options?: InputMaybe<MoveFlowDisclosureCredentialOptionsInput>;
+  options?: InputMaybe<MoveDisclosureCredentialOptionsInput>;
   /** The flow disclosureGroupUuid */
-  toFlowDisclosureGroupUuid?: InputMaybe<Scalars['NonEmpty']['input']>;
+  toDisclosureGroupUuid?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Moves credentials from group options */
-export type MoveFlowDisclosureCredentialOptionsInput = {
+export type MoveDisclosureCredentialOptionsInput = {
   /**
    * Delete the group if it becomes empty after the move
    * Default: true
@@ -12745,17 +14419,17 @@ export type MoveFlowDisclosureCredentialOptionsInput = {
 };
 
 /** Moves credentials from groups */
-export type MoveFlowSignatureCredentialInput = {
-  /** The credential to move */
-  flowSignatureCredentialUuid: Scalars['NonEmpty']['input'];
+export type MoveSignatureCredentialInput = {
   /** Optionally provide options */
-  options?: InputMaybe<MoveFlowSignatureCredentialOptionsInput>;
+  options?: InputMaybe<MoveSignatureCredentialOptionsInput>;
+  /** The credential to move */
+  signatureCredentialUuid: Scalars['NonEmpty']['input'];
   /** The flow disclosureGroupUuid */
-  toFlowSignatureGroupUuid?: InputMaybe<Scalars['NonEmpty']['input']>;
+  toSignatureGroupUuid?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Moves credentials from group options */
-export type MoveFlowSignatureCredentialOptionsInput = {
+export type MoveSignatureCredentialOptionsInput = {
   /**
    * Delete the group if it becomes empty after the move
    * Default: true
@@ -12766,31 +14440,31 @@ export type MoveFlowSignatureCredentialOptionsInput = {
 export type Mutation = {
   __typename?: 'Mutation';
   /** Accept the user invitation using password. */
-  acceptUserInvitationAndRegisterByPassword: Authentication;
+  acceptUserInvitationAndRegisterByPassword: UserToken;
   /** Accept the user invitation using openID Token. */
-  acceptUserInvitationByOpenIdToken: Authentication;
+  acceptUserInvitationByOpenIdToken: UserToken;
   /** Accept the user invitation using password. */
-  acceptUserInvitationByPassword: Authentication;
+  acceptUserInvitationByPassword: UserToken;
   /** Perform action on an app */
   actionApp: App;
   /** Perform action on an attribute */
   actionAttribute: Attribute;
+  /** Update a flow state. */
+  actionAuthentication: Authentication;
   /** Action on billing wallet */
   actionBillingWallet: BillingWallet;
   /** Perform action on an credential */
   actionCredential: Credential;
   /** Perform action on credential request */
   actionCredentialRequest: CredentialRequest;
-  /** Update a flow state. */
-  actionFlowAuthentication: FlowAuthentication;
   /** Action a flow */
-  actionFlowDisclosure: FlowDisclosure;
+  actionDisclosure: Disclosure;
   /** Action a flow. */
-  actionFlowIssuance: FlowIssuance;
-  /** Action a flow. */
-  actionFlowSignature: FlowSignature;
+  actionIssuance: Issuance;
   /** Perform action on an issuer */
   actionIssuer: Issuer;
+  /** Action a maintenance */
+  actionMaintenance: Maintenance;
   /** Perform action on an mappingIssuance */
   actionMappingIssuance: MappingIssuance;
   /** Perform action on an mappingVerification */
@@ -12813,20 +14487,18 @@ export type Mutation = {
   actionOrganizationNotification: OrganizationNotification;
   /** Action a user. */
   actionOrganizationUser: OrganizationUser;
+  /** Update a pricing rule state. */
+  actionPricingRule: PricingRule;
   /** Perform action on an provider */
   actionProvider: Provider;
   /** Perform action on an scheme */
   actionScheme: Scheme;
   /** Perform action on an scope */
   actionScope: Scope;
+  /** Action a flow. */
+  actionSignature: Signature;
   /** Update a state. */
   actionStudioPlan: StudioPlan;
-  /** Log in a user using Client Credentials. */
-  authenticationByClientCredentials: Authentication;
-  /** Log in a user using OpenId token. */
-  authenticationByOpenIdToken: Authentication;
-  /** Log in a user using password. */
-  authenticationByPassword: Authentication;
   /** Create a app. */
   createApp: App;
   /** Create a app. */
@@ -12841,6 +14513,8 @@ export type Mutation = {
   createAppPrerequisiteStateLocale: AppPrerequisiteStateLocale;
   /** Create a attribute. */
   createAttribute: Attribute;
+  /** Create and store a new identity attribute label. */
+  createAttributeLabel: AttributeLabel;
   /** Create a attribute. */
   createAttributeLocale: AttributeLocale;
   /** Create a attribute meta datakeeper. */
@@ -12871,20 +14545,36 @@ export type Mutation = {
   createAttributeRequestLocale: AttributeRequestLocale;
   /** Create a attribute request meta datakeeper. */
   createAttributeRequestMetaDatakeeper: AttributeRequestMetaDatakeeper;
+  /** Create an attribute request meta OID4VC mdoc. */
+  createAttributeRequestMetaOID4VCMDOC: AttributeRequestMetaOid4Vcmdoc;
+  /** Create an attribute request meta OID4VC SD-JWT. */
+  createAttributeRequestMetaOID4VCSDJWT: AttributeRequestMetaOid4Vcsdjwt;
   /** Create a attribute request meta yivi. */
   createAttributeRequestMetaYivi: AttributeRequestMetaYivi;
   /** Create a attribute request meta yoti. */
   createAttributeRequestMetaYoti: AttributeRequestMetaYoti;
-  /** Create invitation. */
-  createAuthenticationInvitation?: Maybe<Scalars['Null']['output']>;
-  /** Forgot password, which send a password reset email. */
-  createAuthenticationReset?: Maybe<Scalars['Null']['output']>;
+  /** Create a flow. */
+  createAuthentication: Authentication;
+  /** Create and store a new brand type. */
+  createAuthenticationBrand: AuthenticationBrand;
+  /** Create and store a new domain type. */
+  createAuthenticationDomain: AuthenticationDomain;
+  /** Create and store a new Label type. */
+  createAuthenticationLabel: AuthenticationLabel;
+  /** Create a flow authentication provider. */
+  createAuthenticationProvider: AuthenticationProvider;
+  /** Create a AuthenticationProviderConfigurationNLWallet. */
+  createAuthenticationProviderConfigurationNLWallet: AuthenticationProviderConfigurationNlWallet;
+  /** Create a flow authentication scope. */
+  createAuthenticationScope: AuthenticationScope;
   /** Initializes billing plan */
   createBillingPlan: BillingPlan;
   /** Create billing wallet */
   createBillingWallet: BillingWallet;
   /** Create a credential. */
   createCredential: Credential;
+  /** Create and store a new identity credential label. */
+  createCredentialLabel: CredentialLabel;
   /** Create a credential. */
   createCredentialLocale: CredentialLocale;
   /** Create a credential meta datakeeper. */
@@ -12915,6 +14605,10 @@ export type Mutation = {
   createCredentialRequestLocale: CredentialRequestLocale;
   /** Create a credential request meta datakeeper. */
   createCredentialRequestMetaDatakeeper: CredentialRequestMetaDatakeeper;
+  /** Create a credential request meta OID4VC mdoc. */
+  createCredentialRequestMetaOID4VCMDOC: CredentialRequestMetaOid4Vcmdoc;
+  /** Create a credential request meta OID4VC SD-JWT. */
+  createCredentialRequestMetaOID4VCSDJWT: CredentialRequestMetaOid4Vcsdjwt;
   /** Create a credential request meta yivi. */
   createCredentialRequestMetaYivi: CredentialRequestMetaYivi;
   /** Create a credential request meta yoti. */
@@ -12924,79 +14618,53 @@ export type Mutation = {
   /** Create a credentialRequestState. */
   createCredentialRequestStateLocale: CredentialRequestStateLocale;
   /** Create a flow. */
-  createFlowAuthentication: FlowAuthentication;
-  /** Create and store a new brand type. */
-  createFlowAuthenticationBrand: FlowAuthenticationBrand;
-  /** Create and store a new domain type. */
-  createFlowAuthenticationDomain: FlowAuthenticationDomain;
-  /** Create a flow authentication provider. */
-  createFlowAuthenticationProvider: FlowAuthenticationProvider;
-  /** Create a FlowAuthenticationProviderConfigurationNLWallet. */
-  createFlowAuthenticationProviderConfigurationNLWallet: FlowAuthenticationProviderConfigurationNlWallet;
-  /** Create a flow authentication scope. */
-  createFlowAuthenticationScope: FlowAuthenticationScope;
-  /** Create a flow. */
-  createFlowDisclosure: FlowDisclosure;
+  createDisclosure: Disclosure;
   /** Create a flow disclosure attribute. */
-  createFlowDisclosureAttribute: FlowDisclosureAttribute;
+  createDisclosureAttribute: DisclosureAttribute;
   /** Create and store a new brand type. */
-  createFlowDisclosureBrand: FlowDisclosureBrand;
+  createDisclosureBrand: DisclosureBrand;
   /** Create a flow disclosure credential. */
-  createFlowDisclosureCredential: FlowDisclosureCredential;
+  createDisclosureCredential: DisclosureCredential;
   /** Create and store a new domain type. */
-  createFlowDisclosureDomain: FlowDisclosureDomain;
+  createDisclosureDomain: DisclosureDomain;
   /** Create a flow disclosure group. */
-  createFlowDisclosureGroup: FlowDisclosureGroup;
+  createDisclosureGroup: DisclosureGroup;
+  /** Create and store a new Label type. */
+  createDisclosureLabel: DisclosureLabel;
   /** Create and store a new mapping type. */
-  createFlowDisclosureMapping: FlowDisclosureMapping;
+  createDisclosureMapping: DisclosureMapping;
   /** Create a flow disclosure provider. */
-  createFlowDisclosureProvider: FlowDisclosureProvider;
+  createDisclosureProvider: DisclosureProvider;
   /** Create a flow disclosure provider by attributes */
-  createFlowDisclosureProviderByAttributes: FlowDisclosureProvider;
-  /** Create a FlowDisclosureProviderConfigurationNLWallet. */
-  createFlowDisclosureProviderConfigurationNLWallet: FlowDisclosureProviderConfigurationNlWallet;
+  createDisclosureProviderByAttributes: DisclosureProvider;
+  /** Create a DisclosureProviderConfigurationNLWallet. */
+  createDisclosureProviderConfigurationNLWallet: DisclosureProviderConfigurationNlWallet;
   /** Create a flow. */
-  createFlowIssuance: FlowIssuance;
+  createIssuance: Issuance;
   /** Create a flow issuance attribute. */
-  createFlowIssuanceAttribute: FlowIssuanceAttribute;
+  createIssuanceAttribute: IssuanceAttribute;
   /** Create and store a new brand type. */
-  createFlowIssuanceBrand: FlowIssuanceBrand;
+  createIssuanceBrand: IssuanceBrand;
   /** Create a flow issuance credential. */
-  createFlowIssuanceCredential: FlowIssuanceCredential;
+  createIssuanceCredential: IssuanceCredential;
   /** Create a flow credential meta datakeeper. */
-  createFlowIssuanceCredentialMetaDatakeeper: FlowIssuanceCredentialMetaDatakeeper;
+  createIssuanceCredentialMetaDatakeeper: IssuanceCredentialMetaDatakeeper;
   /** Create a flow credential meta yivi. */
-  createFlowIssuanceCredentialMetaYivi: FlowIssuanceCredentialMetaYivi;
+  createIssuanceCredentialMetaYivi: IssuanceCredentialMetaYivi;
   /** Create and store a new domain type. */
-  createFlowIssuanceDomain: FlowIssuanceDomain;
+  createIssuanceDomain: IssuanceDomain;
+  /** Create and store a new Label type. */
+  createIssuanceLabel: IssuanceLabel;
   /** Create and store a new mapping type. */
-  createFlowIssuanceMapping: FlowIssuanceMapping;
+  createIssuanceMapping: IssuanceMapping;
   /** Create a flow issuance provider. */
-  createFlowIssuanceProvider: FlowIssuanceProvider;
+  createIssuanceProvider: IssuanceProvider;
   /** Create many flow issuance provider by attributes */
-  createFlowIssuanceProviderByAttributes: FlowIssuanceProvider;
-  /** Create a flow. */
-  createFlowSignature: FlowSignature;
-  /** Create a flow signature attribute. */
-  createFlowSignatureAttribute: FlowSignatureAttribute;
-  /** Create and store a new brand type. */
-  createFlowSignatureBrand: FlowSignatureBrand;
-  /** Create a flow signature credential. */
-  createFlowSignatureCredential: FlowSignatureCredential;
-  /** Create and store a new domain type. */
-  createFlowSignatureDomain: FlowSignatureDomain;
-  /** Create a flow signature group. */
-  createFlowSignatureGroup: FlowSignatureGroup;
-  /** Create and store a new mapping type. */
-  createFlowSignatureMapping: FlowSignatureMapping;
-  /** Create a flow signature provider. */
-  createFlowSignatureProvider: FlowSignatureProvider;
-  /** Create a flow signature provider by attributes */
-  createFlowSignatureProviderByAttributes: FlowSignatureProvider;
-  /** Create a FlowSignatureProviderConfigurationNLWallet. */
-  createFlowSignatureProviderConfigurationNLWallet: FlowSignatureProviderConfigurationNlWallet;
+  createIssuanceProviderByAttributes: IssuanceProvider;
   /** Create a issuer. */
   createIssuer: Issuer;
+  /** Create and store a new identity issuer label. */
+  createIssuerLabel: IssuerLabel;
   /** Create a issuer. */
   createIssuerLocale: IssuerLocale;
   /** Create a issuer meta datakeeper. */
@@ -13009,8 +14677,14 @@ export type Mutation = {
   createIssuerMetaOID4VCSDJWT: IssuerMetaOid4Vcsdjwt;
   /** Create a issuer meta yivi. */
   createIssuerMetaYivi: IssuerMetaYivi;
+  /** Create a new label */
+  createLabel: Label;
   /** Create a localeConfig. */
   createLocaleConfig: LocaleConfig;
+  /** Create a maintenance. */
+  createMaintenance: Maintenance;
+  /** Create and store a new MANAGED organization type. */
+  createManagedOrganization: Organization;
   /** Create many mappingIssuance attributes */
   createManyMappingIssuanceAttributes: Array<MappingIssuanceAttribute>;
   /** Create many mappingIssuance links */
@@ -13043,7 +14717,7 @@ export type Mutation = {
   createMappingVerificationLink: MappingVerificationLink;
   /** Create and store a new oauthProvider type. */
   createOAuthProvider: OAuthProvider;
-  /** Create and store a new organization type. */
+  /** Create and store a new DIRECT organization type. */
   createOrganization: Organization;
   /** Create and store a new address. */
   createOrganizationAddress: OrganizationAddress;
@@ -13057,16 +14731,22 @@ export type Mutation = {
   createOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Create a organization app meta kiwa. */
   createOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
+  /** Create a organization app meta OID4VC. */
+  createOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Create a organization app meta yoti. */
   createOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Create an organization app prerequisite. */
   createOrganizationAppPrerequisite: OrganizationAppPrerequisite;
   /** Create and store a new brand type. */
   createOrganizationBrand: OrganizationBrand;
+  /** Create and store a new Label type. */
+  createOrganizationBrandLabel: OrganizationBrandLabel;
   /** Create and store a new token type. */
   createOrganizationClient: OrganizationClient;
   /** Create and store a new domain type. */
   createOrganizationDomain: OrganizationDomain;
+  /** Create and store a new Label type. */
+  createOrganizationDomainLabel: OrganizationDomainLabel;
   /** Create a OrganizationDomainOAuthProvider. */
   createOrganizationDomainOAuthProvider: OrganizationDomainOAuthProvider;
   /** Create and store a new address. */
@@ -13077,16 +14757,38 @@ export type Mutation = {
   createOrganizationSecret: OrganizationSecret;
   /** Create and store a new user type. */
   createOrganizationUser: OrganizationUser;
+  /** Create a pricing catalog entry. */
+  createPricingCatalog: PricingCatalog;
+  /** Create a pricing configuration app. */
+  createPricingConfigurationApp: PricingConfigurationApp;
+  /** Create a pricing configuration organization. */
+  createPricingConfigurationOrganization: PricingConfigurationOrganization;
+  /** Create a pricing configuration studio plan. */
+  createPricingConfigurationStudioPlan: PricingConfigurationStudioPlan;
+  /** Create a pricing group. */
+  createPricingGroup: PricingGroup;
+  /** Create a pricing group assignment. */
+  createPricingGroupAssignment: PricingGroupAssignment;
+  /** Create a pricing rule. */
+  createPricingRule: PricingRule;
+  /** Create a pricing rule constraint. */
+  createPricingRuleConstraint: PricingRuleConstraint;
+  /** Create a pricing rule target. */
+  createPricingRuleTarget: PricingRuleTarget;
   /** Create a provider. */
   createProvider: Provider;
   /** Create a app. */
   createProviderApp: ProviderApp;
   /** Create an object */
   createProviderAppMetaOID4VC: ProviderAppMetaOid4Vc;
+  /** Create and store a new identity provider label. */
+  createProviderLabel: ProviderLabel;
   /** Create a provider. */
   createProviderLocale: ProviderLocale;
   /** Create a scheme. */
   createScheme: Scheme;
+  /** Create and store a new identity scheme label. */
+  createSchemeLabel: SchemeLabel;
   /** Create a scheme. */
   createSchemeLocale: SchemeLocale;
   /** Create a scope. */
@@ -13097,6 +14799,28 @@ export type Mutation = {
   createScopeLocale: ScopeLocale;
   /** Create a scope resource. */
   createScopeResource: ScopeResource;
+  /** Create a flow. */
+  createSignature: Signature;
+  /** Create a flow signature attribute. */
+  createSignatureAttribute: SignatureAttribute;
+  /** Create and store a new brand type. */
+  createSignatureBrand: SignatureBrand;
+  /** Create a flow signature credential. */
+  createSignatureCredential: SignatureCredential;
+  /** Create and store a new domain type. */
+  createSignatureDomain: SignatureDomain;
+  /** Create a flow signature group. */
+  createSignatureGroup: SignatureGroup;
+  /** Create and store a new Label type. */
+  createSignatureLabel: SignatureLabel;
+  /** Create and store a new mapping type. */
+  createSignatureMapping: SignatureMapping;
+  /** Create a flow signature provider. */
+  createSignatureProvider: SignatureProvider;
+  /** Create a flow signature provider by attributes */
+  createSignatureProviderByAttributes: SignatureProvider;
+  /** Create a SignatureProviderConfigurationNLWallet. */
+  createSignatureProviderConfigurationNLWallet: SignatureProviderConfigurationNlWallet;
   /** Create a StudioPlan. */
   createStudioPlan: StudioPlan;
   /** Create a StudioPlanControl. */
@@ -13111,6 +14835,10 @@ export type Mutation = {
   createUser: User;
   /** Create and store a new userInvitation type. */
   createUserInvitation: UserInvitation;
+  /** Create invitation. */
+  createUserInvitationToken?: Maybe<Scalars['Null']['output']>;
+  /** Forgot password, which send a password reset email. */
+  createUserReset?: Maybe<Scalars['Null']['output']>;
   /** Delete an app. */
   deleteApp?: Maybe<Scalars['Null']['output']>;
   /** Delete an app. */
@@ -13125,6 +14853,8 @@ export type Mutation = {
   deleteAppPrerequisiteStateLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete an attribute. */
   deleteAttribute?: Maybe<Scalars['Null']['output']>;
+  /** Delete an identity attribute label. */
+  deleteAttributeLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an attribute. */
   deleteAttributeLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a attribute meta datakeeper. */
@@ -13155,14 +14885,34 @@ export type Mutation = {
   deleteAttributeRequestLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a attribute request meta datakeeper. */
   deleteAttributeRequestMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
+  /** Delete an attribute request meta OID4VC mdoc. */
+  deleteAttributeRequestMetaOID4VCMDOC?: Maybe<Scalars['Null']['output']>;
+  /** Delete an attribute request meta OID4VC SD-JWT. */
+  deleteAttributeRequestMetaOID4VCSDJWT?: Maybe<Scalars['Null']['output']>;
   /** Delete a attribute request meta yivi. */
   deleteAttributeRequestMetaYivi?: Maybe<Scalars['Null']['output']>;
   /** Delete a attribute request meta yoti. */
   deleteAttributeRequestMetaYoti?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow. */
+  deleteAuthentication?: Maybe<Scalars['Null']['output']>;
+  /** Delete a brand. */
+  deleteAuthenticationBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete a domain. */
+  deleteAuthenticationDomain?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteAuthenticationLabel?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow authentication provider. */
+  deleteAuthenticationProvider?: Maybe<Scalars['Null']['output']>;
+  /** Delete a AuthenticationProviderConfigurationNLWallet. */
+  deleteAuthenticationProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow authentication scope. */
+  deleteAuthenticationScope?: Maybe<Scalars['Null']['output']>;
   /** Delete billing plan. */
   deleteBillingPlan?: Maybe<Scalars['Null']['output']>;
   /** Delete an credential. */
   deleteCredential?: Maybe<Scalars['Null']['output']>;
+  /** Delete an identity credential label. */
+  deleteCredentialLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an credential. */
   deleteCredentialLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a credential meta datakeeper. */
@@ -13193,6 +14943,10 @@ export type Mutation = {
   deleteCredentialRequestLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a credential request meta datakeeper. */
   deleteCredentialRequestMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
+  /** Delete a credential request meta OID4VC mdoc. */
+  deleteCredentialRequestMetaOID4VCMDOC?: Maybe<Scalars['Null']['output']>;
+  /** Delete a credential request meta OID4VC SD-JWT. */
+  deleteCredentialRequestMetaOID4VCSDJWT?: Maybe<Scalars['Null']['output']>;
   /** Delete a credential request meta yivi. */
   deleteCredentialRequestMetaYivi?: Maybe<Scalars['Null']['output']>;
   /** Delete a credential request meta yoti. */
@@ -13202,73 +14956,49 @@ export type Mutation = {
   /** Delete an credentialRequestState. */
   deleteCredentialRequestStateLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow. */
-  deleteFlowAuthentication?: Maybe<Scalars['Null']['output']>;
-  /** Delete a brand. */
-  deleteFlowAuthenticationBrand?: Maybe<Scalars['Null']['output']>;
-  /** Delete a domain. */
-  deleteFlowAuthenticationDomain?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow authentication provider. */
-  deleteFlowAuthenticationProvider?: Maybe<Scalars['Null']['output']>;
-  /** Delete a FlowAuthenticationProviderConfigurationNLWallet. */
-  deleteFlowAuthenticationProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow authentication scope. */
-  deleteFlowAuthenticationScope?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow. */
-  deleteFlowDisclosure?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosure?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow disclosure attribute. */
-  deleteFlowDisclosureAttribute?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureAttribute?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
-  deleteFlowDisclosureBrand?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureBrand?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow disclosure credential. */
-  deleteFlowDisclosureCredential?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureCredential?: Maybe<Scalars['Null']['output']>;
   /** Delete a domain. */
-  deleteFlowDisclosureDomain?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureDomain?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow disclosure group. */
-  deleteFlowDisclosureGroup?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureGroup?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteDisclosureLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a mapping. */
-  deleteFlowDisclosureMapping?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureMapping?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow disclosure provider. */
-  deleteFlowDisclosureProvider?: Maybe<Scalars['Null']['output']>;
-  /** Delete a FlowDisclosureProviderConfigurationNLWallet. */
-  deleteFlowDisclosureProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  deleteDisclosureProvider?: Maybe<Scalars['Null']['output']>;
+  /** Delete a DisclosureProviderConfigurationNLWallet. */
+  deleteDisclosureProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow. */
-  deleteFlowIssuance?: Maybe<Scalars['Null']['output']>;
+  deleteIssuance?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow issuance attribute. */
-  deleteFlowIssuanceAttribute?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceAttribute?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
-  deleteFlowIssuanceBrand?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceBrand?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow issuance credential. */
-  deleteFlowIssuanceCredential?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceCredential?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow credential meta datakeeper. */
-  deleteFlowIssuanceCredentialMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceCredentialMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow credential meta yivi. */
-  deleteFlowIssuanceCredentialMetaYivi?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceCredentialMetaYivi?: Maybe<Scalars['Null']['output']>;
   /** Delete a domain. */
-  deleteFlowIssuanceDomain?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceDomain?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteIssuanceLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a mapping. */
-  deleteFlowIssuanceMapping?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceMapping?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow issuance provider. */
-  deleteFlowIssuanceProvider?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow. */
-  deleteFlowSignature?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow signature attribute. */
-  deleteFlowSignatureAttribute?: Maybe<Scalars['Null']['output']>;
-  /** Delete a brand. */
-  deleteFlowSignatureBrand?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow signature credential. */
-  deleteFlowSignatureCredential?: Maybe<Scalars['Null']['output']>;
-  /** Delete a domain. */
-  deleteFlowSignatureDomain?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow signature group. */
-  deleteFlowSignatureGroup?: Maybe<Scalars['Null']['output']>;
-  /** Delete a mapping. */
-  deleteFlowSignatureMapping?: Maybe<Scalars['Null']['output']>;
-  /** Delete a flow signature provider. */
-  deleteFlowSignatureProvider?: Maybe<Scalars['Null']['output']>;
-  /** Delete a FlowSignatureProviderConfigurationNLWallet. */
-  deleteFlowSignatureProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  deleteIssuanceProvider?: Maybe<Scalars['Null']['output']>;
   /** Delete an issuer. */
   deleteIssuer?: Maybe<Scalars['Null']['output']>;
+  /** Delete an identity issuer label. */
+  deleteIssuerLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an issuer. */
   deleteIssuerLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete a issuer meta datakeeper. */
@@ -13281,8 +15011,12 @@ export type Mutation = {
   deleteIssuerMetaOID4VCSDJWT?: Maybe<Scalars['Null']['output']>;
   /** Delete a issuer meta yivi. */
   deleteIssuerMetaYivi?: Maybe<Scalars['Null']['output']>;
+  /** Delete a label */
+  deleteLabel: Scalars['Boolean']['output'];
   /** Delete an localeConfig. */
   deleteLocaleConfig?: Maybe<Scalars['Null']['output']>;
+  /** Delete a maintenance. */
+  deleteMaintenance?: Maybe<Scalars['Null']['output']>;
   /** Delete an mappingIssuance. */
   deleteMappingIssuance?: Maybe<Scalars['Null']['output']>;
   /** Delete a mappingIssuance attribute */
@@ -13313,16 +15047,22 @@ export type Mutation = {
   deleteOrganizationAppMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
   /** Delete a organization app meta kiwa. */
   deleteOrganizationAppMetaKiwa?: Maybe<Scalars['Null']['output']>;
+  /** Delete a organization app meta OID4VC. */
+  deleteOrganizationAppMetaOid4vc?: Maybe<Scalars['Null']['output']>;
   /** Delete a organization app meta yoti. */
   deleteOrganizationAppMetaYoti?: Maybe<Scalars['Null']['output']>;
   /** Delete an organization app prerequisite. */
   deleteOrganizationAppPrerequisite?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
   deleteOrganizationBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteOrganizationBrandLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a token. */
   deleteOrganizationClient?: Maybe<Scalars['Null']['output']>;
   /** Delete a domain. */
   deleteOrganizationDomain?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteOrganizationDomainLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an OrganizationDomainOAuthProvider. */
   deleteOrganizationDomainOAuthProvider?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing organization address. */
@@ -13333,16 +15073,38 @@ export type Mutation = {
   deleteOrganizationSecret?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing user. */
   deleteOrganizationUser?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing catalog entry. */
+  deletePricingCatalog?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing configuration app. */
+  deletePricingConfigurationApp?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing configuration organization. */
+  deletePricingConfigurationOrganization?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing configuration studio plan. */
+  deletePricingConfigurationStudioPlan?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing group. */
+  deletePricingGroup?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing group assignment. */
+  deletePricingGroupAssignment?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing rule. */
+  deletePricingRule?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing rule constraint. */
+  deletePricingRuleConstraint?: Maybe<Scalars['Null']['output']>;
+  /** Delete a pricing rule target. */
+  deletePricingRuleTarget?: Maybe<Scalars['Null']['output']>;
   /** Delete an provider. */
   deleteProvider?: Maybe<Scalars['Null']['output']>;
   /** Delete an app. */
   deleteProviderApp?: Maybe<Scalars['Null']['output']>;
   /** Delete an object */
   deleteProviderAppMetaOID4VC?: Maybe<Scalars['Null']['output']>;
+  /** Delete an identity provider label. */
+  deleteProviderLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an provider. */
   deleteProviderLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete an scheme. */
   deleteScheme?: Maybe<Scalars['Null']['output']>;
+  /** Delete an identity scheme label. */
+  deleteSchemeLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an scheme. */
   deleteSchemeLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete an scope. */
@@ -13353,6 +15115,26 @@ export type Mutation = {
   deleteScopeLocale?: Maybe<Scalars['Null']['output']>;
   /** Delete an scope resource. */
   deleteScopeResource?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow. */
+  deleteSignature?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow signature attribute. */
+  deleteSignatureAttribute?: Maybe<Scalars['Null']['output']>;
+  /** Delete a brand. */
+  deleteSignatureBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow signature credential. */
+  deleteSignatureCredential?: Maybe<Scalars['Null']['output']>;
+  /** Delete a domain. */
+  deleteSignatureDomain?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow signature group. */
+  deleteSignatureGroup?: Maybe<Scalars['Null']['output']>;
+  /** Delete a Label. */
+  deleteSignatureLabel?: Maybe<Scalars['Null']['output']>;
+  /** Delete a mapping. */
+  deleteSignatureMapping?: Maybe<Scalars['Null']['output']>;
+  /** Delete a flow signature provider. */
+  deleteSignatureProvider?: Maybe<Scalars['Null']['output']>;
+  /** Delete a SignatureProviderConfigurationNLWallet. */
+  deleteSignatureProviderConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
   /** Delete a StudioPlan. */
   deleteStudioPlan?: Maybe<Scalars['Null']['output']>;
   /** Delete a StudioPlanControl. */
@@ -13368,27 +15150,37 @@ export type Mutation = {
   /** Delete an existing userInvitation. */
   deleteUserInvitation?: Maybe<Scalars['Null']['output']>;
   /** Duplicate a flow. */
-  duplicateFlowAuthentication: FlowAuthentication;
+  duplicateAuthentication: Authentication;
   /** Duplicate a flow. */
-  duplicateFlowDisclosure: FlowDisclosure;
+  duplicateDisclosure: Disclosure;
   /** Duplicate a flow. */
-  duplicateFlowIssuance: FlowIssuance;
+  duplicateIssuance: Issuance;
   /** Duplicate a flow. */
-  duplicateFlowSignature: FlowSignature;
+  duplicateSignature: Signature;
   /** Duplicate a plan. */
   duplicateStudioPlan: StudioPlan;
+  /** Log in a user using Client Credentials. */
+  loginByClientCredentials: UserToken;
+  /** Log in a user using OpenId token. */
+  loginByOpenIdToken: UserToken;
+  /** Log in a user using password. */
+  loginByPassword: UserToken;
   /** Move a flow credential to new or existing groups */
-  moveFlowDisclosureCredential: FlowDisclosureGroup;
+  moveDisclosureCredential: DisclosureGroup;
   /** Move a flow credential to new or existing groups */
-  moveFlowSignatureCredential: FlowSignatureGroup;
+  moveSignatureCredential: SignatureGroup;
   /** Register a user with OpenID token. */
-  registerByOpenIdToken: Authentication;
+  registerByOpenIdToken: UserToken;
   /** Register a user with password. */
-  registerByPassword: Authentication;
+  registerByPassword: UserToken;
+  /** Renew access token. */
+  renewAccessToken: UserToken;
+  /** Resend an existing userInvitation. */
+  resendUserInvitation: UserInvitation;
   /** Initializes billing method */
   setupBillingMethod: SetupBillingMethodOutput;
-  /** Switch user organization. */
-  switchUserOrganization: Authentication;
+  /** Transition a user organization type. */
+  transitionOrganizationType: Organization;
   /** Update an app. */
   updateApp: App;
   /** Update an app. */
@@ -13433,10 +15225,24 @@ export type Mutation = {
   updateAttributeRequestLocale: AttributeRequestLocale;
   /** Update a attribute request meta datakeeper. */
   updateAttributeRequestMetaDatakeeper: AttributeRequestMetaDatakeeper;
+  /** Update an attribute request meta OID4VC mdoc. */
+  updateAttributeRequestMetaOID4VCMDOC: AttributeRequestMetaOid4Vcmdoc;
+  /** Update an attribute request meta OID4VC SD-JWT. */
+  updateAttributeRequestMetaOID4VCSDJWT: AttributeRequestMetaOid4Vcsdjwt;
   /** Update a attribute request meta yivi. */
   updateAttributeRequestMetaYivi: AttributeRequestMetaYivi;
   /** Update a attribute request meta yoti. */
   updateAttributeRequestMetaYoti: AttributeRequestMetaYoti;
+  /** Update a flow. */
+  updateAuthentication: Authentication;
+  /** Update brand. */
+  updateAuthenticationBrand: AuthenticationBrand;
+  /** Update an domain. */
+  updateAuthenticationDomain: AuthenticationDomain;
+  /** Update a flow authentication provider. */
+  updateAuthenticationProvider: AuthenticationProvider;
+  /** Update a AuthenticationProviderConfigurationNLWallet. */
+  updateAuthenticationProviderConfigurationNLWallet: AuthenticationProviderConfigurationNlWallet;
   /** Update billing method. */
   updateBillingMethod: BillingMethod;
   /** Update billing plan. */
@@ -13475,6 +15281,10 @@ export type Mutation = {
   updateCredentialRequestLocale: CredentialRequestLocale;
   /** Update a credential request meta datakeeper. */
   updateCredentialRequestMetaDatakeeper: CredentialRequestMetaDatakeeper;
+  /** Update a credential request meta OID4VC mdoc. */
+  updateCredentialRequestMetaOID4VCMDOC: CredentialRequestMetaOid4Vcmdoc;
+  /** Update a credential request meta OID4VC SD-JWT. */
+  updateCredentialRequestMetaOID4VCSDJWT: CredentialRequestMetaOid4Vcsdjwt;
   /** Update a credential request meta yivi. */
   updateCredentialRequestMetaYivi: CredentialRequestMetaYivi;
   /** Update a credential request meta yoti. */
@@ -13484,51 +15294,29 @@ export type Mutation = {
   /** Update an credentialRequestState. */
   updateCredentialRequestStateLocale: CredentialRequestStateLocale;
   /** Update a flow. */
-  updateFlowAuthentication: FlowAuthentication;
-  /** Update brand. */
-  updateFlowAuthenticationBrand: FlowAuthenticationBrand;
-  /** Update an domain. */
-  updateFlowAuthenticationDomain: FlowAuthenticationDomain;
-  /** Update a flow authentication provider. */
-  updateFlowAuthenticationProvider: FlowAuthenticationProvider;
-  /** Update a FlowAuthenticationProviderConfigurationNLWallet. */
-  updateFlowAuthenticationProviderConfigurationNLWallet: FlowAuthenticationProviderConfigurationNlWallet;
-  /** Update a flow. */
-  updateFlowDisclosure: FlowDisclosure;
+  updateDisclosure: Disclosure;
   /** Update brand */
-  updateFlowDisclosureBrand: FlowDisclosureBrand;
+  updateDisclosureBrand: DisclosureBrand;
   /** Update an domain. */
-  updateFlowDisclosureDomain: FlowDisclosureDomain;
+  updateDisclosureDomain: DisclosureDomain;
   /** Update a flow group. */
-  updateFlowDisclosureGroup: FlowDisclosureGroup;
+  updateDisclosureGroup: DisclosureGroup;
   /** Update a flow disclosure provider. */
-  updateFlowDisclosureProvider: FlowDisclosureProvider;
-  /** Update a FlowDisclosureProviderConfigurationNLWallet. */
-  updateFlowDisclosureProviderConfigurationNLWallet: FlowDisclosureProviderConfigurationNlWallet;
+  updateDisclosureProvider: DisclosureProvider;
+  /** Update a DisclosureProviderConfigurationNLWallet. */
+  updateDisclosureProviderConfigurationNLWallet: DisclosureProviderConfigurationNlWallet;
   /** Update a flow. */
-  updateFlowIssuance: FlowIssuance;
+  updateIssuance: Issuance;
   /** Update brand */
-  updateFlowIssuanceBrand: FlowIssuanceBrand;
+  updateIssuanceBrand: IssuanceBrand;
   /** Update a flow credential meta datakeeper. */
-  updateFlowIssuanceCredentialMetaDatakeeper: FlowIssuanceCredentialMetaDatakeeper;
+  updateIssuanceCredentialMetaDatakeeper: IssuanceCredentialMetaDatakeeper;
   /** Update a flow credential meta yivi. */
-  updateFlowIssuanceCredentialMetaYivi: FlowIssuanceCredentialMetaYivi;
+  updateIssuanceCredentialMetaYivi: IssuanceCredentialMetaYivi;
   /** Update an domain. */
-  updateFlowIssuanceDomain: FlowIssuanceDomain;
+  updateIssuanceDomain: IssuanceDomain;
   /** Update a flow issuance provider. */
-  updateFlowIssuanceProvider: FlowIssuanceProvider;
-  /** Update a flow. */
-  updateFlowSignature: FlowSignature;
-  /** Update brand */
-  updateFlowSignatureBrand: FlowSignatureBrand;
-  /** Update an domain. */
-  updateFlowSignatureDomain: FlowSignatureDomain;
-  /** Update a flow group. */
-  updateFlowSignatureGroup: FlowSignatureGroup;
-  /** Update a flow signature provider. */
-  updateFlowSignatureProvider: FlowSignatureProvider;
-  /** Update a FlowSignatureProviderConfigurationNLWallet. */
-  updateFlowSignatureProviderConfigurationNLWallet: FlowSignatureProviderConfigurationNlWallet;
+  updateIssuanceProvider: IssuanceProvider;
   /** Update an issuer. */
   updateIssuer: Issuer;
   /** Update an issuer. */
@@ -13543,8 +15331,12 @@ export type Mutation = {
   updateIssuerMetaOID4VCSDJWT: IssuerMetaOid4Vcsdjwt;
   /** Update a issuer meta yivi. */
   updateIssuerMetaYivi: IssuerMetaYivi;
+  /** Update an existing label */
+  updateLabel: Label;
   /** Update an localeConfig. */
   updateLocaleConfig: LocaleConfig;
+  /** Update a maintenance. */
+  updateMaintenance: Maintenance;
   /** Update an mappingIssuance. */
   updateMappingIssuance: MappingIssuance;
   /** Update a mappingIssuance attribute. */
@@ -13571,6 +15363,8 @@ export type Mutation = {
   updateOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Update a organization app meta kiwa. */
   updateOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
+  /** Update a organization app meta OID4VC. */
+  updateOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Update a organization app meta yoti. */
   updateOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Update an brand. */
@@ -13587,6 +15381,22 @@ export type Mutation = {
   updateOrganizationUser: OrganizationUser;
   /** Update a user password. */
   updatePasswordUser: User;
+  /** Update a pricing catalog entry. */
+  updatePricingCatalog: PricingCatalog;
+  /** Update a pricing configuration app. */
+  updatePricingConfigurationApp: PricingConfigurationApp;
+  /** Update a pricing configuration organization. */
+  updatePricingConfigurationOrganization: PricingConfigurationOrganization;
+  /** Update a pricing configuration studio plan. */
+  updatePricingConfigurationStudioPlan: PricingConfigurationStudioPlan;
+  /** Update a pricing group. */
+  updatePricingGroup: PricingGroup;
+  /** Update a pricing rule. */
+  updatePricingRule: PricingRule;
+  /** Update a pricing rule constraint. */
+  updatePricingRuleConstraint: PricingRuleConstraint;
+  /** Update a pricing rule target. */
+  updatePricingRuleTarget: PricingRuleTarget;
   /** Update an provider. */
   updateProvider: Provider;
   /** Update an object */
@@ -13605,6 +15415,18 @@ export type Mutation = {
   updateScopeLocale: ScopeLocale;
   /** Update an scope resource. */
   updateScopeResource: ScopeResource;
+  /** Update a flow. */
+  updateSignature: Signature;
+  /** Update brand */
+  updateSignatureBrand: SignatureBrand;
+  /** Update an domain. */
+  updateSignatureDomain: SignatureDomain;
+  /** Update a flow group. */
+  updateSignatureGroup: SignatureGroup;
+  /** Update a flow signature provider. */
+  updateSignatureProvider: SignatureProvider;
+  /** Update a SignatureProviderConfigurationNLWallet. */
+  updateSignatureProviderConfigurationNLWallet: SignatureProviderConfigurationNlWallet;
   /** Update a StudioPlan. */
   updateStudioPlan: StudioPlan;
   /** Update a StudioPlanControl. */
@@ -13618,15 +15440,15 @@ export type Mutation = {
   /** Update a userInvitation. */
   updateUserInvitation: UserInvitation;
   /** Accept the invitation and set the password. */
-  useAuthenticationInvitation: Authentication;
+  useUserInvitationToken: UserToken;
   /** Use a reset token to reset password of a user */
-  useAuthenticationReset: Authentication;
-  /** Validate the invitation. */
-  validateAuthenticationInvitation: Scalars['Boolean']['output'];
-  /** Validate the invitation. */
-  validateAuthenticationReset: Scalars['Boolean']['output'];
+  useUserReset: UserToken;
   /** Validate the user invitation. */
   validateUserInvitation: Scalars['Boolean']['output'];
+  /** Validate the invitation. */
+  validateUserInvitationToken: Scalars['Boolean']['output'];
+  /** Validate the invitation. */
+  validateUserReset: Scalars['Boolean']['output'];
 };
 
 
@@ -13657,6 +15479,12 @@ export type MutationActionAttributeArgs = {
 };
 
 
+export type MutationActionAuthenticationArgs = {
+  input: ActionAuthenticationInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionBillingWalletArgs = {
   input: ActionBillingWalletInput;
   uuid: Scalars['UUID']['input'];
@@ -13675,32 +15503,26 @@ export type MutationActionCredentialRequestArgs = {
 };
 
 
-export type MutationActionFlowAuthenticationArgs = {
-  input: ActionFlowAuthenticationInput;
+export type MutationActionDisclosureArgs = {
+  input: ActionDisclosureInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationActionFlowDisclosureArgs = {
-  input: ActionFlowDisclosureInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationActionFlowIssuanceArgs = {
-  input: ActionFlowIssuanceInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationActionFlowSignatureArgs = {
-  input: ActionFlowSignatureInput;
+export type MutationActionIssuanceArgs = {
+  input: ActionIssuanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
 export type MutationActionIssuerArgs = {
   input: ActionIssuerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionMaintenanceArgs = {
+  input: ActionMaintenanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -13771,6 +15593,12 @@ export type MutationActionOrganizationUserArgs = {
 };
 
 
+export type MutationActionPricingRuleArgs = {
+  input: ActionPricingRuleInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionProviderArgs = {
   input: ActionProviderInput;
   uuid: Scalars['UUID']['input'];
@@ -13789,24 +15617,15 @@ export type MutationActionScopeArgs = {
 };
 
 
-export type MutationActionStudioPlanArgs = {
-  input: ActionStudioPlanInput;
+export type MutationActionSignatureArgs = {
+  input: ActionSignatureInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationAuthenticationByClientCredentialsArgs = {
-  input: AuthenticationByClientCredentialsInput;
-};
-
-
-export type MutationAuthenticationByOpenIdTokenArgs = {
-  input: AuthenticationByOpenIdTokenInput;
-};
-
-
-export type MutationAuthenticationByPasswordArgs = {
-  input: AuthenticationByPasswordInput;
+export type MutationActionStudioPlanArgs = {
+  input: ActionStudioPlanInput;
+  uuid: Scalars['UUID']['input'];
 };
 
 
@@ -13842,6 +15661,11 @@ export type MutationCreateAppPrerequisiteStateLocaleArgs = {
 
 export type MutationCreateAttributeArgs = {
   input: CreateAttributeInput;
+};
+
+
+export type MutationCreateAttributeLabelArgs = {
+  input: CreateAttributeLabelInput;
 };
 
 
@@ -13920,6 +15744,16 @@ export type MutationCreateAttributeRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationCreateAttributeRequestMetaOid4VcmdocArgs = {
+  input: CreateAttributeRequestMetaOid4VcmdocInput;
+};
+
+
+export type MutationCreateAttributeRequestMetaOid4VcsdjwtArgs = {
+  input: CreateAttributeRequestMetaOid4VcsdjwtInput;
+};
+
+
 export type MutationCreateAttributeRequestMetaYiviArgs = {
   input: CreateAttributeRequestMetaYiviInput;
 };
@@ -13930,13 +15764,38 @@ export type MutationCreateAttributeRequestMetaYotiArgs = {
 };
 
 
-export type MutationCreateAuthenticationInvitationArgs = {
-  userUuid: Scalars['UUID']['input'];
+export type MutationCreateAuthenticationArgs = {
+  input: CreateAuthenticationInput;
 };
 
 
-export type MutationCreateAuthenticationResetArgs = {
-  input: CreateAuthenticationResetInput;
+export type MutationCreateAuthenticationBrandArgs = {
+  input: CreateAuthenticationBrandInput;
+};
+
+
+export type MutationCreateAuthenticationDomainArgs = {
+  input: CreateAuthenticationDomainInput;
+};
+
+
+export type MutationCreateAuthenticationLabelArgs = {
+  input: CreateAuthenticationLabelInput;
+};
+
+
+export type MutationCreateAuthenticationProviderArgs = {
+  input: CreateAuthenticationProviderInput;
+};
+
+
+export type MutationCreateAuthenticationProviderConfigurationNlWalletArgs = {
+  input: CreateAuthenticationProviderConfigurationNlWalletInput;
+};
+
+
+export type MutationCreateAuthenticationScopeArgs = {
+  input: CreateAuthenticationScopeInput;
 };
 
 
@@ -13952,6 +15811,11 @@ export type MutationCreateBillingWalletArgs = {
 
 export type MutationCreateCredentialArgs = {
   input: CreateCredentialInput;
+};
+
+
+export type MutationCreateCredentialLabelArgs = {
+  input: CreateCredentialLabelInput;
 };
 
 
@@ -14030,6 +15894,16 @@ export type MutationCreateCredentialRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationCreateCredentialRequestMetaOid4VcmdocArgs = {
+  input: CreateCredentialRequestMetaOid4VcmdocInput;
+};
+
+
+export type MutationCreateCredentialRequestMetaOid4VcsdjwtArgs = {
+  input: CreateCredentialRequestMetaOid4VcsdjwtInput;
+};
+
+
 export type MutationCreateCredentialRequestMetaYiviArgs = {
   input: CreateCredentialRequestMetaYiviInput;
 };
@@ -14050,188 +15924,123 @@ export type MutationCreateCredentialRequestStateLocaleArgs = {
 };
 
 
-export type MutationCreateFlowAuthenticationArgs = {
-  input: CreateFlowAuthenticationInput;
+export type MutationCreateDisclosureArgs = {
+  input: CreateDisclosureInput;
 };
 
 
-export type MutationCreateFlowAuthenticationBrandArgs = {
-  input: CreateFlowAuthenticationBrandInput;
+export type MutationCreateDisclosureAttributeArgs = {
+  input: CreateDisclosureAttributeInput;
 };
 
 
-export type MutationCreateFlowAuthenticationDomainArgs = {
-  input: CreateFlowAuthenticationDomainInput;
+export type MutationCreateDisclosureBrandArgs = {
+  input: CreateDisclosureBrandInput;
 };
 
 
-export type MutationCreateFlowAuthenticationProviderArgs = {
-  input: CreateFlowAuthenticationProviderInput;
+export type MutationCreateDisclosureCredentialArgs = {
+  input: CreateDisclosureCredentialInput;
 };
 
 
-export type MutationCreateFlowAuthenticationProviderConfigurationNlWalletArgs = {
-  input: CreateFlowAuthenticationProviderConfigurationNlWalletInput;
+export type MutationCreateDisclosureDomainArgs = {
+  input: CreateDisclosureDomainInput;
 };
 
 
-export type MutationCreateFlowAuthenticationScopeArgs = {
-  input: CreateFlowAuthenticationScopeInput;
+export type MutationCreateDisclosureGroupArgs = {
+  input: CreateDisclosureGroupInput;
 };
 
 
-export type MutationCreateFlowDisclosureArgs = {
-  input: CreateFlowDisclosureInput;
+export type MutationCreateDisclosureLabelArgs = {
+  input: CreateDisclosureLabelInput;
 };
 
 
-export type MutationCreateFlowDisclosureAttributeArgs = {
-  input: CreateFlowDisclosureAttributeInput;
+export type MutationCreateDisclosureMappingArgs = {
+  input: CreateDisclosureMappingInput;
 };
 
 
-export type MutationCreateFlowDisclosureBrandArgs = {
-  input: CreateFlowDisclosureBrandInput;
+export type MutationCreateDisclosureProviderArgs = {
+  input: CreateDisclosureProviderInput;
 };
 
 
-export type MutationCreateFlowDisclosureCredentialArgs = {
-  input: CreateFlowDisclosureCredentialInput;
+export type MutationCreateDisclosureProviderByAttributesArgs = {
+  input: CreateDisclosureProviderByAttributesInput;
 };
 
 
-export type MutationCreateFlowDisclosureDomainArgs = {
-  input: CreateFlowDisclosureDomainInput;
+export type MutationCreateDisclosureProviderConfigurationNlWalletArgs = {
+  input: CreateDisclosureProviderConfigurationNlWalletInput;
 };
 
 
-export type MutationCreateFlowDisclosureGroupArgs = {
-  input: CreateFlowDisclosureGroupInput;
+export type MutationCreateIssuanceArgs = {
+  input: CreateIssuanceInput;
 };
 
 
-export type MutationCreateFlowDisclosureMappingArgs = {
-  input: CreateFlowDisclosureMappingInput;
+export type MutationCreateIssuanceAttributeArgs = {
+  input: CreateIssuanceAttributeInput;
 };
 
 
-export type MutationCreateFlowDisclosureProviderArgs = {
-  input: CreateFlowDisclosureProviderInput;
+export type MutationCreateIssuanceBrandArgs = {
+  input: CreateIssuanceBrandInput;
 };
 
 
-export type MutationCreateFlowDisclosureProviderByAttributesArgs = {
-  input: CreateFlowDisclosureProviderByAttributesInput;
+export type MutationCreateIssuanceCredentialArgs = {
+  input: CreateIssuanceCredentialInput;
 };
 
 
-export type MutationCreateFlowDisclosureProviderConfigurationNlWalletArgs = {
-  input: CreateFlowDisclosureProviderConfigurationNlWalletInput;
+export type MutationCreateIssuanceCredentialMetaDatakeeperArgs = {
+  input: CreateIssuanceCredentialMetaDatakeeperInput;
 };
 
 
-export type MutationCreateFlowIssuanceArgs = {
-  input: CreateFlowIssuanceInput;
+export type MutationCreateIssuanceCredentialMetaYiviArgs = {
+  input: CreateIssuanceCredentialMetaYiviInput;
 };
 
 
-export type MutationCreateFlowIssuanceAttributeArgs = {
-  input: CreateFlowIssuanceAttributeInput;
+export type MutationCreateIssuanceDomainArgs = {
+  input: CreateIssuanceDomainInput;
 };
 
 
-export type MutationCreateFlowIssuanceBrandArgs = {
-  input: CreateFlowIssuanceBrandInput;
+export type MutationCreateIssuanceLabelArgs = {
+  input: CreateIssuanceLabelInput;
 };
 
 
-export type MutationCreateFlowIssuanceCredentialArgs = {
-  input: CreateFlowIssuanceCredentialInput;
+export type MutationCreateIssuanceMappingArgs = {
+  input: CreateIssuanceMappingInput;
 };
 
 
-export type MutationCreateFlowIssuanceCredentialMetaDatakeeperArgs = {
-  input: CreateFlowIssuanceCredentialMetaDatakeeperInput;
+export type MutationCreateIssuanceProviderArgs = {
+  input: CreateIssuanceProviderInput;
 };
 
 
-export type MutationCreateFlowIssuanceCredentialMetaYiviArgs = {
-  input: CreateFlowIssuanceCredentialMetaYiviInput;
-};
-
-
-export type MutationCreateFlowIssuanceDomainArgs = {
-  input: CreateFlowIssuanceDomainInput;
-};
-
-
-export type MutationCreateFlowIssuanceMappingArgs = {
-  input: CreateFlowIssuanceMappingInput;
-};
-
-
-export type MutationCreateFlowIssuanceProviderArgs = {
-  input: CreateFlowIssuanceProviderInput;
-};
-
-
-export type MutationCreateFlowIssuanceProviderByAttributesArgs = {
-  input: CreateFlowIssuanceProviderByAttributesInput;
-};
-
-
-export type MutationCreateFlowSignatureArgs = {
-  input: CreateFlowSignatureInput;
-};
-
-
-export type MutationCreateFlowSignatureAttributeArgs = {
-  input: CreateFlowSignatureAttributeInput;
-};
-
-
-export type MutationCreateFlowSignatureBrandArgs = {
-  input: CreateFlowSignatureBrandInput;
-};
-
-
-export type MutationCreateFlowSignatureCredentialArgs = {
-  input: CreateFlowSignatureCredentialInput;
-};
-
-
-export type MutationCreateFlowSignatureDomainArgs = {
-  input: CreateFlowSignatureDomainInput;
-};
-
-
-export type MutationCreateFlowSignatureGroupArgs = {
-  input: CreateFlowSignatureGroupInput;
-};
-
-
-export type MutationCreateFlowSignatureMappingArgs = {
-  input: CreateFlowSignatureMappingInput;
-};
-
-
-export type MutationCreateFlowSignatureProviderArgs = {
-  input: CreateFlowSignatureProviderInput;
-};
-
-
-export type MutationCreateFlowSignatureProviderByAttributesArgs = {
-  input: CreateFlowSignatureProviderByAttributesInput;
-};
-
-
-export type MutationCreateFlowSignatureProviderConfigurationNlWalletArgs = {
-  input: CreateFlowSignatureProviderConfigurationNlWalletInput;
+export type MutationCreateIssuanceProviderByAttributesArgs = {
+  input: CreateIssuanceProviderByAttributesInput;
 };
 
 
 export type MutationCreateIssuerArgs = {
   input: CreateIssuerInput;
+};
+
+
+export type MutationCreateIssuerLabelArgs = {
+  input: CreateIssuerLabelInput;
 };
 
 
@@ -14265,8 +16074,24 @@ export type MutationCreateIssuerMetaYiviArgs = {
 };
 
 
+export type MutationCreateLabelArgs = {
+  input: CreateLabelInput;
+};
+
+
 export type MutationCreateLocaleConfigArgs = {
   input: CreateLocaleConfigInput;
+};
+
+
+export type MutationCreateMaintenanceArgs = {
+  input: CreateMaintenanceInput;
+};
+
+
+export type MutationCreateManagedOrganizationArgs = {
+  input: CreateOrganizationInput;
+  partnerOrganizationUuid: Scalars['UUID']['input'];
 };
 
 
@@ -14385,6 +16210,11 @@ export type MutationCreateOrganizationAppMetaKiwaArgs = {
 };
 
 
+export type MutationCreateOrganizationAppMetaOid4vcArgs = {
+  input: CreateOrganizationAppMetaOid4vcInput;
+};
+
+
 export type MutationCreateOrganizationAppMetaYotiArgs = {
   input: CreateOrganizationAppMetaYotiInput;
 };
@@ -14400,6 +16230,11 @@ export type MutationCreateOrganizationBrandArgs = {
 };
 
 
+export type MutationCreateOrganizationBrandLabelArgs = {
+  input: CreateOrganizationBrandLabelInput;
+};
+
+
 export type MutationCreateOrganizationClientArgs = {
   input: CreateOrganizationClientInput;
 };
@@ -14407,6 +16242,11 @@ export type MutationCreateOrganizationClientArgs = {
 
 export type MutationCreateOrganizationDomainArgs = {
   input: CreateOrganizationDomainInput;
+};
+
+
+export type MutationCreateOrganizationDomainLabelArgs = {
+  input: CreateOrganizationDomainLabelInput;
 };
 
 
@@ -14435,6 +16275,51 @@ export type MutationCreateOrganizationUserArgs = {
 };
 
 
+export type MutationCreatePricingCatalogArgs = {
+  input: CreatePricingCatalogInput;
+};
+
+
+export type MutationCreatePricingConfigurationAppArgs = {
+  input: CreatePricingConfigurationAppInput;
+};
+
+
+export type MutationCreatePricingConfigurationOrganizationArgs = {
+  input: CreatePricingConfigurationOrganizationInput;
+};
+
+
+export type MutationCreatePricingConfigurationStudioPlanArgs = {
+  input: CreatePricingConfigurationStudioPlanInput;
+};
+
+
+export type MutationCreatePricingGroupArgs = {
+  input: CreatePricingGroupInput;
+};
+
+
+export type MutationCreatePricingGroupAssignmentArgs = {
+  input: CreatePricingGroupAssignmentInput;
+};
+
+
+export type MutationCreatePricingRuleArgs = {
+  input: CreatePricingRuleInput;
+};
+
+
+export type MutationCreatePricingRuleConstraintArgs = {
+  input: CreatePricingRuleConstraintInput;
+};
+
+
+export type MutationCreatePricingRuleTargetArgs = {
+  input: CreatePricingRuleTargetInput;
+};
+
+
 export type MutationCreateProviderArgs = {
   input: CreateProviderInput;
 };
@@ -14450,6 +16335,11 @@ export type MutationCreateProviderAppMetaOid4VcArgs = {
 };
 
 
+export type MutationCreateProviderLabelArgs = {
+  input: CreateProviderLabelInput;
+};
+
+
 export type MutationCreateProviderLocaleArgs = {
   input: CreateProviderLocaleInput;
 };
@@ -14457,6 +16347,11 @@ export type MutationCreateProviderLocaleArgs = {
 
 export type MutationCreateSchemeArgs = {
   input: CreateSchemeInput;
+};
+
+
+export type MutationCreateSchemeLabelArgs = {
+  input: CreateSchemeLabelInput;
 };
 
 
@@ -14482,6 +16377,61 @@ export type MutationCreateScopeLocaleArgs = {
 
 export type MutationCreateScopeResourceArgs = {
   input: CreateScopeResourceInput;
+};
+
+
+export type MutationCreateSignatureArgs = {
+  input: CreateSignatureInput;
+};
+
+
+export type MutationCreateSignatureAttributeArgs = {
+  input: CreateSignatureAttributeInput;
+};
+
+
+export type MutationCreateSignatureBrandArgs = {
+  input: CreateSignatureBrandInput;
+};
+
+
+export type MutationCreateSignatureCredentialArgs = {
+  input: CreateSignatureCredentialInput;
+};
+
+
+export type MutationCreateSignatureDomainArgs = {
+  input: CreateSignatureDomainInput;
+};
+
+
+export type MutationCreateSignatureGroupArgs = {
+  input: CreateSignatureGroupInput;
+};
+
+
+export type MutationCreateSignatureLabelArgs = {
+  input: CreateSignatureLabelInput;
+};
+
+
+export type MutationCreateSignatureMappingArgs = {
+  input: CreateSignatureMappingInput;
+};
+
+
+export type MutationCreateSignatureProviderArgs = {
+  input: CreateSignatureProviderInput;
+};
+
+
+export type MutationCreateSignatureProviderByAttributesArgs = {
+  input: CreateSignatureProviderByAttributesInput;
+};
+
+
+export type MutationCreateSignatureProviderConfigurationNlWalletArgs = {
+  input: CreateSignatureProviderConfigurationNlWalletInput;
 };
 
 
@@ -14520,6 +16470,16 @@ export type MutationCreateUserInvitationArgs = {
 };
 
 
+export type MutationCreateUserInvitationTokenArgs = {
+  userUuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationCreateUserResetArgs = {
+  input: CreateUserResetInput;
+};
+
+
 export type MutationDeleteAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -14551,6 +16511,11 @@ export type MutationDeleteAppPrerequisiteStateLocaleArgs = {
 
 
 export type MutationDeleteAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAttributeLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -14630,6 +16595,16 @@ export type MutationDeleteAttributeRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationDeleteAttributeRequestMetaOid4VcmdocArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAttributeRequestMetaOid4VcsdjwtArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteAttributeRequestMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -14640,12 +16615,52 @@ export type MutationDeleteAttributeRequestMetaYotiArgs = {
 };
 
 
+export type MutationDeleteAuthenticationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationBrandArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationDomainArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationProviderArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationProviderConfigurationNlWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationScopeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteBillingPlanArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
 export type MutationDeleteCredentialArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteCredentialLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -14725,6 +16740,16 @@ export type MutationDeleteCredentialRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationDeleteCredentialRequestMetaOid4VcmdocArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteCredentialRequestMetaOid4VcsdjwtArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteCredentialRequestMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -14745,172 +16770,112 @@ export type MutationDeleteCredentialRequestStateLocaleArgs = {
 };
 
 
-export type MutationDeleteFlowAuthenticationArgs = {
+export type MutationDeleteDisclosureArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowAuthenticationBrandArgs = {
+export type MutationDeleteDisclosureAttributeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowAuthenticationDomainArgs = {
+export type MutationDeleteDisclosureBrandArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowAuthenticationProviderArgs = {
+export type MutationDeleteDisclosureCredentialArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowAuthenticationProviderConfigurationNlWalletArgs = {
+export type MutationDeleteDisclosureDomainArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowAuthenticationScopeArgs = {
+export type MutationDeleteDisclosureGroupArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureArgs = {
+export type MutationDeleteDisclosureLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureAttributeArgs = {
+export type MutationDeleteDisclosureMappingArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureBrandArgs = {
+export type MutationDeleteDisclosureProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureCredentialArgs = {
+export type MutationDeleteDisclosureProviderConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureDomainArgs = {
+export type MutationDeleteIssuanceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureGroupArgs = {
+export type MutationDeleteIssuanceAttributeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureMappingArgs = {
+export type MutationDeleteIssuanceBrandArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureProviderArgs = {
+export type MutationDeleteIssuanceCredentialArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowDisclosureProviderConfigurationNlWalletArgs = {
+export type MutationDeleteIssuanceCredentialMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowIssuanceArgs = {
+export type MutationDeleteIssuanceCredentialMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowIssuanceAttributeArgs = {
+export type MutationDeleteIssuanceDomainArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowIssuanceBrandArgs = {
+export type MutationDeleteIssuanceLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowIssuanceCredentialArgs = {
+export type MutationDeleteIssuanceMappingArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteFlowIssuanceCredentialMetaDatakeeperArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowIssuanceCredentialMetaYiviArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowIssuanceDomainArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowIssuanceMappingArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowIssuanceProviderArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureAttributeArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureBrandArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureCredentialArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureDomainArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureGroupArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureMappingArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureProviderArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeleteFlowSignatureProviderConfigurationNlWalletArgs = {
+export type MutationDeleteIssuanceProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
 export type MutationDeleteIssuerArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteIssuerLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -14945,7 +16910,17 @@ export type MutationDeleteIssuerMetaYiviArgs = {
 };
 
 
+export type MutationDeleteLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteLocaleConfigArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteMaintenanceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15025,6 +17000,11 @@ export type MutationDeleteOrganizationAppMetaKiwaArgs = {
 };
 
 
+export type MutationDeleteOrganizationAppMetaOid4vcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteOrganizationAppMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -15040,12 +17020,22 @@ export type MutationDeleteOrganizationBrandArgs = {
 };
 
 
+export type MutationDeleteOrganizationBrandLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteOrganizationClientArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
 export type MutationDeleteOrganizationDomainArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteOrganizationDomainLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15075,6 +17065,51 @@ export type MutationDeleteOrganizationUserArgs = {
 };
 
 
+export type MutationDeletePricingCatalogArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingConfigurationAppArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingConfigurationOrganizationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingConfigurationStudioPlanArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingGroupArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingGroupAssignmentArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingRuleArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingRuleConstraintArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeletePricingRuleTargetArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -15090,12 +17125,22 @@ export type MutationDeleteProviderAppMetaOid4VcArgs = {
 };
 
 
+export type MutationDeleteProviderLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteProviderLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
 export type MutationDeleteSchemeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSchemeLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15121,6 +17166,56 @@ export type MutationDeleteScopeLocaleArgs = {
 
 
 export type MutationDeleteScopeResourceArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureBrandArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureCredentialArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureDomainArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureGroupArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureMappingArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureProviderArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteSignatureProviderConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15160,26 +17255,26 @@ export type MutationDeleteUserInvitationArgs = {
 };
 
 
-export type MutationDuplicateFlowAuthenticationArgs = {
-  input: DuplicateFlowAuthenticationInput;
+export type MutationDuplicateAuthenticationArgs = {
+  input: DuplicateAuthenticationInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDuplicateFlowDisclosureArgs = {
-  input: DuplicateFlowDisclosureInput;
+export type MutationDuplicateDisclosureArgs = {
+  input: DuplicateDisclosureInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDuplicateFlowIssuanceArgs = {
-  input: DuplicateFlowIssuanceInput;
+export type MutationDuplicateIssuanceArgs = {
+  input: DuplicateIssuanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDuplicateFlowSignatureArgs = {
-  input: DuplicateFlowSignatureInput;
+export type MutationDuplicateSignatureArgs = {
+  input: DuplicateSignatureInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15190,13 +17285,28 @@ export type MutationDuplicateStudioPlanArgs = {
 };
 
 
-export type MutationMoveFlowDisclosureCredentialArgs = {
-  input: MoveFlowDisclosureCredentialInput;
+export type MutationLoginByClientCredentialsArgs = {
+  input: LoginByClientCredentialsInput;
 };
 
 
-export type MutationMoveFlowSignatureCredentialArgs = {
-  input: MoveFlowSignatureCredentialInput;
+export type MutationLoginByOpenIdTokenArgs = {
+  input: LoginByOpenIdTokenInput;
+};
+
+
+export type MutationLoginByPasswordArgs = {
+  input: LoginByPasswordInput;
+};
+
+
+export type MutationMoveDisclosureCredentialArgs = {
+  input: MoveDisclosureCredentialInput;
+};
+
+
+export type MutationMoveSignatureCredentialArgs = {
+  input: MoveSignatureCredentialInput;
 };
 
 
@@ -15210,13 +17320,24 @@ export type MutationRegisterByPasswordArgs = {
 };
 
 
+export type MutationRenewAccessTokenArgs = {
+  input: RenewAccessTokenInput;
+};
+
+
+export type MutationResendUserInvitationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationSetupBillingMethodArgs = {
   input: SetupBillingMethodInput;
 };
 
 
-export type MutationSwitchUserOrganizationArgs = {
-  input: SwitchOrganizationInput;
+export type MutationTransitionOrganizationTypeArgs = {
+  input: TransitionOrganizationTypeInput;
+  uuid: Scalars['UUID']['input'];
 };
 
 
@@ -15352,6 +17473,18 @@ export type MutationUpdateAttributeRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationUpdateAttributeRequestMetaOid4VcmdocArgs = {
+  input: UpdateAttributeRequestMetaOid4VcmdocInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAttributeRequestMetaOid4VcsdjwtArgs = {
+  input: UpdateAttributeRequestMetaOid4VcsdjwtInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateAttributeRequestMetaYiviArgs = {
   input: UpdateAttributeRequestMetaYiviInput;
   uuid: Scalars['UUID']['input'];
@@ -15360,6 +17493,36 @@ export type MutationUpdateAttributeRequestMetaYiviArgs = {
 
 export type MutationUpdateAttributeRequestMetaYotiArgs = {
   input: UpdateAttributeRequestMetaYotiInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAuthenticationArgs = {
+  input: UpdateAuthenticationInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAuthenticationBrandArgs = {
+  input: UpdateAuthenticationBrandInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAuthenticationDomainArgs = {
+  input: UpdateAuthenticationDomainInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAuthenticationProviderArgs = {
+  input: UpdateAuthenticationProviderInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateAuthenticationProviderConfigurationNlWalletArgs = {
+  input: UpdateAuthenticationProviderConfigurationNlWalletInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15478,6 +17641,18 @@ export type MutationUpdateCredentialRequestMetaDatakeeperArgs = {
 };
 
 
+export type MutationUpdateCredentialRequestMetaOid4VcmdocArgs = {
+  input: UpdateCredentialRequestMetaOid4VcmdocInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateCredentialRequestMetaOid4VcsdjwtArgs = {
+  input: UpdateCredentialRequestMetaOid4VcsdjwtInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateCredentialRequestMetaYiviArgs = {
   input: UpdateCredentialRequestMetaYiviInput;
   uuid: Scalars['UUID']['input'];
@@ -15502,140 +17677,74 @@ export type MutationUpdateCredentialRequestStateLocaleArgs = {
 };
 
 
-export type MutationUpdateFlowAuthenticationArgs = {
-  input: UpdateFlowAuthenticationInput;
+export type MutationUpdateDisclosureArgs = {
+  input: UpdateDisclosureInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowAuthenticationBrandArgs = {
-  input: UpdateFlowAuthenticationBrandInput;
+export type MutationUpdateDisclosureBrandArgs = {
+  input: UpdateDisclosureBrandInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowAuthenticationDomainArgs = {
-  input: UpdateFlowAuthenticationDomainInput;
+export type MutationUpdateDisclosureDomainArgs = {
+  input: UpdateDisclosureDomainInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowAuthenticationProviderArgs = {
-  input: UpdateFlowAuthenticationProviderInput;
+export type MutationUpdateDisclosureGroupArgs = {
+  input: UpdateDisclosureGroupInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowAuthenticationProviderConfigurationNlWalletArgs = {
-  input: UpdateFlowAuthenticationProviderConfigurationNlWalletInput;
+export type MutationUpdateDisclosureProviderArgs = {
+  input: UpdateDisclosureProviderInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureArgs = {
-  input: UpdateFlowDisclosureInput;
+export type MutationUpdateDisclosureProviderConfigurationNlWalletArgs = {
+  input: UpdateDisclosureProviderConfigurationNlWalletInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureBrandArgs = {
-  input: UpdateFlowDisclosureBrandInput;
+export type MutationUpdateIssuanceArgs = {
+  input: UpdateIssuanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureDomainArgs = {
-  input: UpdateFlowDisclosureDomainInput;
+export type MutationUpdateIssuanceBrandArgs = {
+  input: UpdateIssuanceBrandInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureGroupArgs = {
-  input: UpdateFlowDisclosureGroupInput;
+export type MutationUpdateIssuanceCredentialMetaDatakeeperArgs = {
+  input: UpdateIssuanceCredentialMetaDatakeeperInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureProviderArgs = {
-  input: UpdateFlowDisclosureProviderInput;
+export type MutationUpdateIssuanceCredentialMetaYiviArgs = {
+  input: UpdateIssuanceCredentialMetaYiviInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowDisclosureProviderConfigurationNlWalletArgs = {
-  input: UpdateFlowDisclosureProviderConfigurationNlWalletInput;
+export type MutationUpdateIssuanceDomainArgs = {
+  input: UpdateIssuanceDomainInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateFlowIssuanceArgs = {
-  input: UpdateFlowIssuanceInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowIssuanceBrandArgs = {
-  input: UpdateFlowIssuanceBrandInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowIssuanceCredentialMetaDatakeeperArgs = {
-  input: UpdateFlowIssuanceCredentialMetaDatakeeperInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowIssuanceCredentialMetaYiviArgs = {
-  input: UpdateFlowIssuanceCredentialMetaYiviInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowIssuanceDomainArgs = {
-  input: UpdateFlowIssuanceDomainInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowIssuanceProviderArgs = {
-  input: UpdateFlowIssuanceProviderInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureArgs = {
-  input: UpdateFlowSignatureInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureBrandArgs = {
-  input: UpdateFlowSignatureBrandInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureDomainArgs = {
-  input: UpdateFlowSignatureDomainInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureGroupArgs = {
-  input: UpdateFlowSignatureGroupInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureProviderArgs = {
-  input: UpdateFlowSignatureProviderInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateFlowSignatureProviderConfigurationNlWalletArgs = {
-  input: UpdateFlowSignatureProviderConfigurationNlWalletInput;
+export type MutationUpdateIssuanceProviderArgs = {
+  input: UpdateIssuanceProviderInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15682,8 +17791,20 @@ export type MutationUpdateIssuerMetaYiviArgs = {
 };
 
 
+export type MutationUpdateLabelArgs = {
+  input: UpdateLabelInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateLocaleConfigArgs = {
   input: UpdateLocaleConfigInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateMaintenanceArgs = {
+  input: UpdateMaintenanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15766,6 +17887,12 @@ export type MutationUpdateOrganizationAppMetaKiwaArgs = {
 };
 
 
+export type MutationUpdateOrganizationAppMetaOid4vcArgs = {
+  input: UpdateOrganizationAppMetaOid4vcInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateOrganizationAppMetaYotiArgs = {
   input: UpdateOrganizationAppMetaYotiInput;
   uuid: Scalars['UUID']['input'];
@@ -15810,6 +17937,54 @@ export type MutationUpdateOrganizationUserArgs = {
 
 export type MutationUpdatePasswordUserArgs = {
   input: UpdatePasswordUserInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingCatalogArgs = {
+  input: UpdatePricingCatalogInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingConfigurationAppArgs = {
+  input: UpdatePricingConfigurationAppInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingConfigurationOrganizationArgs = {
+  input: UpdatePricingConfigurationOrganizationInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingConfigurationStudioPlanArgs = {
+  input: UpdatePricingConfigurationStudioPlanInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingGroupArgs = {
+  input: UpdatePricingGroupInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingRuleArgs = {
+  input: UpdatePricingRuleInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingRuleConstraintArgs = {
+  input: UpdatePricingRuleConstraintInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdatePricingRuleTargetArgs = {
+  input: UpdatePricingRuleTargetInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15868,6 +18043,42 @@ export type MutationUpdateScopeResourceArgs = {
 };
 
 
+export type MutationUpdateSignatureArgs = {
+  input: UpdateSignatureInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateSignatureBrandArgs = {
+  input: UpdateSignatureBrandInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateSignatureDomainArgs = {
+  input: UpdateSignatureDomainInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateSignatureGroupArgs = {
+  input: UpdateSignatureGroupInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateSignatureProviderArgs = {
+  input: UpdateSignatureProviderInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateSignatureProviderConfigurationNlWalletArgs = {
+  input: UpdateSignatureProviderConfigurationNlWalletInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateStudioPlanArgs = {
   input: UpdateStudioPlanInput;
   uuid: Scalars['UUID']['input'];
@@ -15904,29 +18115,39 @@ export type MutationUpdateUserInvitationArgs = {
 };
 
 
-export type MutationUseAuthenticationInvitationArgs = {
-  input: AcceptAuthenticationInvitationInput;
+export type MutationUseUserInvitationTokenArgs = {
+  input: AcceptUserInvitationTokenInput;
 };
 
 
-export type MutationUseAuthenticationResetArgs = {
-  input: UseAuthenticationResetInput;
-};
-
-
-export type MutationValidateAuthenticationInvitationArgs = {
-  input: ValidateAuthenticationInvitationInput;
-};
-
-
-export type MutationValidateAuthenticationResetArgs = {
-  input: ValidateAuthenticationResetInput;
+export type MutationUseUserResetArgs = {
+  input: UseUserResetInput;
 };
 
 
 export type MutationValidateUserInvitationArgs = {
   input: ValidateUserInvitationInput;
 };
+
+
+export type MutationValidateUserInvitationTokenArgs = {
+  input: ValidateUserInvitationTokenInput;
+};
+
+
+export type MutationValidateUserResetArgs = {
+  input: ValidateUserResetInput;
+};
+
+/** All the different types to filter on nested fields. */
+export enum NestedFilteringType {
+  /** Filter type where every nested record must fulfill the condition. */
+  Every = 'EVERY',
+  /** Filter type where no nested record must fulfill the condition. */
+  None = 'NONE',
+  /** Filter type where some nested record must fulfill the condition. */
+  Some = 'SOME'
+}
 
 /** OAuth flow type */
 export enum OAuthFlowType {
@@ -15961,6 +18182,8 @@ export type OAuthProvider = Model & {
   loginScopes: Scalars['NonEmpty']['output'];
   /** The name of the OAuth Provider */
   name: Scalars['NonEmpty']['output'];
+  /** A list of organization domains using oauthProvider. */
+  organizationDomainOAuthProviders?: Maybe<OrganizationDomainOAuthProviderConnection>;
   /** The registered redirect URI for the OAuth Provider */
   redirectUri: Scalars['URL']['output'];
   /** The scopes used for signup */
@@ -15973,6 +18196,12 @@ export type OAuthProvider = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+};
+
+
+/** OAuthProvider definition. */
+export type OAuthProviderOrganizationDomainOAuthProvidersArgs = {
+  input?: InputMaybe<FindManyOrganizationDomainOAuthProvidersInput>;
 };
 
 /** OAuthProvider Action */
@@ -16046,20 +18275,32 @@ export type Organization = Model & {
   description?: Maybe<Scalars['NonEmpty']['output']>;
   /** The public email address of the organization. */
   email?: Maybe<Scalars['Email']['output']>;
+  /** Labels created by this organization */
+  labels?: Maybe<LabelConnection>;
   /** The logo of the organization. */
   logo?: Maybe<Scalars['ProfilePicture']['output']>;
+  /** A list of managed organizations */
+  managedOrganizations?: Maybe<OrganizationConnection>;
   /** The organization name. */
   name: Scalars['NonEmpty']['output'];
   /** A list of addresses of this organization. */
   organizationAddresses?: Maybe<OrganizationAddressConnection>;
+  /** A list of brands belonging to this organization. */
+  organizationBrands: OrganizationBrandConnection;
   /** A list of domains of this organization. */
   organizationDomains?: Maybe<OrganizationDomainConnection>;
   /** A list of associated OrganizationQuotas. */
   organizationQuotas?: Maybe<OrganizationQuotaConnection>;
   /** A list of users who are members of this organization. */
   organizationUsers?: Maybe<OrganizationUserConnection>;
+  /** The partner organization that manages this organization (only for MANAGED type) */
+  partnerOrganization?: Maybe<Organization>;
   /** The phone number of the organization. */
   phone?: Maybe<Scalars['String']['output']>;
+  /** Shortcut to active studio controls associated to this object */
+  studioControlCompacts: Array<StudioControlCompact>;
+  /** The type of the organization */
+  type: OrganizationType;
   /** The resource update time */
   updatedAt: Scalars['DateTime']['output'];
   /** A list of user invitations */
@@ -16072,8 +18313,26 @@ export type Organization = Model & {
 
 
 /** Organization definition. */
+export type OrganizationLabelsArgs = {
+  input?: InputMaybe<FindManyLabelsInput>;
+};
+
+
+/** Organization definition. */
+export type OrganizationManagedOrganizationsArgs = {
+  input?: InputMaybe<FindManyOrganizationsInput>;
+};
+
+
+/** Organization definition. */
 export type OrganizationOrganizationAddressesArgs = {
   input?: InputMaybe<FindManyOrganizationAddressesInput>;
+};
+
+
+/** Organization definition. */
+export type OrganizationOrganizationBrandsArgs = {
+  input?: InputMaybe<FindManyOrganizationBrandsInput>;
 };
 
 
@@ -16213,7 +18472,7 @@ export type OrganizationAlertDeprecation = Model & {
   /** The flow UUID which is affected */
   flowUuid: Scalars['UUID']['output'];
   /** The deprecated model */
-  model: IdentityModelType;
+  model: CatalogModelType;
   /** The model UUID */
   modelUuid: Scalars['UUID']['output'];
   /** The organization alert. */
@@ -16361,6 +18620,8 @@ export type OrganizationAppMeta = Model & {
   datakeeper?: Maybe<OrganizationAppMetaDatakeeper>;
   /** The kiwa organization app meta */
   kiwa?: Maybe<OrganizationAppMetaKiwa>;
+  /** The OID4VC organization app meta */
+  oid4vc?: Maybe<OrganizationAppMetaOid4vc>;
   /** The organization app the meta belongs to. */
   organizationApp: OrganizationApp;
   /** The update time */
@@ -16445,7 +18706,7 @@ export type OrganizationAppMetaKiwa = Model & {
   __typename?: 'OrganizationAppMetaKiwa';
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The certificate serial */
+  /** The issuer ID */
   issuerId?: Maybe<Scalars['NonEmpty']['output']>;
   /** The private key identifier */
   keyIdentifier?: Maybe<Scalars['NonEmpty']['output']>;
@@ -16491,6 +18752,57 @@ export type OrganizationAppMetaKiwaSortInput = {
   field: OrganizationAppMetaKiwaSortEnum;
 };
 
+/** Organization app meta OID4VC. */
+export type OrganizationAppMetaOid4vc = Model & {
+  __typename?: 'OrganizationAppMetaOid4vc';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The organization app meta the OID4VC meta belongs to. */
+  organizationAppMeta: OrganizationAppMeta;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+  /** The verifier certificate identifier */
+  verifierCertIdentifier?: Maybe<Scalars['String']['output']>;
+  /** The verifier key identifier */
+  verifierKeyIdentifier?: Maybe<Scalars['String']['output']>;
+};
+
+/** The organization app meta OID4VC connection request. */
+export type OrganizationAppMetaOid4vcConnection = {
+  __typename?: 'OrganizationAppMetaOid4vcConnection';
+  edges: Array<Maybe<OrganizationAppMetaOid4vcEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The organization app meta OID4VC edge request. */
+export type OrganizationAppMetaOid4vcEdge = {
+  __typename?: 'OrganizationAppMetaOid4vcEdge';
+  cursor: Scalars['String']['output'];
+  node: OrganizationAppMetaOid4vc;
+};
+
+/** Fields which can be used to filter organization app meta OID4VC on. Value must be camel case. */
+export enum OrganizationAppMetaOid4vcFilteringField {
+  OrganizationAppMetaUuid = 'organizationAppMetaUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort organization app meta OID4VC on. Value must be camel case. */
+export enum OrganizationAppMetaOid4vcSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting organization app meta OID4VC. */
+export type OrganizationAppMetaOid4vcSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: OrganizationAppMetaOid4vcSortEnum;
+};
+
 /** Fields which can be used to sort organization app meta on. Value must be camel case. */
 export enum OrganizationAppMetaSortEnum {
   CreatedAt = 'createdAt'
@@ -16509,6 +18821,7 @@ export enum OrganizationAppMetaType {
   Datakeeper = 'DATAKEEPER',
   Kiwa = 'KIWA',
   None = 'NONE',
+  Oid4Vc = 'OID4VC',
   Yoti = 'YOTI'
 }
 
@@ -16560,6 +18873,14 @@ export type OrganizationAppMetaYotiSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: OrganizationAppMetaYotiSortEnum;
+};
+
+/** The input for filtering app */
+export type OrganizationAppNestedFilteringAppField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering app */
+  input: FindManyAppsInput;
 };
 
 /** Organization app prerequisite. */
@@ -16708,6 +19029,8 @@ export type OrganizationBrand = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the brand belongs to. */
   organization: Organization;
+  /** The associated labels with this brand */
+  organizationBrandLabels: OrganizationBrandLabelConnection;
   /** The reject reason if any */
   rejectReason?: Maybe<Scalars['NonEmpty']['output']>;
   /** The state of the brand. */
@@ -16716,6 +19039,12 @@ export type OrganizationBrand = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+};
+
+
+/** Organization brand definition. */
+export type OrganizationBrandOrganizationBrandLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationBrandLabelsInput>;
 };
 
 /** OrganizationBrandAction */
@@ -16748,6 +19077,66 @@ export enum OrganizationBrandFilteringField {
   State = 'state',
   Uuid = 'uuid'
 }
+
+/** Organization Label definition. */
+export type OrganizationBrandLabel = Model & {
+  __typename?: 'OrganizationBrandLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The organization brand */
+  organizationBrand: OrganizationBrand;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type OrganizationBrandLabelConnection = {
+  __typename?: 'OrganizationBrandLabelConnection';
+  edges: Array<OrganizationBrandLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type OrganizationBrandLabelEdge = {
+  __typename?: 'OrganizationBrandLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: OrganizationBrandLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum OrganizationBrandLabelFilteringField {
+  LabelUuid = 'labelUuid',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum OrganizationBrandLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type OrganizationBrandLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: OrganizationBrandLabelSortEnum;
+};
+
+/** The input for filtering organization brand labels in nested filtering. */
+export type OrganizationBrandNestedFilteringOrganizationBrandLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering organization brand labels */
+  input: FindManyOrganizationBrandLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
 
 /** Fields which can be used to sort brands on. Value must be camel case. */
 export enum OrganizationBrandSortEnum {
@@ -16782,13 +19171,11 @@ export type OrganizationClient = Model & {
   blockedAt?: Maybe<Scalars['DateTime']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The OAuth entitlements of the token. */
-  entitlements: Array<Scalars['Entitlement']['output']>;
   /** The token key */
   key: Scalars['NonEmpty']['output'];
   /** The token name */
   name: Scalars['NonEmpty']['output'];
-  /** The user organization  */
+  /** The user organization */
   organization: Organization;
   /** The OAuth role of the token. */
   role: OrganizationUserRole;
@@ -16851,6 +19238,8 @@ export type OrganizationDomain = Model & {
   name: Scalars['DomainName']['output'];
   /** The organization the domain belongs to. */
   organization: Organization;
+  /** The associated labels with this domain */
+  organizationDomainLabels: OrganizationDomainLabelConnection;
   /** The reject reason if any */
   rejectReason?: Maybe<Scalars['NonEmpty']['output']>;
   /** The state of the domain. */
@@ -16861,6 +19250,12 @@ export type OrganizationDomain = Model & {
   uuid: Scalars['UUID']['output'];
   /** The validation of the domain */
   validation?: Maybe<OrganizationDomainValidation>;
+};
+
+
+/** Organization domain definition. */
+export type OrganizationDomainOrganizationDomainLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationDomainLabelsInput>;
 };
 
 /** OrganizationDomainAction */
@@ -16899,6 +19294,66 @@ export enum OrganizationDomainFilteringField {
   State = 'state',
   Uuid = 'uuid'
 }
+
+/** Organization Label definition. */
+export type OrganizationDomainLabel = Model & {
+  __typename?: 'OrganizationDomainLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The organization domain */
+  organizationDomain: OrganizationDomain;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type OrganizationDomainLabelConnection = {
+  __typename?: 'OrganizationDomainLabelConnection';
+  edges: Array<OrganizationDomainLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type OrganizationDomainLabelEdge = {
+  __typename?: 'OrganizationDomainLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: OrganizationDomainLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum OrganizationDomainLabelFilteringField {
+  LabelUuid = 'labelUuid',
+  OrganizationDomainUuid = 'organizationDomainUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum OrganizationDomainLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type OrganizationDomainLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: OrganizationDomainLabelSortEnum;
+};
+
+/** The input for filtering organization domain labels in nested filtering. */
+export type OrganizationDomainNestedFilteringOrganizationDomainLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering organization domain labels */
+  input: FindManyOrganizationDomainLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
 
 /** OrganizationDomainOAuthProvider definition. */
 export type OrganizationDomainOAuthProvider = Model & {
@@ -17067,7 +19522,9 @@ export enum OrganizationFilteringField {
   Description = 'description',
   Email = 'email',
   Name = 'name',
+  PartnerOrganizationUuid = 'partnerOrganizationUuid',
   Phone = 'phone',
+  Type = 'type',
   Uuid = 'uuid'
 }
 
@@ -17250,7 +19707,7 @@ export type OrganizationSecret = Model & {
   key: Scalars['NonEmpty']['output'];
   /** The secret name */
   name: Scalars['NonEmpty']['output'];
-  /** The user organization  */
+  /** The user organization */
   organization: Organization;
   /** The type */
   type: OrganizationSecretType;
@@ -17328,6 +19785,13 @@ export type OrganizationSortInput = {
   field: OrganizationSortEnum;
 };
 
+/** OrganizationType */
+export enum OrganizationType {
+  Direct = 'DIRECT',
+  Managed = 'MANAGED',
+  Partner = 'PARTNER'
+}
+
 /** OrganizationUser definition. */
 export type OrganizationUser = Model & {
   __typename?: 'OrganizationUser';
@@ -17337,8 +19801,6 @@ export type OrganizationUser = Model & {
   completedGuides: Array<Scalars['String']['output']>;
   /** The user creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The OAuth entitlements of the user. */
-  entitlements: Array<Scalars['Entitlement']['output']>;
   /** The organization the organization user belongs to. */
   organization: Organization;
   /** The OAuth role of the user. */
@@ -17380,11 +19842,17 @@ export enum OrganizationUserFilteringField {
   Uuid = 'uuid'
 }
 
+/** User nested filter field (1:1 relation). */
+export type OrganizationUserNestedFilteringUserField = {
+  /** The query connector. */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering users. */
+  input: FindManyUsersInput;
+};
+
 /** OrganizationUser role enum. */
 export enum OrganizationUserRole {
-  Administrator = 'administrator',
   Auditor = 'auditor',
-  Guest = 'guest',
   Owner = 'owner'
 }
 
@@ -17739,6 +20207,595 @@ export type PaymentProviderSortInput = {
   field: PaymentProviderSortEnum;
 };
 
+/** Pricing aggregation strategy */
+export enum PricingAggregationStrategy {
+  Average = 'AVERAGE',
+  Highest = 'HIGHEST',
+  Lowest = 'LOWEST',
+  Sum = 'SUM'
+}
+
+/** Pricing catalog */
+export type PricingCatalog = Model & {
+  __typename?: 'PricingCatalog';
+  /** The price amount (stored as integer in smallest currency unit) */
+  amount: Scalars['Int']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The currency (USD, EUR, etc.) */
+  currency: Currency;
+  /** The currency unit (CENTI, MILLI, etc.) */
+  currencyUnit: CurrencyUnit;
+  /** Unique key identifier for this price entry */
+  key: Scalars['NonEmpty']['output'];
+  /** A list of pricing rules using this catalog entry */
+  rules: PricingRuleConnection;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Pricing catalog */
+export type PricingCatalogRulesArgs = {
+  input?: InputMaybe<FindManyPricingRulesInput>;
+};
+
+export type PricingCatalogConnection = {
+  __typename?: 'PricingCatalogConnection';
+  edges: Array<PricingCatalogEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingCatalogEdge = {
+  __typename?: 'PricingCatalogEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingCatalog;
+};
+
+/** Fields which can be used to filter pricing catalogs on. Value must be camel case. */
+export enum PricingCatalogFilteringField {
+  Currency = 'currency',
+  Key = 'key',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing catalogs on. Value must be camel case. */
+export enum PricingCatalogSortEnum {
+  Amount = 'amount',
+  CreatedAt = 'createdAt',
+  Key = 'key',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing catalogs. */
+export type PricingCatalogSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingCatalogSortEnum;
+};
+
+/** Pricing configuration for apps */
+export type PricingConfigurationApp = Model & {
+  __typename?: 'PricingConfigurationApp';
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The app UUID */
+  appUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingConfigurationAppConnection = {
+  __typename?: 'PricingConfigurationAppConnection';
+  edges: Array<PricingConfigurationAppEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingConfigurationAppEdge = {
+  __typename?: 'PricingConfigurationAppEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingConfigurationApp;
+};
+
+/** Fields which can be used to filter pricing configuration apps on. Value must be camel case. */
+export enum PricingConfigurationAppFilteringField {
+  AggregationStrategy = 'aggregationStrategy',
+  AppUuid = 'appUuid',
+  TargetLevel = 'targetLevel',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing configuration apps on. Value must be camel case. */
+export enum PricingConfigurationAppSortEnum {
+  AppUuid = 'appUuid',
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing configuration apps. */
+export type PricingConfigurationAppSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingConfigurationAppSortEnum;
+};
+
+/** Pricing configuration for organizations */
+export type PricingConfigurationOrganization = Model & {
+  __typename?: 'PricingConfigurationOrganization';
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingConfigurationOrganizationConnection = {
+  __typename?: 'PricingConfigurationOrganizationConnection';
+  edges: Array<PricingConfigurationOrganizationEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingConfigurationOrganizationEdge = {
+  __typename?: 'PricingConfigurationOrganizationEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingConfigurationOrganization;
+};
+
+/** Fields which can be used to filter pricing configuration organizations on. Value must be camel case. */
+export enum PricingConfigurationOrganizationFilteringField {
+  AggregationStrategy = 'aggregationStrategy',
+  OrganizationUuid = 'organizationUuid',
+  TargetLevel = 'targetLevel',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing configuration organizations on. Value must be camel case. */
+export enum PricingConfigurationOrganizationSortEnum {
+  CreatedAt = 'createdAt',
+  OrganizationUuid = 'organizationUuid',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing configuration organizations. */
+export type PricingConfigurationOrganizationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingConfigurationOrganizationSortEnum;
+};
+
+/** Pricing configuration for studio plans */
+export type PricingConfigurationStudioPlan = Model & {
+  __typename?: 'PricingConfigurationStudioPlan';
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy: PricingAggregationStrategy;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The studio plan UUID */
+  studioPlanUuid: Scalars['UUID']['output'];
+  /** Target hierarchy level for pricing calculation */
+  targetLevel: PricingHierarchyLevel;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingConfigurationStudioPlanConnection = {
+  __typename?: 'PricingConfigurationStudioPlanConnection';
+  edges: Array<PricingConfigurationStudioPlanEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingConfigurationStudioPlanEdge = {
+  __typename?: 'PricingConfigurationStudioPlanEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingConfigurationStudioPlan;
+};
+
+/** Fields which can be used to filter pricing configuration studio plans on. Value must be camel case. */
+export enum PricingConfigurationStudioPlanFilteringField {
+  AggregationStrategy = 'aggregationStrategy',
+  StudioPlanUuid = 'studioPlanUuid',
+  TargetLevel = 'targetLevel',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing configuration studio plans on. Value must be camel case. */
+export enum PricingConfigurationStudioPlanSortEnum {
+  CreatedAt = 'createdAt',
+  StudioPlanUuid = 'studioPlanUuid',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing configuration studio plans. */
+export type PricingConfigurationStudioPlanSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingConfigurationStudioPlanSortEnum;
+};
+
+/** Pricing group */
+export type PricingGroup = Model & {
+  __typename?: 'PricingGroup';
+  /** A list of entity assignments to this group */
+  assignments: PricingGroupAssignmentConnection;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Description of the pricing group */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The name of the pricing group */
+  name: Scalars['NonEmpty']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Pricing group */
+export type PricingGroupAssignmentsArgs = {
+  input?: InputMaybe<FindManyPricingGroupAssignmentsInput>;
+};
+
+/** Pricing group assignment */
+export type PricingGroupAssignment = Model & {
+  __typename?: 'PricingGroupAssignment';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The type of entity being assigned (ATTRIBUTE, CREDENTIAL, ISSUER, SCHEME, FLOW_AUTHENTICATION, etc.) */
+  entityType: PricingGroupAssignmentType;
+  /** The UUID of the entity in the Identity DB */
+  entityUuid: Scalars['UUID']['output'];
+  /** The pricing group this assignment belongs to */
+  pricingGroup: PricingGroup;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingGroupAssignmentConnection = {
+  __typename?: 'PricingGroupAssignmentConnection';
+  edges: Array<PricingGroupAssignmentEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingGroupAssignmentEdge = {
+  __typename?: 'PricingGroupAssignmentEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingGroupAssignment;
+};
+
+/** Fields which can be used to filter pricing group assignments on. Value must be camel case. */
+export enum PricingGroupAssignmentFilteringField {
+  EntityType = 'entityType',
+  EntityUuid = 'entityUuid',
+  PricingGroupUuid = 'pricingGroupUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing group assignments on. Value must be camel case. */
+export enum PricingGroupAssignmentSortEnum {
+  CreatedAt = 'createdAt',
+  EntityType = 'entityType',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing group assignments. */
+export type PricingGroupAssignmentSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingGroupAssignmentSortEnum;
+};
+
+/** Type of entity that can be assigned to a pricing group */
+export enum PricingGroupAssignmentType {
+  Attribute = 'ATTRIBUTE',
+  Credential = 'CREDENTIAL',
+  FlowAuthentication = 'FLOW_AUTHENTICATION',
+  FlowDisclosure = 'FLOW_DISCLOSURE',
+  FlowIssuance = 'FLOW_ISSUANCE',
+  FlowSignature = 'FLOW_SIGNATURE',
+  Issuer = 'ISSUER',
+  Scheme = 'SCHEME'
+}
+
+export type PricingGroupConnection = {
+  __typename?: 'PricingGroupConnection';
+  edges: Array<PricingGroupEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingGroupEdge = {
+  __typename?: 'PricingGroupEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingGroup;
+};
+
+/** Fields which can be used to filter pricing groups on. Value must be camel case. */
+export enum PricingGroupFilteringField {
+  Name = 'name',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing groups on. Value must be camel case. */
+export enum PricingGroupSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing groups. */
+export type PricingGroupSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingGroupSortEnum;
+};
+
+/** Pricing hierarchy level */
+export enum PricingHierarchyLevel {
+  Attribute = 'ATTRIBUTE',
+  Credential = 'CREDENTIAL',
+  Flow = 'FLOW',
+  Issuer = 'ISSUER',
+  Scheme = 'SCHEME'
+}
+
+/**
+ * Pricing layer
+ *
+ * If the pricing layer is APP, the PricingType should be PURCHASE
+ * Otherwise, the PricingType should be MARGIN
+ *
+ * This might change in the future.
+ */
+export enum PricingLayer {
+  App = 'APP',
+  Organization = 'ORGANIZATION',
+  Plan = 'PLAN'
+}
+
+/** Pricing rule - defines when a specific price applies */
+export type PricingRule = Model & {
+  __typename?: 'PricingRule';
+  /** The app UUID this rule applies to */
+  appUuid: Scalars['UUID']['output'];
+  /** Pricing conditions */
+  conditions: Scalars['JSONObject']['output'];
+  /** The constraints for this rule */
+  constraints: PricingRuleConstraintConnection;
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The pricing layer (APP, PLAN, ORGANIZATION) */
+  layer: PricingLayer;
+  /** The organization UUID (if layer is ORGANIZATION) */
+  organizationUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The plan UUID (if layer is PLAN) */
+  planUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The pricing catalog entry */
+  pricingCatalog: PricingCatalog;
+  /** The state of the rule (ACTIVE, INACTIVE) */
+  state: PricingRuleState;
+  /** The target this rule applies to */
+  target?: Maybe<PricingRuleTarget>;
+  /** The pricing type (PURCHASE, MARGIN) */
+  type: PricingType;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Pricing rule - defines when a specific price applies */
+export type PricingRuleConstraintsArgs = {
+  findManyPricingRuleConstraintsInput?: InputMaybe<FindManyPricingRuleConstraintsInput>;
+};
+
+/** PricingRuleAction */
+export enum PricingRuleAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE',
+  PendingDeprecate = 'PENDING_DEPRECATE'
+}
+
+export type PricingRuleConnection = {
+  __typename?: 'PricingRuleConnection';
+  edges: Array<PricingRuleEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Pricing rule constraint */
+export type PricingRuleConstraint = Model & {
+  __typename?: 'PricingRuleConstraint';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The pricing rule this constraint belongs to */
+  pricingRule: PricingRule;
+  /** The scope (hierarchy level) this constraint applies to */
+  scope: PricingHierarchyLevel;
+  /** Scope group UUIDs */
+  scopeGroupUuids: Array<Scalars['UUID']['output']>;
+  /** Specific scope UUID (most specific constraint) */
+  scopeUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingRuleConstraintConnection = {
+  __typename?: 'PricingRuleConstraintConnection';
+  edges: Array<PricingRuleConstraintEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingRuleConstraintEdge = {
+  __typename?: 'PricingRuleConstraintEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingRuleConstraint;
+};
+
+/** Fields which can be used to filter pricing rule constraints on. Value must be camel case. */
+export enum PricingRuleConstraintFilteringField {
+  Scope = 'scope',
+  ScopeUuid = 'scopeUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing rule constraints on. Value must be camel case. */
+export enum PricingRuleConstraintSortEnum {
+  CreatedAt = 'createdAt',
+  Scope = 'scope',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing rule constraints. */
+export type PricingRuleConstraintSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingRuleConstraintSortEnum;
+};
+
+export type PricingRuleEdge = {
+  __typename?: 'PricingRuleEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingRule;
+};
+
+/** Fields which can be used to filter pricing rules on. Value must be camel case. */
+export enum PricingRuleFilteringField {
+  AppUuid = 'appUuid',
+  Layer = 'layer',
+  OrganizationUuid = 'organizationUuid',
+  PlanUuid = 'planUuid',
+  State = 'state',
+  Type = 'type',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing rules on. Value must be camel case. */
+export enum PricingRuleSortEnum {
+  CreatedAt = 'createdAt',
+  Layer = 'layer',
+  Type = 'type',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing rules. */
+export type PricingRuleSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingRuleSortEnum;
+};
+
+/** Pricing rule state */
+export enum PricingRuleState {
+  Active = 'ACTIVE',
+  Draft = 'DRAFT',
+  Inactive = 'INACTIVE',
+  PendingDeprecation = 'PENDING_DEPRECATION'
+}
+
+/** Pricing rule target - defines what entity the rule applies to */
+export type PricingRuleTarget = Model & {
+  __typename?: 'PricingRuleTarget';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The hierarchy level (FLOW, SCHEME, ISSUER, CREDENTIAL, ATTRIBUTE) */
+  level: PricingHierarchyLevel;
+  /** Entity group UUIDs */
+  levelGroupUuids: Array<Scalars['UUID']['output']>;
+  /** Specific entity UUID (most specific) */
+  levelUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The pricing rule this target belongs to */
+  pricingRule: PricingRule;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type PricingRuleTargetConnection = {
+  __typename?: 'PricingRuleTargetConnection';
+  edges: Array<PricingRuleTargetEdge>;
+  pageInfo: PageInfo;
+};
+
+export type PricingRuleTargetEdge = {
+  __typename?: 'PricingRuleTargetEdge';
+  cursor: Scalars['String']['output'];
+  node: PricingRuleTarget;
+};
+
+/** Fields which can be used to filter pricing rule targets on. Value must be camel case. */
+export enum PricingRuleTargetFilteringField {
+  Level = 'level',
+  LevelUuid = 'levelUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort pricing rule targets on. Value must be camel case. */
+export enum PricingRuleTargetSortEnum {
+  CreatedAt = 'createdAt',
+  Level = 'level',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting pricing rule targets. */
+export type PricingRuleTargetSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: PricingRuleTargetSortEnum;
+};
+
+/**
+ * Pricing type.
+ *
+ * PURCHASE: What the app charges us.
+ *
+ * MARGIN: The extra amount we charge on top of the purchase price. Typically,
+ * there will be two margin prices, one for each plan and one for each reseller.
+ * Final price is the sum of these.
+ */
+export enum PricingType {
+  Margin = 'MARGIN',
+  Purchase = 'PURCHASE'
+}
+
 /** Provider definition. */
 export type Provider = Model & {
   __typename?: 'Provider';
@@ -17906,11 +20963,13 @@ export type ProviderAppMetaOid4Vc = Model & {
   /** If DCQL is supported */
   dcql?: Maybe<Scalars['Boolean']['output']>;
   /** The latest draft version supported by this app */
-  draftVersion: Scalars['Int']['output'];
+  draftVersion?: Maybe<Scalars['Int']['output']>;
   /** The protocol */
   protocol?: Maybe<Scalars['NonEmpty']['output']>;
   /** The ProviderAppMeta this ProviderAppMetaOID4VC belongs to */
   providerAppMeta: ProviderAppMeta;
+  /** The spec type supported by this app */
+  specType: ProviderAppMetaOid4VcSpecType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -17950,6 +21009,12 @@ export type ProviderAppMetaOid4VcSortInput = {
   field: ProviderAppMetaOid4VcSortEnum;
 };
 
+/** ProviderAppMetaOID4VCSpecType */
+export enum ProviderAppMetaOid4VcSpecType {
+  Draft = 'DRAFT',
+  V1 = 'V1'
+}
+
 /** Camel-case sorting fields */
 export enum ProviderAppMetaSortEnum {
   CreatedAt = 'createdAt'
@@ -17965,6 +21030,7 @@ export type ProviderAppMetaSortInput = {
 
 /** Meta Type */
 export enum ProviderAppMetaType {
+  NlWallet = 'NL_WALLET',
   None = 'NONE',
   Oid4Vc = 'OID4VC'
 }
@@ -18054,6 +21120,58 @@ export type ProviderForOrganizationEdge = {
   node: ProviderForOrganization;
 };
 
+/** Identity provider label definition. */
+export type ProviderLabel = Model & {
+  __typename?: 'ProviderLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The identity provider (resolved via federation) */
+  provider: Provider;
+  /** The identity provider UUID (no direct relation - separate database) */
+  providerUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Connection */
+export type ProviderLabelConnection = {
+  __typename?: 'ProviderLabelConnection';
+  edges: Array<ProviderLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Edge */
+export type ProviderLabelEdge = {
+  __typename?: 'ProviderLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: ProviderLabel;
+};
+
+/** Fields which can be used to filter identity provider labels. Value must be camel case. */
+export enum ProviderLabelFilteringField {
+  LabelUuid = 'labelUuid',
+  ProviderUuid = 'providerUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort identity provider labels. Value must be camel case. */
+export enum ProviderLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting identity provider labels. */
+export type ProviderLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: ProviderLabelSortEnum;
+};
+
 /** Provider locale definition. */
 export type ProviderLocale = Model & {
   __typename?: 'ProviderLocale';
@@ -18125,12 +21243,22 @@ export enum ProviderType {
   System = 'SYSTEM'
 }
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type Query = {
   __typename?: 'Query';
   /** Get billing method configuration */
   configBillingMethod: ConfigBillingMethodOutput;
   /** Get constants */
   constants: Constants;
+  /** Retrieve all active maintenances (public query for SPAs to check maintenance mode). */
+  findActiveMaintenances: Array<Maintenance>;
   /** Retrieve a single app. */
   findApp: App;
   /** Retrieve a single app locale. */
@@ -18145,6 +21273,8 @@ export type Query = {
   findAppPrerequisiteStateLocale: AppPrerequisiteStateLocale;
   /** Retrieve a single attribute. */
   findAttribute: Attribute;
+  /** Get identity attribute label */
+  findAttributeLabel: AttributeLabel;
   /** Retrieve a single attribute locale. */
   findAttributeLocale: AttributeLocale;
   /** Retrieve a single attribute meta. */
@@ -18179,26 +21309,56 @@ export type Query = {
   findAttributeRequestMeta: AttributeRequestMeta;
   /** Retrieve a single attribute request meta datakeeper. */
   findAttributeRequestMetaDatakeeper: AttributeRequestMetaDatakeeper;
+  /** Retrieve a single attribute request meta OID4VC mdoc. */
+  findAttributeRequestMetaOID4VCMDOC: AttributeRequestMetaOid4Vcmdoc;
+  /** Retrieve a single attribute request meta OID4VC SD-JWT. */
+  findAttributeRequestMetaOID4VCSDJWT: AttributeRequestMetaOid4Vcsdjwt;
   /** Retrieve a single attribute request meta yivi. */
   findAttributeRequestMetaYivi: AttributeRequestMetaYivi;
   /** Retrieve a single attribute request meta yoti. */
   findAttributeRequestMetaYoti: AttributeRequestMetaYoti;
+  /** Retrieve a single flow authentication. */
+  findAuthentication: Authentication;
+  /** Retrieve a single authentication activity. */
+  findAuthenticationActivity: AuthenticationActivity;
+  /** Get brand */
+  findAuthenticationBrand: AuthenticationBrand;
+  /** Get domain */
+  findAuthenticationDomain: AuthenticationDomain;
+  /** Get Label */
+  findAuthenticationLabel: AuthenticationLabel;
+  /** Retrieve a single flow authentication provider. */
+  findAuthenticationProvider: AuthenticationProvider;
+  /** Retrieve a single AuthenticationProviderConfiguration. */
+  findAuthenticationProviderConfiguration: AuthenticationProviderConfiguration;
+  /** Retrieve a single credential meta NL Wallet. */
+  findAuthenticationProviderConfigurationNLWallet: AuthenticationProviderConfigurationNlWallet;
+  /** Retrieve a single flow authentication scopes. */
+  findAuthenticationScope: AuthenticationScope;
   /** Find billing */
   findBilling: Billing;
   /** Find billing */
   findBillingMethod: BillingMethod;
   /** Find billing */
   findBillingPlan: BillingPlan;
-  /** Find billing wallet transactions */
-  findBillingPlanPayment: BillingPlanPayment;
   /** Find billing */
   findBillingWallet: BillingWallet;
   /** Find billing wallet transactions */
-  findBillingWalletPayment: BillingWalletPayment;
-  /** Find billing wallet transactions */
   findBillingWalletTransaction: BillingWalletTransaction;
+  /** Find a single billing wallet transaction meta */
+  findBillingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** Find billing wallet transaction meta flow */
+  findBillingWalletTransactionMetaFlow: BillingWalletTransactionMetaFlow;
+  /** Find billing wallet transaction meta flow attribute */
+  findBillingWalletTransactionMetaFlowAttribute: BillingWalletTransactionMetaFlowAttribute;
+  /** Find billing wallet transaction meta plan */
+  findBillingWalletTransactionMetaPlan: BillingWalletTransactionMetaPlan;
+  /** Find billing wallet transaction meta wallet */
+  findBillingWalletTransactionMetaWallet: BillingWalletTransactionMetaWallet;
   /** Retrieve a single credential. */
   findCredential: Credential;
+  /** Get identity credential label */
+  findCredentialLabel: CredentialLabel;
   /** Retrieve a single credential locale. */
   findCredentialLocale: CredentialLocale;
   /** Retrieve a single credential meta. */
@@ -18233,6 +21393,10 @@ export type Query = {
   findCredentialRequestMeta: CredentialRequestMeta;
   /** Retrieve a single credential request meta datakeeper. */
   findCredentialRequestMetaDatakeeper: CredentialRequestMetaDatakeeper;
+  /** Retrieve a single credential request meta OID4VC mdoc. */
+  findCredentialRequestMetaOID4VCMDOC: CredentialRequestMetaOid4Vcmdoc;
+  /** Retrieve a single credential request meta OID4VC SD-JWT. */
+  findCredentialRequestMetaOID4VCSDJWT: CredentialRequestMetaOid4Vcsdjwt;
   /** Retrieve a single credential request meta yivi. */
   findCredentialRequestMetaYivi: CredentialRequestMetaYivi;
   /** Retrieve a single credential request meta yoti. */
@@ -18243,91 +21407,59 @@ export type Query = {
   findCredentialRequestStateLocale: CredentialRequestStateLocale;
   /** Retrieve a single credential request workflow. */
   findCredentialRequestWorkflow: CredentialRequestWorkflow;
-  /** Retrieve a single flow authentication. */
-  findFlowAuthentication: FlowAuthentication;
-  /** Get brand */
-  findFlowAuthenticationBrand: FlowAuthenticationBrand;
-  /** Get domain */
-  findFlowAuthenticationDomain: FlowAuthenticationDomain;
-  /** Retrieve a single flow authentication log. */
-  findFlowAuthenticationLog: FlowAuthenticationLog;
-  /** Retrieve a single flow authentication provider. */
-  findFlowAuthenticationProvider: FlowAuthenticationProvider;
-  /** Retrieve a single FlowAuthenticationProviderConfiguration. */
-  findFlowAuthenticationProviderConfiguration: FlowAuthenticationProviderConfiguration;
-  /** Retrieve a single credential meta NL Wallet. */
-  findFlowAuthenticationProviderConfigurationNLWallet: FlowAuthenticationProviderConfigurationNlWallet;
-  /** Retrieve a single flow authentication scopes. */
-  findFlowAuthenticationScope: FlowAuthenticationScope;
   /** Retrieve a single flow disclosure. */
-  findFlowDisclosure: FlowDisclosure;
+  findDisclosure: Disclosure;
+  /** Retrieve a single disclosure activity. */
+  findDisclosureActivity: DisclosureActivity;
   /** Retreive a single flow disclosure attribute. */
-  findFlowDisclosureAttribute: FlowDisclosureAttribute;
+  findDisclosureAttribute: DisclosureAttribute;
   /** Get brand */
-  findFlowDisclosureBrand: FlowDisclosureBrand;
+  findDisclosureBrand: DisclosureBrand;
   /** Retrieve a single flow disclosure credential. */
-  findFlowDisclosureCredential: FlowDisclosureCredential;
+  findDisclosureCredential: DisclosureCredential;
   /** Get domain */
-  findFlowDisclosureDomain: FlowDisclosureDomain;
+  findDisclosureDomain: DisclosureDomain;
   /** Retrieve a single flow disclosure groups. */
-  findFlowDisclosureGroup: FlowDisclosureGroup;
-  /** Retrieve a single flow disclosure log. */
-  findFlowDisclosureLog: FlowDisclosureLog;
+  findDisclosureGroup: DisclosureGroup;
+  /** Get Label */
+  findDisclosureLabel: DisclosureLabel;
   /** Get mapping */
-  findFlowDisclosureMapping: FlowDisclosureMapping;
+  findDisclosureMapping: DisclosureMapping;
   /** Retrieve a single flow disclosure provider. */
-  findFlowDisclosureProvider: FlowDisclosureProvider;
-  /** Retrieve a single FlowDisclosureProviderConfiguration. */
-  findFlowDisclosureProviderConfiguration: FlowDisclosureProviderConfiguration;
+  findDisclosureProvider: DisclosureProvider;
+  /** Retrieve a single DisclosureProviderConfiguration. */
+  findDisclosureProviderConfiguration: DisclosureProviderConfiguration;
   /** Retrieve a single credential meta NL Wallet. */
-  findFlowDisclosureProviderConfigurationNLWallet: FlowDisclosureProviderConfigurationNlWallet;
-  /** Retrieve a single flow issuance. */
-  findFlowIssuance: FlowIssuance;
-  /** Retrieve a single flow issuance attribute. */
-  findFlowIssuanceAttribute: FlowIssuanceAttribute;
-  /** Get brand */
-  findFlowIssuanceBrand: FlowIssuanceBrand;
-  /** Retrieve a single flow issuance credential. */
-  findFlowIssuanceCredential: FlowIssuanceCredential;
-  /** Retrieve a single flow issuance credential meta. */
-  findFlowIssuanceCredentialMeta: FlowIssuanceCredentialMeta;
-  /** Retrieve a single flow issuance credential meta datakeeper. */
-  findFlowIssuanceCredentialMetaDatakeeper: FlowIssuanceCredentialMetaDatakeeper;
-  /** Retrieve a single flow issuance credential meta yivi. */
-  findFlowIssuanceCredentialMetaYivi: FlowIssuanceCredentialMetaYivi;
-  /** Get domain */
-  findFlowIssuanceDomain: FlowIssuanceDomain;
-  /** Retrieve a single flow issuance log. */
-  findFlowIssuanceLog: FlowIssuanceLog;
-  /** Get mapping */
-  findFlowIssuanceMapping: FlowIssuanceMapping;
-  /** Retrieve a single flow issuance provider. */
-  findFlowIssuanceProvider: FlowIssuanceProvider;
-  /** Retrieve a single flow signature. */
-  findFlowSignature: FlowSignature;
-  /** Retreive a single flow signature attribute. */
-  findFlowSignatureAttribute: FlowSignatureAttribute;
-  /** Get brand */
-  findFlowSignatureBrand: FlowSignatureBrand;
-  /** Retrieve a single flow signature credential. */
-  findFlowSignatureCredential: FlowSignatureCredential;
-  /** Get domain */
-  findFlowSignatureDomain: FlowSignatureDomain;
-  /** Retrieve a single flow signature groups. */
-  findFlowSignatureGroup: FlowSignatureGroup;
-  /** Retrieve a single flow signature log. */
-  findFlowSignatureLog: FlowSignatureLog;
-  /** Get mapping */
-  findFlowSignatureMapping: FlowSignatureMapping;
-  /** Retrieve a single flow signature provider. */
-  findFlowSignatureProvider: FlowSignatureProvider;
-  /** Retrieve a single FlowSignatureProviderConfiguration. */
-  findFlowSignatureProviderConfiguration: FlowSignatureProviderConfiguration;
-  /** Retrieve a single credential meta NL Wallet. */
-  findFlowSignatureProviderConfigurationNLWallet: FlowSignatureProviderConfigurationNlWallet;
+  findDisclosureProviderConfigurationNLWallet: DisclosureProviderConfigurationNlWallet;
   findGlobalOAuthMethods?: Maybe<Array<Maybe<OAuthMethod>>>;
+  /** Retrieve a single flow issuance. */
+  findIssuance: Issuance;
+  /** Retrieve a single issuance activity. */
+  findIssuanceActivity: IssuanceActivity;
+  /** Retrieve a single flow issuance attribute. */
+  findIssuanceAttribute: IssuanceAttribute;
+  /** Get brand */
+  findIssuanceBrand: IssuanceBrand;
+  /** Retrieve a single flow issuance credential. */
+  findIssuanceCredential: IssuanceCredential;
+  /** Retrieve a single flow issuance credential meta. */
+  findIssuanceCredentialMeta: IssuanceCredentialMeta;
+  /** Retrieve a single flow issuance credential meta datakeeper. */
+  findIssuanceCredentialMetaDatakeeper: IssuanceCredentialMetaDatakeeper;
+  /** Retrieve a single flow issuance credential meta yivi. */
+  findIssuanceCredentialMetaYivi: IssuanceCredentialMetaYivi;
+  /** Get domain */
+  findIssuanceDomain: IssuanceDomain;
+  /** Get Label */
+  findIssuanceLabel: IssuanceLabel;
+  /** Get mapping */
+  findIssuanceMapping: IssuanceMapping;
+  /** Retrieve a single flow issuance provider. */
+  findIssuanceProvider: IssuanceProvider;
   /** Retrieve a single issuer. */
   findIssuer: Issuer;
+  /** Get identity issuer label */
+  findIssuerLabel: IssuerLabel;
   /** Retrieve a single issuer locale. */
   findIssuerLocale: IssuerLocale;
   /** Retrieve a single issuer meta. */
@@ -18342,8 +21474,12 @@ export type Query = {
   findIssuerMetaOID4VCSDJWT: IssuerMetaOid4Vcsdjwt;
   /** Retrieve a single issuer meta yivi. */
   findIssuerMetaYivi: IssuerMetaYivi;
+  /** Find a single label */
+  findLabel: Label;
   /** Retrieve a single localeConfig. */
   findLocaleConfig: LocaleConfig;
+  /** Retrieve a single maintenance. */
+  findMaintenance: Maintenance;
   /** Retrieve many app locales. */
   findManyAppLocales: AppLocaleConnection;
   /** Retrieve many app prerequisite. */
@@ -18356,6 +21492,8 @@ export type Query = {
   findManyAppPrerequisiteStateLocales: AppPrerequisiteStateLocaleConnection;
   /** Retreive many app. */
   findManyApps: AppConnection;
+  /** Retrieve a list of many identity attribute labels. */
+  findManyAttributeLabels: AttributeLabelConnection;
   /** Retrieve many attribute locales. */
   findManyAttributeLocales: AttributeLocaleConnection;
   /** Retrieve many attribute meta. */
@@ -18390,26 +21528,56 @@ export type Query = {
   findManyAttributeRequestMeta: AttributeRequestMetaConnection;
   /** Retrieve many attribute request meta datakeeper. */
   findManyAttributeRequestMetaDatakeeper: AttributeRequestMetaDatakeeperConnection;
+  /** Retrieve many attribute request meta OID4VC mdoc. */
+  findManyAttributeRequestMetaOID4VCMDOC: AttributeRequestMetaOid4VcmdocConnection;
+  /** Retrieve many attribute request meta OID4VC SD-JWT. */
+  findManyAttributeRequestMetaOID4VCSDJWT: AttributeRequestMetaOid4VcsdjwtConnection;
   /** Retrieve many attribute request meta yivi. */
   findManyAttributeRequestMetaYivi: AttributeRequestMetaYiviConnection;
   /** Retrieve many attribute request meta yoti. */
   findManyAttributeRequestMetaYoti: AttributeRequestMetaYotiConnection;
   /** Retrieve many attribute. */
   findManyAttributes: AttributeConnection;
+  /** Retrieve many authentication activities. */
+  findManyAuthenticationActivities: AuthenticationActivityConnection;
+  /** Retrieve a list of many brands. */
+  findManyAuthenticationBrands: AuthenticationBrandConnection;
+  /** Retrieve a list of many domains. */
+  findManyAuthenticationDomains: AuthenticationDomainConnection;
+  /** Retrieve a list of many Labels. */
+  findManyAuthenticationLabels: AuthenticationLabelConnection;
+  /** Retrieve many credential meta NL Wallet. */
+  findManyAuthenticationProviderConfigurationNLWallets: AuthenticationProviderConfigurationNlWalletConnection;
+  /** Retrieve many AuthenticationProviderConfiguration. */
+  findManyAuthenticationProviderConfigurations: AuthenticationProviderConfigurationConnection;
+  /** Retrieve many flow authentication providers. */
+  findManyAuthenticationProviders: AuthenticationProviderConnection;
+  /** Retrieve many flow authentication scopes. */
+  findManyAuthenticationScopes: AuthenticationScopeConnection;
+  /** Retreive many flow authentications. */
+  findManyAuthentications: AuthenticationConnection;
   /** Retrieve a list of many billings. */
   findManyBillingMethods: BillingMethodConnection;
-  /** Retrieve a list of many billing wallet transactions */
-  findManyBillingPlanPayments: BillingPlanPaymentConnection;
   /** Retrieve a list of many billings. */
   findManyBillingPlans: BillingPlanConnection;
-  /** Retrieve a list of many billing wallet transactions */
-  findManyBillingWalletPayments: BillingWalletPaymentConnection;
+  /** Retrieve a list of many billing wallet transaction meta flow attributes */
+  findManyBillingWalletTransactionMetaFlowAttributes: BillingWalletTransactionMetaFlowAttributeConnection;
+  /** Retrieve a list of many billing wallet transaction meta flows */
+  findManyBillingWalletTransactionMetaFlows: BillingWalletTransactionMetaFlowConnection;
+  /** Retrieve a list of many billing wallet transaction meta plans */
+  findManyBillingWalletTransactionMetaPlans: BillingWalletTransactionMetaPlanConnection;
+  /** Retrieve a list of many billing wallet transaction meta wallets */
+  findManyBillingWalletTransactionMetaWallets: BillingWalletTransactionMetaWalletConnection;
+  /** Retrieve a list of many billing wallet transaction metas */
+  findManyBillingWalletTransactionMetas: BillingWalletTransactionMetaConnection;
   /** Retrieve a list of many billing wallet transactions */
   findManyBillingWalletTransactions: BillingWalletTransactionConnection;
   /** Retrieve a list of many billings. */
   findManyBillingWallets: BillingWalletConnection;
   /** Retrieve a list of many billings. */
   findManyBillings: BillingConnection;
+  /** Retrieve a list of many identity credential labels. */
+  findManyCredentialLabels: CredentialLabelConnection;
   /** Retreive many credential locales. */
   findManyCredentialLocales: CredentialLocaleConnection;
   /** Retrieve many credential meta. */
@@ -18444,6 +21612,10 @@ export type Query = {
   findManyCredentialRequestMeta: CredentialRequestMetaConnection;
   /** Retrieve many credential request meta datakeeper. */
   findManyCredentialRequestMetaDatakeeper: CredentialRequestMetaDatakeeperConnection;
+  /** Retrieve many credential request meta OID4VC mdoc. */
+  findManyCredentialRequestMetaOID4VCMDOC: CredentialRequestMetaOid4VcmdocConnection;
+  /** Retrieve many credential request meta OID4VC SD-JWT. */
+  findManyCredentialRequestMetaOID4VCSDJWT: CredentialRequestMetaOid4VcsdjwtConnection;
   /** Retrieve many credential request meta yivi. */
   findManyCredentialRequestMetaYivi: CredentialRequestMetaYiviConnection;
   /** Retrieve many credential request meta yoti. */
@@ -18456,88 +21628,56 @@ export type Query = {
   findManyCredentialRequestWorkflow: CredentialRequestWorkflowConnection;
   /** Retreive many credential. */
   findManyCredentials: CredentialConnection;
-  /** Retrieve a list of many brands. */
-  findManyFlowAuthenticationBrands: FlowAuthenticationBrandConnection;
-  /** Retrieve a list of many domains. */
-  findManyFlowAuthenticationDomains: FlowAuthenticationDomainConnection;
-  /** Retreive many flow authentications log. */
-  findManyFlowAuthenticationLogs: FlowAuthenticationLogConnection;
-  /** Retrieve many credential meta NL Wallet. */
-  findManyFlowAuthenticationProviderConfigurationNLWallets: FlowAuthenticationProviderConfigurationNlWalletConnection;
-  /** Retrieve many FlowAuthenticationProviderConfiguration. */
-  findManyFlowAuthenticationProviderConfigurations: FlowAuthenticationProviderConfigurationConnection;
-  /** Retrieve many flow authentication providers. */
-  findManyFlowAuthenticationProviders: FlowAuthenticationProviderConnection;
-  /** Retrieve many flow authentication scopes. */
-  findManyFlowAuthenticationScopes: FlowAuthenticationScopeConnection;
-  /** Retreive many flow authentications. */
-  findManyFlowAuthentications: FlowAuthenticationConnection;
+  /** Retrieve many disclosure activities. */
+  findManyDisclosureActivities: DisclosureActivityConnection;
   /** Retrieve many flow disclosure attributes. */
-  findManyFlowDisclosureAttributes: FlowDisclosureAttributeConnection;
+  findManyDisclosureAttributes: DisclosureAttributeConnection;
   /** Retrieve a list of many brands. */
-  findManyFlowDisclosureBrands: FlowDisclosureBrandConnection;
+  findManyDisclosureBrands: DisclosureBrandConnection;
   /** Retrieve many flow disclosure credentials. */
-  findManyFlowDisclosureCredentials: FlowDisclosureCredentialConnection;
+  findManyDisclosureCredentials: DisclosureCredentialConnection;
   /** Retrieve a list of many domains. */
-  findManyFlowDisclosureDomains: FlowDisclosureDomainConnection;
+  findManyDisclosureDomains: DisclosureDomainConnection;
   /** Retrieve many flow disclosure groups. */
-  findManyFlowDisclosureGroups: FlowDisclosureGroupConnection;
-  /** Retreive many flow disclosures log. */
-  findManyFlowDisclosureLogs: FlowDisclosureLogConnection;
+  findManyDisclosureGroups: DisclosureGroupConnection;
+  /** Retrieve a list of many Labels. */
+  findManyDisclosureLabels: DisclosureLabelConnection;
   /** Retrieve a list of many mappings. */
-  findManyFlowDisclosureMappings: FlowDisclosureMappingConnection;
+  findManyDisclosureMappings: DisclosureMappingConnection;
   /** Retrieve many credential meta NL Wallet. */
-  findManyFlowDisclosureProviderConfigurationNLWallets: FlowDisclosureProviderConfigurationNlWalletConnection;
-  /** Retrieve many FlowDisclosureProviderConfiguration. */
-  findManyFlowDisclosureProviderConfigurations: FlowDisclosureProviderConfigurationConnection;
+  findManyDisclosureProviderConfigurationNLWallets: DisclosureProviderConfigurationNlWalletConnection;
+  /** Retrieve many DisclosureProviderConfiguration. */
+  findManyDisclosureProviderConfigurations: DisclosureProviderConfigurationConnection;
   /** Retrieve many flow disclosure providers. */
-  findManyFlowDisclosureProviders: FlowDisclosureProviderConnection;
+  findManyDisclosureProviders: DisclosureProviderConnection;
   /** Retreive many flow disclosures. */
-  findManyFlowDisclosures: FlowDisclosureConnection;
+  findManyDisclosures: DisclosureConnection;
+  /** Retrieve many issuance activities. */
+  findManyIssuanceActivities: IssuanceActivityConnection;
   /** Retrieve many flow issuance attributes. */
-  findManyFlowIssuanceAttributes: FlowIssuanceAttributeConnection;
+  findManyIssuanceAttributes: IssuanceAttributeConnection;
   /** Retrieve a list of many brands. */
-  findManyFlowIssuanceBrands: FlowIssuanceBrandConnection;
+  findManyIssuanceBrands: IssuanceBrandConnection;
   /** Retrieve many flow issuance credential meta. */
-  findManyFlowIssuanceCredentialMeta: FlowIssuanceCredentialMetaConnection;
+  findManyIssuanceCredentialMeta: IssuanceCredentialMetaConnection;
   /** Retrieve many flow issuance credential meta datakeeper. */
-  findManyFlowIssuanceCredentialMetaDatakeeper: FlowIssuanceCredentialMetaDatakeeperConnection;
+  findManyIssuanceCredentialMetaDatakeeper: IssuanceCredentialMetaDatakeeperConnection;
   /** Retrieve many flow issuance credential meta yivi. */
-  findManyFlowIssuanceCredentialMetaYivi: FlowIssuanceCredentialMetaYiviConnection;
+  findManyIssuanceCredentialMetaYivi: IssuanceCredentialMetaYiviConnection;
   /** Retrieve many flow issuance credentials. */
-  findManyFlowIssuanceCredentials: FlowIssuanceCredentialConnection;
+  findManyIssuanceCredentials: IssuanceCredentialConnection;
   /** Retrieve a list of many domains. */
-  findManyFlowIssuanceDomains: FlowIssuanceDomainConnection;
-  /** Retrieve many flow issuances log. */
-  findManyFlowIssuanceLogs: FlowIssuanceLogConnection;
+  findManyIssuanceDomains: IssuanceDomainConnection;
+  /** Retrieve a list of many Labels. */
+  findManyIssuanceLabels: IssuanceLabelConnection;
   /** Retrieve a list of many mappings. */
-  findManyFlowIssuanceMappings: FlowIssuanceMappingConnection;
+  findManyIssuanceMappings: IssuanceMappingConnection;
   /** Retrieve many flow issuance providers. */
-  findManyFlowIssuanceProviders: FlowIssuanceProviderConnection;
+  findManyIssuanceProviders: IssuanceProviderConnection;
   /** Retreive many flow issuances. */
-  findManyFlowIssuances: FlowIssuanceConnection;
-  /** Retrieve many flow signature attributes. */
-  findManyFlowSignatureAttributes: FlowSignatureAttributeConnection;
-  /** Retrieve a list of many brands. */
-  findManyFlowSignatureBrands: FlowSignatureBrandConnection;
-  /** Retrieve many flow signature credentials. */
-  findManyFlowSignatureCredentials: FlowSignatureCredentialConnection;
-  /** Retrieve a list of many domains. */
-  findManyFlowSignatureDomains: FlowSignatureDomainConnection;
-  /** Retrieve many flow signature groups. */
-  findManyFlowSignatureGroups: FlowSignatureGroupConnection;
-  /** Retreive many flow signatures log. */
-  findManyFlowSignatureLogs: FlowSignatureLogConnection;
-  /** Retrieve a list of many mappings. */
-  findManyFlowSignatureMappings: FlowSignatureMappingConnection;
-  /** Retrieve many credential meta NL Wallet. */
-  findManyFlowSignatureProviderConfigurationNLWallets: FlowSignatureProviderConfigurationNlWalletConnection;
-  /** Retrieve many FlowSignatureProviderConfiguration. */
-  findManyFlowSignatureProviderConfigurations: FlowSignatureProviderConfigurationConnection;
-  /** Retrieve many flow signature providers. */
-  findManyFlowSignatureProviders: FlowSignatureProviderConnection;
-  /** Retreive many flow signatures. */
-  findManyFlowSignatures: FlowSignatureConnection;
+  findManyIssuances: IssuanceConnection;
+  /** Retrieve a list of many identity issuer labels. */
+  findManyIssuerLabels: IssuerLabelConnection;
   /** Retreive many issuer locales. */
   findManyIssuerLocales: IssuerLocaleConnection;
   /** Retrieve many issuer meta. */
@@ -18554,8 +21694,12 @@ export type Query = {
   findManyIssuerMetaYivi: IssuerMetaYiviConnection;
   /** Retreive many issuer. */
   findManyIssuers: IssuerConnection;
+  /** Find many labels */
+  findManyLabels: LabelConnection;
   /** Retrieve many localeConfig. */
   findManyLocaleConfigs: LocaleConfigConnection;
+  /** Retreive many maintenances. */
+  findManyMaintenances: MaintenanceConnection;
   /** Retrieve many mappingIssuance attributes. */
   findManyMappingIssuanceAttributes: MappingIssuanceAttributeConnection;
   /** Retrieve many mappingIssuance links. */
@@ -18586,16 +21730,22 @@ export type Query = {
   findManyOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeperConnection;
   /** Retrieve many organization app meta kiwa. */
   findManyOrganizationAppMetaKiwa: OrganizationAppMetaKiwaConnection;
+  /** Retrieve many organization app meta OID4VC. */
+  findManyOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vcConnection;
   /** Retrieve many organization app meta yoti. */
   findManyOrganizationAppMetaYoti: OrganizationAppMetaYotiConnection;
   /** Retrieve many organization app prerequisite. */
   findManyOrganizationAppPrerequisite: OrganizationAppPrerequisiteConnection;
   /** Retrieve many organization app prerequisite workflow. */
   findManyOrganizationAppPrerequisiteWorkflow: OrganizationAppPrerequisiteWorkflowConnection;
+  /** Retrieve a list of many Labels. */
+  findManyOrganizationBrandLabels: OrganizationBrandLabelConnection;
   /** Retrieve a list of many brands. */
   findManyOrganizationBrands: OrganizationBrandConnection;
   /** Retrieve a list of many tokens. */
   findManyOrganizationClients: OrganizationClientConnection;
+  /** Retrieve a list of many Labels. */
+  findManyOrganizationDomainLabels: OrganizationDomainLabelConnection;
   /** Retrieve many OrganizationDomainOAuthProvider. */
   findManyOrganizationDomainOAuthProviders: OrganizationDomainOAuthProviderConnection;
   /** Retrieve a list of many domain validations. */
@@ -18626,18 +21776,40 @@ export type Query = {
   findManyPaymentProviderOrganizations: PaymentProviderOrganizationConnection;
   /** Retrieve a list of many billings. */
   findManyPaymentProviders: PaymentProviderConnection;
+  /** Retrieve a list of many pricing catalogs. */
+  findManyPricingCatalogs: PricingCatalogConnection;
+  /** Retrieve a list of many pricing configuration apps. */
+  findManyPricingConfigurationApps: PricingConfigurationAppConnection;
+  /** Retrieve a list of many pricing configuration organizations. */
+  findManyPricingConfigurationOrganizations: PricingConfigurationOrganizationConnection;
+  /** Retrieve a list of many pricing configuration studio plans. */
+  findManyPricingConfigurationStudioPlans: PricingConfigurationStudioPlanConnection;
+  /** Retrieve a list of many pricing group assignments. */
+  findManyPricingGroupAssignments: PricingGroupAssignmentConnection;
+  /** Retrieve a list of many pricing groups. */
+  findManyPricingGroups: PricingGroupConnection;
+  /** Retrieve a list of many pricing rule constraints. */
+  findManyPricingRuleConstraints: PricingRuleConstraintConnection;
+  /** Retrieve a list of many pricing rule targets. */
+  findManyPricingRuleTargets: PricingRuleTargetConnection;
+  /** Retrieve a list of many pricing rules. */
+  findManyPricingRules: PricingRuleConnection;
   /** Retrieve many metas. */
   findManyProviderAppMeta: ProviderAppMetaConnection;
   /** Retrieve multiple objects */
   findManyProviderAppMetaOID4VC: ProviderAppMetaOid4VcConnection;
   /** Retrieve many ProviderApp. */
   findManyProviderApps: ProviderAppConnection;
+  /** Retrieve a list of many identity provider labels. */
+  findManyProviderLabels: ProviderLabelConnection;
   /** Retreive many provider locales. */
   findManyProviderLocales: ProviderLocaleConnection;
   /** Retrieve many provider. */
   findManyProviders: ProviderConnection;
   /** Retrieve many provider. */
   findManyProvidersForOrganization: ProviderForOrganizationConnection;
+  /** Retrieve a list of many identity scheme labels. */
+  findManySchemeLabels: SchemeLabelConnection;
   /** Retreive many scheme locales. */
   findManySchemeLocales: SchemeLocaleConnection;
   /** Retrieve many scheme. */
@@ -18650,6 +21822,30 @@ export type Query = {
   findManyScopeResources: ScopeResourceConnection;
   /** Retreive many scope. */
   findManyScopes: ScopeConnection;
+  /** Retrieve many signature activities. */
+  findManySignatureActivities: SignatureActivityConnection;
+  /** Retrieve many flow signature attributes. */
+  findManySignatureAttributes: SignatureAttributeConnection;
+  /** Retrieve a list of many brands. */
+  findManySignatureBrands: SignatureBrandConnection;
+  /** Retrieve many flow signature credentials. */
+  findManySignatureCredentials: SignatureCredentialConnection;
+  /** Retrieve a list of many domains. */
+  findManySignatureDomains: SignatureDomainConnection;
+  /** Retrieve many flow signature groups. */
+  findManySignatureGroups: SignatureGroupConnection;
+  /** Retrieve a list of many Labels. */
+  findManySignatureLabels: SignatureLabelConnection;
+  /** Retrieve a list of many mappings. */
+  findManySignatureMappings: SignatureMappingConnection;
+  /** Retrieve many credential meta NL Wallet. */
+  findManySignatureProviderConfigurationNLWallets: SignatureProviderConfigurationNlWalletConnection;
+  /** Retrieve many SignatureProviderConfiguration. */
+  findManySignatureProviderConfigurations: SignatureProviderConfigurationConnection;
+  /** Retrieve many flow signature providers. */
+  findManySignatureProviders: SignatureProviderConnection;
+  /** Retreive many flow signatures. */
+  findManySignatures: SignatureConnection;
   /** FindMany StudioPlanControlOverride. */
   findManyStudioPlanControlOverrides: StudioPlanControlOverrideConnection;
   /** FindMany StudioPlanControl. */
@@ -18679,7 +21875,7 @@ export type Query = {
   /** Retrieve a single mappingVerification link. */
   findMappingVerificationLink: MappingVerificationLink;
   /** Retrieve current user */
-  findMe: OrganizationUser;
+  findMe: User;
   findOAuthMethodsByOrganizationDomain?: Maybe<Array<Maybe<OAuthMethod>>>;
   findOAuthProvider: OAuthProvider;
   findOrganization: Organization;
@@ -18696,6 +21892,8 @@ export type Query = {
   findOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Retrieve a single organization app meta kiwa. */
   findOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
+  /** Retrieve a single organization app meta OID4VC. */
+  findOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Retrieve a single organization app meta yoti. */
   findOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Retrieve a single organization app prerequisite. */
@@ -18704,10 +21902,14 @@ export type Query = {
   findOrganizationAppPrerequisiteWorkflow: OrganizationAppPrerequisiteWorkflow;
   /** Get brand */
   findOrganizationBrand: OrganizationBrand;
+  /** Get Label */
+  findOrganizationBrandLabel: OrganizationBrandLabel;
   /** Get token */
   findOrganizationClient: OrganizationClient;
   /** Get domain */
   findOrganizationDomain: OrganizationDomain;
+  /** Get Label */
+  findOrganizationDomainLabel: OrganizationDomainLabel;
   /** Retrieve a single OrganizationDomainOAuthProvider. */
   findOrganizationDomainOAuthProvider: OrganizationDomainOAuthProvider;
   /** Get domain validation */
@@ -18731,6 +21933,24 @@ export type Query = {
   findPaymentProviderMethod: PaymentProviderMethod;
   /** Find billing */
   findPaymentProviderOrganization: PaymentProviderOrganization;
+  /** Find pricing catalog */
+  findPricingCatalog: PricingCatalog;
+  /** Find pricing configuration app */
+  findPricingConfigurationApp: PricingConfigurationApp;
+  /** Find pricing configuration organization */
+  findPricingConfigurationOrganization: PricingConfigurationOrganization;
+  /** Find pricing configuration studio plan */
+  findPricingConfigurationStudioPlan: PricingConfigurationStudioPlan;
+  /** Find pricing group */
+  findPricingGroup: PricingGroup;
+  /** Find pricing group assignment */
+  findPricingGroupAssignment: PricingGroupAssignment;
+  /** Find pricing rule */
+  findPricingRule: PricingRule;
+  /** Find pricing rule constraint */
+  findPricingRuleConstraint: PricingRuleConstraint;
+  /** Find pricing rule target */
+  findPricingRuleTarget: PricingRuleTarget;
   /** Retrieve a single provider. */
   findProvider: Provider;
   /** Retrieve a single ProviderApp. */
@@ -18739,10 +21959,14 @@ export type Query = {
   findProviderAppMeta: ProviderAppMeta;
   /** Retrieve a single object */
   findProviderAppMetaOID4VC: ProviderAppMetaOid4Vc;
+  /** Get identity provider label */
+  findProviderLabel: ProviderLabel;
   /** Retrieve a single provider locale. */
   findProviderLocale: ProviderLocale;
   /** Retrieve a single scheme. */
   findScheme: Scheme;
+  /** Get identity scheme label */
+  findSchemeLabel: SchemeLabel;
   /** Retrieve a single scheme locale. */
   findSchemeLocale: SchemeLocale;
   /** Retrieve a single scope. */
@@ -18753,6 +21977,30 @@ export type Query = {
   findScopeLocale: ScopeLocale;
   /** Retrieve a single scope resource. */
   findScopeResource: ScopeResource;
+  /** Retrieve a single flow signature. */
+  findSignature: Signature;
+  /** Retrieve a single signature activity. */
+  findSignatureActivity: SignatureActivity;
+  /** Retreive a single flow signature attribute. */
+  findSignatureAttribute: SignatureAttribute;
+  /** Get brand */
+  findSignatureBrand: SignatureBrand;
+  /** Retrieve a single flow signature credential. */
+  findSignatureCredential: SignatureCredential;
+  /** Get domain */
+  findSignatureDomain: SignatureDomain;
+  /** Retrieve a single flow signature groups. */
+  findSignatureGroup: SignatureGroup;
+  /** Get Label */
+  findSignatureLabel: SignatureLabel;
+  /** Get mapping */
+  findSignatureMapping: SignatureMapping;
+  /** Retrieve a single flow signature provider. */
+  findSignatureProvider: SignatureProvider;
+  /** Retrieve a single SignatureProviderConfiguration. */
+  findSignatureProviderConfiguration: SignatureProviderConfiguration;
+  /** Retrieve a single credential meta NL Wallet. */
+  findSignatureProviderConfigurationNLWallet: SignatureProviderConfigurationNlWallet;
   /** Find StudioPlan. */
   findStudioPlan: StudioPlan;
   /** Find StudioPlanControl. */
@@ -18769,1618 +22017,4984 @@ export type Query = {
   findUserInvitation: UserInvitation;
   /** Get payment provider invoice receipt */
   getPaymentProviderInvoiceReceipt: Scalars['URL']['output'];
+  /**
+   * Returns a JSON Schema for the given GraphQL input type name.
+   * Fields annotated with `@excludeFromJsonSchema` are excluded.
+   */
+  jsonSchema: Scalars['JSONObject']['output'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppPrerequisiteArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppPrerequisiteLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppPrerequisiteStateArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAppPrerequisiteStateLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAttributeLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaDigidentityArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaMdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaNectArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaOid4VcmdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaOid4VcsdjwtArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaReadIdArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaTruidArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAttributeRequestMetaOid4VcmdocArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAttributeRequestMetaOid4VcsdjwtArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindAttributeRequestMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationActivityArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationBrandArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationDomainArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationProviderArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationProviderConfigurationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationProviderConfigurationNlWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindAuthenticationScopeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindBillingArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindBillingMethodArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindBillingPlanArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindBillingPlanPaymentArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindBillingWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindBillingWalletPaymentArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindBillingWalletTransactionArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindBillingWalletTransactionMetaArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindBillingWalletTransactionMetaFlowArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindBillingWalletTransactionMetaFlowAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindBillingWalletTransactionMetaPlanArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindBillingWalletTransactionMetaWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindCredentialLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaDigidentityArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaMdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaNectArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaOid4VcmdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaOid4VcsdjwtArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaReadIdArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaTruidArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindCredentialRequestMetaOid4VcmdocArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindCredentialRequestMetaOid4VcsdjwtArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestStateArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestStateLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindCredentialRequestWorkflowArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowAuthenticationArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowAuthenticationBrandArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureActivityArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
-export type QueryFindFlowAuthenticationDomainArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureCredentialArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
-export type QueryFindFlowAuthenticationLogArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureGroupArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowAuthenticationProviderArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowAuthenticationProviderConfigurationArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowAuthenticationProviderConfigurationNlWalletArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowAuthenticationScopeArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowDisclosureArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowDisclosureAttributeArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowDisclosureBrandArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
-export type QueryFindFlowDisclosureCredentialArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowDisclosureDomainArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureMappingArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
-export type QueryFindFlowDisclosureGroupArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowDisclosureLogArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureProviderConfigurationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowDisclosureMappingArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowDisclosureProviderArgs = {
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindDisclosureProviderConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type QueryFindFlowDisclosureProviderConfigurationArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowDisclosureProviderConfigurationNlWalletArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceAttributeArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceBrandArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowIssuanceCredentialArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceCredentialMetaArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceCredentialMetaDatakeeperArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceCredentialMetaYiviArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceDomainArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowIssuanceLogArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowIssuanceMappingArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowIssuanceProviderArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureAttributeArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureBrandArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowSignatureCredentialArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureDomainArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowSignatureGroupArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureLogArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureMappingArgs = {
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryFindFlowSignatureProviderArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureProviderConfigurationArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type QueryFindFlowSignatureProviderConfigurationNlWalletArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindGlobalOAuthMethodsArgs = {
   input: FindGlobalOAuthMethodsInput;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceActivityArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceBrandArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceCredentialArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceCredentialMetaArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceCredentialMetaDatakeeperArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceCredentialMetaYiviArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceDomainArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceMappingArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuanceProviderArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindIssuerLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaMdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaOid4VcmdocArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaOid4VcsdjwtArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindIssuerMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindLabelArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindLocaleConfigArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindMaintenanceArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppLocalesArgs = {
   input?: InputMaybe<FindManyAppLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppPrerequisiteArgs = {
   input?: InputMaybe<FindManyAppPrerequisitesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppPrerequisiteLocalesArgs = {
   input?: InputMaybe<FindManyAppPrerequisiteLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppPrerequisiteStateArgs = {
   input?: InputMaybe<FindManyAppPrerequisiteStateInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppPrerequisiteStateLocalesArgs = {
   input?: InputMaybe<FindManyAppPrerequisiteStateLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAppsArgs = {
   input?: InputMaybe<FindManyAppsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAttributeLabelsArgs = {
+  input?: InputMaybe<FindManyAttributeLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeLocalesArgs = {
   input?: InputMaybe<FindManyAttributeLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaArgs = {
   input?: InputMaybe<FindManyAttributeMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyAttributeMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaDigidentityArgs = {
   input?: InputMaybe<FindManyAttributeMetaDigidentityInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaMdocArgs = {
   input?: InputMaybe<FindManyAttributeMetaMdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaNlWalletArgs = {
   input?: InputMaybe<FindManyAttributeMetaNlWalletInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaNectArgs = {
   input?: InputMaybe<FindManyAttributeMetaNectInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaOid4VcmdocArgs = {
   input?: InputMaybe<FindManyAttributeMetaOid4VcmdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaOid4VcsdjwtArgs = {
   input?: InputMaybe<FindManyAttributeMetaOid4VcsdjwtInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaReadIdArgs = {
   input?: InputMaybe<FindManyAttributeMetaReadIdInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaTruidArgs = {
   input?: InputMaybe<FindManyAttributeMetaTruidInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaYiviArgs = {
   input?: InputMaybe<FindManyAttributeMetaYiviInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeMetaYotiArgs = {
   input?: InputMaybe<FindManyAttributeMetaYotiInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestArgs = {
   input?: InputMaybe<FindManyAttributeRequestsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestLocalesArgs = {
   input?: InputMaybe<FindManyAttributeRequestLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestMetaArgs = {
   input?: InputMaybe<FindManyAttributeRequestMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyAttributeRequestMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAttributeRequestMetaOid4VcmdocArgs = {
+  input?: InputMaybe<FindManyAttributeRequestMetaOid4VcmdocInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAttributeRequestMetaOid4VcsdjwtArgs = {
+  input?: InputMaybe<FindManyAttributeRequestMetaOid4VcsdjwtInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestMetaYiviArgs = {
   input?: InputMaybe<FindManyAttributeRequestMetaYiviInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributeRequestMetaYotiArgs = {
   input?: InputMaybe<FindManyAttributeRequestMetaYotiInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyAttributesArgs = {
   input?: InputMaybe<FindManyAttributesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationActivitiesArgs = {
+  input?: InputMaybe<FindManyAuthenticationActivitiesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationBrandsArgs = {
+  input?: InputMaybe<FindManyAuthenticationBrandsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationDomainsArgs = {
+  input?: InputMaybe<FindManyAuthenticationDomainsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationLabelsArgs = {
+  input?: InputMaybe<FindManyAuthenticationLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationProviderConfigurationNlWalletsArgs = {
+  input?: InputMaybe<FindManyAuthenticationProviderConfigurationNlWalletsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationProviderConfigurationsArgs = {
+  input?: InputMaybe<FindManyAuthenticationProviderConfigurationsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationProvidersArgs = {
+  input?: InputMaybe<FindManyAuthenticationProvidersInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationScopesArgs = {
+  input?: InputMaybe<FindManyAuthenticationScopesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyAuthenticationsArgs = {
+  input?: InputMaybe<FindManyAuthenticationsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyBillingMethodsArgs = {
   input?: InputMaybe<FindManyBillingMethodsInput>;
 };
 
 
-export type QueryFindManyBillingPlanPaymentsArgs = {
-  input?: InputMaybe<FindManyBillingPlanPaymentsInput>;
-};
-
-
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyBillingPlansArgs = {
   input?: InputMaybe<FindManyBillingPlansInput>;
 };
 
 
-export type QueryFindManyBillingWalletPaymentsArgs = {
-  input?: InputMaybe<FindManyBillingWalletPaymentsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyBillingWalletTransactionMetaFlowAttributesArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaFlowAttributesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyBillingWalletTransactionMetaFlowsArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaFlowsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyBillingWalletTransactionMetaPlansArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaPlansInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyBillingWalletTransactionMetaWalletsArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaWalletsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyBillingWalletTransactionMetasArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetasInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyBillingWalletTransactionsArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyBillingWalletsArgs = {
   input?: InputMaybe<FindManyBillingWalletsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyBillingsArgs = {
   input?: InputMaybe<FindManyBillingsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyCredentialLabelsArgs = {
+  input?: InputMaybe<FindManyCredentialLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialLocalesArgs = {
   input?: InputMaybe<FindManyCredentialLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaArgs = {
   input?: InputMaybe<FindManyCredentialMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyCredentialMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaDigidentityArgs = {
   input?: InputMaybe<FindManyCredentialMetaDigidentityInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaMdocArgs = {
   input?: InputMaybe<FindManyCredentialMetaMdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaNlWalletArgs = {
   input?: InputMaybe<FindManyCredentialMetaNlWalletInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaNectArgs = {
   input?: InputMaybe<FindManyCredentialMetaNectInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaOid4VcmdocArgs = {
   input?: InputMaybe<FindManyCredentialMetaOid4VcmdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaOid4VcsdjwtArgs = {
   input?: InputMaybe<FindManyCredentialMetaOid4VcsdjwtInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaReadIdArgs = {
   input?: InputMaybe<FindManyCredentialMetaReadIdInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaTruidArgs = {
   input?: InputMaybe<FindManyCredentialMetaTruidInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaYiviArgs = {
   input?: InputMaybe<FindManyCredentialMetaYiviInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialMetaYotiArgs = {
   input?: InputMaybe<FindManyCredentialMetaYotiInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestArgs = {
   input?: InputMaybe<FindManyCredentialRequestsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestLocalesArgs = {
   input?: InputMaybe<FindManyCredentialRequestLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestMetaArgs = {
   input?: InputMaybe<FindManyCredentialRequestMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyCredentialRequestMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyCredentialRequestMetaOid4VcmdocArgs = {
+  input?: InputMaybe<FindManyCredentialRequestMetaOid4VcmdocInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyCredentialRequestMetaOid4VcsdjwtArgs = {
+  input?: InputMaybe<FindManyCredentialRequestMetaOid4VcsdjwtInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestMetaYiviArgs = {
   input?: InputMaybe<FindManyCredentialRequestMetaYiviInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestMetaYotiArgs = {
   input?: InputMaybe<FindManyCredentialRequestMetaYotiInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestStateArgs = {
   input?: InputMaybe<FindManyCredentialRequestStateInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestStateLocalesArgs = {
   input?: InputMaybe<FindManyCredentialRequestStateLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialRequestWorkflowArgs = {
   input?: InputMaybe<FindManyCredentialRequestWorkflowInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyCredentialsArgs = {
   input?: InputMaybe<FindManyCredentialsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationBrandsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationBrandsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureActivitiesArgs = {
+  input?: InputMaybe<FindManyDisclosureActivitiesInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationDomainsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationDomainsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureAttributesArgs = {
+  input?: InputMaybe<FindManyDisclosureAttributesInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationLogsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationLogsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureBrandsArgs = {
+  input?: InputMaybe<FindManyDisclosureBrandsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationProviderConfigurationNlWalletsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationProviderConfigurationNlWalletsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureCredentialsArgs = {
+  input?: InputMaybe<FindManyDisclosureCredentialsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationProviderConfigurationsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationProviderConfigurationsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureDomainsArgs = {
+  input?: InputMaybe<FindManyDisclosureDomainsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationProvidersArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationProvidersInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureGroupsArgs = {
+  input?: InputMaybe<FindManyDisclosureGroupsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationScopesArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationScopesInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureLabelsArgs = {
+  input?: InputMaybe<FindManyDisclosureLabelsInput>;
 };
 
 
-export type QueryFindManyFlowAuthenticationsArgs = {
-  input?: InputMaybe<FindManyFlowAuthenticationsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureMappingsArgs = {
+  input?: InputMaybe<FindManyDisclosureMappingsInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureAttributesArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureAttributesInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureProviderConfigurationNlWalletsArgs = {
+  input?: InputMaybe<FindManyDisclosureProviderConfigurationNlWalletsInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureBrandsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureBrandsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureProviderConfigurationsArgs = {
+  input?: InputMaybe<FindManyDisclosureProviderConfigurationsInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureCredentialsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosureProvidersArgs = {
+  input?: InputMaybe<FindManyDisclosureProvidersInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureDomainsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureDomainsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyDisclosuresArgs = {
+  input?: InputMaybe<FindManyDisclosuresInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureGroupsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureGroupsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceActivitiesArgs = {
+  input?: InputMaybe<FindManyIssuanceActivitiesInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureLogsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureLogsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceAttributesArgs = {
+  input?: InputMaybe<FindManyIssuanceAttributesInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureMappingsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureMappingsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceBrandsArgs = {
+  input?: InputMaybe<FindManyIssuanceBrandsInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureProviderConfigurationNlWalletsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureProviderConfigurationNlWalletsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceCredentialMetaArgs = {
+  input?: InputMaybe<FindManyIssuanceCredentialMetaInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureProviderConfigurationsArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureProviderConfigurationsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceCredentialMetaDatakeeperArgs = {
+  input?: InputMaybe<FindManyIssuanceCredentialMetaDatakeeperInput>;
 };
 
 
-export type QueryFindManyFlowDisclosureProvidersArgs = {
-  input?: InputMaybe<FindManyFlowDisclosureProvidersInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceCredentialMetaYiviArgs = {
+  input?: InputMaybe<FindManyIssuanceCredentialMetaYiviInput>;
 };
 
 
-export type QueryFindManyFlowDisclosuresArgs = {
-  input?: InputMaybe<FindManyFlowDisclosuresInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceCredentialsArgs = {
+  input?: InputMaybe<FindManyIssuanceCredentialsInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceAttributesArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceAttributesInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceDomainsArgs = {
+  input?: InputMaybe<FindManyIssuanceDomainsInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceBrandsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceBrandsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceLabelsArgs = {
+  input?: InputMaybe<FindManyIssuanceLabelsInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceCredentialMetaArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceCredentialMetaInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceMappingsArgs = {
+  input?: InputMaybe<FindManyIssuanceMappingsInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceCredentialMetaDatakeeperArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceCredentialMetaDatakeeperInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuanceProvidersArgs = {
+  input?: InputMaybe<FindManyIssuanceProvidersInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceCredentialMetaYiviArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceCredentialMetaYiviInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuancesArgs = {
+  input?: InputMaybe<FindManyIssuancesInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceCredentialsInput>;
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyIssuerLabelsArgs = {
+  input?: InputMaybe<FindManyIssuerLabelsInput>;
 };
 
 
-export type QueryFindManyFlowIssuanceDomainsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceDomainsInput>;
-};
-
-
-export type QueryFindManyFlowIssuanceLogsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceLogsInput>;
-};
-
-
-export type QueryFindManyFlowIssuanceMappingsArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceMappingsInput>;
-};
-
-
-export type QueryFindManyFlowIssuanceProvidersArgs = {
-  input?: InputMaybe<FindManyFlowIssuanceProvidersInput>;
-};
-
-
-export type QueryFindManyFlowIssuancesArgs = {
-  input?: InputMaybe<FindManyFlowIssuancesInput>;
-};
-
-
-export type QueryFindManyFlowSignatureAttributesArgs = {
-  input?: InputMaybe<FindManyFlowSignatureAttributesInput>;
-};
-
-
-export type QueryFindManyFlowSignatureBrandsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureBrandsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureCredentialsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureCredentialsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureDomainsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureDomainsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureGroupsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureGroupsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureLogsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureLogsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureMappingsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureMappingsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureProviderConfigurationNlWalletsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureProviderConfigurationNlWalletsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureProviderConfigurationsArgs = {
-  input?: InputMaybe<FindManyFlowSignatureProviderConfigurationsInput>;
-};
-
-
-export type QueryFindManyFlowSignatureProvidersArgs = {
-  input?: InputMaybe<FindManyFlowSignatureProvidersInput>;
-};
-
-
-export type QueryFindManyFlowSignaturesArgs = {
-  input?: InputMaybe<FindManyFlowSignaturesInput>;
-};
-
-
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerLocalesArgs = {
   input?: InputMaybe<FindManyIssuerLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaArgs = {
   input?: InputMaybe<FindManyIssuerMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyIssuerMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaMdocArgs = {
   input?: InputMaybe<FindManyIssuerMetaMdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaOid4VcmdocArgs = {
   input?: InputMaybe<FindManyIssuerMetaOid4VcmdocInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaOid4VcsdjwtArgs = {
   input?: InputMaybe<FindManyIssuerMetaOid4VcsdjwtInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuerMetaYiviArgs = {
   input?: InputMaybe<FindManyIssuerMetaYiviInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyIssuersArgs = {
   input?: InputMaybe<FindManyIssuersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyLabelsArgs = {
+  input?: InputMaybe<FindManyLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyLocaleConfigsArgs = {
   input?: InputMaybe<FindManyLocaleConfigsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyMaintenancesArgs = {
+  input?: InputMaybe<FindManyMaintenancesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingIssuanceAttributesArgs = {
   input?: InputMaybe<FindManyMappingIssuanceAttributesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingIssuanceLinksArgs = {
   input?: InputMaybe<FindManyMappingIssuanceLinksInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingIssuancesArgs = {
   input?: InputMaybe<FindManyMappingIssuancesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingVerificationAttributesArgs = {
   input?: InputMaybe<FindManyMappingVerificationAttributesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingVerificationClaimsArgs = {
   input?: InputMaybe<FindManyMappingVerificationClaimsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingVerificationLinksArgs = {
   input?: InputMaybe<FindManyMappingVerificationLinksInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyMappingVerificationsArgs = {
   input?: InputMaybe<FindManyMappingVerificationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOAuthProvidersArgs = {
   input?: InputMaybe<FindManyOAuthProvidersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAddressesArgs = {
   input?: InputMaybe<FindManyOrganizationAddressesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAlertDeprecationsArgs = {
   input?: InputMaybe<FindManyOrganizationAlertDeprecationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAlertsArgs = {
   input?: InputMaybe<FindManyOrganizationAlertsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppArgs = {
   input?: InputMaybe<FindManyOrganizationAppsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppMetaArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaDatakeeperInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppMetaKiwaArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaKiwaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyOrganizationAppMetaOid4vcArgs = {
+  input?: InputMaybe<FindManyOrganizationAppMetaOid4vcInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppMetaYotiArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaYotiInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppPrerequisiteArgs = {
   input?: InputMaybe<FindManyOrganizationAppPrerequisiteInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationAppPrerequisiteWorkflowArgs = {
   input?: InputMaybe<FindManyOrganizationAppPrerequisiteWorkflowInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyOrganizationBrandLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationBrandLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationBrandsArgs = {
   input?: InputMaybe<FindManyOrganizationBrandsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationClientsArgs = {
   input?: InputMaybe<FindManyOrganizationClientsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyOrganizationDomainLabelsArgs = {
+  input?: InputMaybe<FindManyOrganizationDomainLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationDomainOAuthProvidersArgs = {
   input?: InputMaybe<FindManyOrganizationDomainOAuthProvidersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationDomainValidationsArgs = {
   input?: InputMaybe<FindManyOrganizationDomainValidationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationDomainsArgs = {
   input?: InputMaybe<FindManyOrganizationDomainsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationNotificationEventsArgs = {
   input?: InputMaybe<FindManyOrganizationNotificationEventsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationNotificationsArgs = {
   input?: InputMaybe<FindManyOrganizationNotificationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationQuotasArgs = {
   input?: InputMaybe<FindManyOrganizationQuotasInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationSecretsArgs = {
   input?: InputMaybe<FindManyOrganizationSecretsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationUsersArgs = {
   input?: InputMaybe<FindManyOrganizationUsersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationsArgs = {
   input?: InputMaybe<FindManyOrganizationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyOrganizationsWithStudioPlanArgs = {
   input?: InputMaybe<FindManyOrganizationsInput>;
   studioPlanUuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyPaymentProviderEventsArgs = {
   input?: InputMaybe<FindManyPaymentProviderEventsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyPaymentProviderInvoicesArgs = {
   input?: InputMaybe<FindManyPaymentProviderInvoicesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyPaymentProviderMethodsArgs = {
   input?: InputMaybe<FindManyPaymentProviderMethodsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyPaymentProviderOrganizationsArgs = {
   input?: InputMaybe<FindManyPaymentProviderOrganizationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyPaymentProvidersArgs = {
   input?: InputMaybe<FindManyPaymentProvidersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingCatalogsArgs = {
+  input?: InputMaybe<FindManyPricingCatalogsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingConfigurationAppsArgs = {
+  input?: InputMaybe<FindManyPricingConfigurationAppsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingConfigurationOrganizationsArgs = {
+  input?: InputMaybe<FindManyPricingConfigurationOrganizationsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingConfigurationStudioPlansArgs = {
+  input?: InputMaybe<FindManyPricingConfigurationStudioPlansInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingGroupAssignmentsArgs = {
+  input?: InputMaybe<FindManyPricingGroupAssignmentsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingGroupsArgs = {
+  input?: InputMaybe<FindManyPricingGroupsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingRuleConstraintsArgs = {
+  input?: InputMaybe<FindManyPricingRuleConstraintsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingRuleTargetsArgs = {
+  input?: InputMaybe<FindManyPricingRuleTargetsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyPricingRulesArgs = {
+  input?: InputMaybe<FindManyPricingRulesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProviderAppMetaArgs = {
   input?: InputMaybe<FindManyProviderAppMetaInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProviderAppMetaOid4VcArgs = {
   input?: InputMaybe<FindManyProviderAppMetaOid4VcInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProviderAppsArgs = {
   input?: InputMaybe<FindManyProviderAppsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManyProviderLabelsArgs = {
+  input?: InputMaybe<FindManyProviderLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProviderLocalesArgs = {
   input?: InputMaybe<FindManyProviderLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProvidersArgs = {
   input?: InputMaybe<FindManyProvidersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyProvidersForOrganizationArgs = {
   input: FindManyProvidersForOrganizationInput;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySchemeLabelsArgs = {
+  input?: InputMaybe<FindManySchemeLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManySchemeLocalesArgs = {
   input?: InputMaybe<FindManySchemeLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManySchemesArgs = {
   input?: InputMaybe<FindManySchemesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyScopeClaimsArgs = {
   input?: InputMaybe<FindManyScopeClaimsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyScopeLocalesArgs = {
   input?: InputMaybe<FindManyScopeLocaleInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyScopeResourcesArgs = {
   input?: InputMaybe<FindManyScopeResourcesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyScopesArgs = {
   input?: InputMaybe<FindManyScopesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureActivitiesArgs = {
+  input?: InputMaybe<FindManySignatureActivitiesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureAttributesArgs = {
+  input?: InputMaybe<FindManySignatureAttributesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureBrandsArgs = {
+  input?: InputMaybe<FindManySignatureBrandsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureCredentialsArgs = {
+  input?: InputMaybe<FindManySignatureCredentialsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureDomainsArgs = {
+  input?: InputMaybe<FindManySignatureDomainsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureGroupsArgs = {
+  input?: InputMaybe<FindManySignatureGroupsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureLabelsArgs = {
+  input?: InputMaybe<FindManySignatureLabelsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureMappingsArgs = {
+  input?: InputMaybe<FindManySignatureMappingsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureProviderConfigurationNlWalletsArgs = {
+  input?: InputMaybe<FindManySignatureProviderConfigurationNlWalletsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureProviderConfigurationsArgs = {
+  input?: InputMaybe<FindManySignatureProviderConfigurationsInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignatureProvidersArgs = {
+  input?: InputMaybe<FindManySignatureProvidersInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindManySignaturesArgs = {
+  input?: InputMaybe<FindManySignaturesInput>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyStudioPlanControlOverridesArgs = {
   input?: InputMaybe<FindManyStudioPlanControlOverridesInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyStudioPlanControlsArgs = {
   input?: InputMaybe<FindManyStudioPlanControlsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyStudioPlanIntervalsArgs = {
   input?: InputMaybe<FindManyStudioPlanIntervalsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyStudioPlanOrganizationsArgs = {
   input?: InputMaybe<FindManyStudioPlanOrganizationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyStudioPlansArgs = {
   input?: InputMaybe<FindManyStudioPlansInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyUserInvitationsArgs = {
   input?: InputMaybe<FindManyUserInvitationsInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindManyUsersArgs = {
   input?: InputMaybe<FindManyUsersInput>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingIssuanceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingIssuanceAttributeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingIssuanceLinkArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingVerificationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingVerificationAttributeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingVerificationClaimArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindMappingVerificationLinkArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOAuthMethodsByOrganizationDomainArgs = {
   input: FindOAuthMethodsByOrganizationDomainInput;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOAuthProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAddressArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAlertArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAlertDeprecationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppMetaKiwaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindOrganizationAppMetaOid4vcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppPrerequisiteArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationAppPrerequisiteWorkflowArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindOrganizationBrandLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationClientArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindOrganizationDomainLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationDomainOAuthProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationDomainValidationArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationNotificationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationNotificationEventArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationQuotaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindOrganizationUserArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindPaymentProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindPaymentProviderEventArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindPaymentProviderInvoiceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindPaymentProviderMethodArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindPaymentProviderOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingCatalogArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingConfigurationAppArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingConfigurationOrganizationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingConfigurationStudioPlanArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingGroupArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingGroupAssignmentArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingRuleArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingRuleConstraintArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindPricingRuleTargetArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindProviderArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindProviderAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindProviderAppMetaArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindProviderAppMetaOid4VcArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindProviderLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindProviderLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindSchemeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSchemeLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindSchemeLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindScopeArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindScopeClaimArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindScopeLocaleArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindScopeResourceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureActivityArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureAttributeArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureBrandArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureCredentialArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureDomainArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureGroupArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureLabelArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureMappingArgs = {
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureProviderArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureProviderConfigurationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryFindSignatureProviderConfigurationNlWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindStudioPlanArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindStudioPlanControlArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindStudioPlanControlOverrideArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindStudioPlanIntervalArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindStudioPlanOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindUserArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryFindUserInvitationArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
 export type QueryGetPaymentProviderInvoiceReceiptArgs = {
   invoiceId: Scalars['NonEmpty']['input'];
+};
+
+
+/**
+ * Introspect a GraphQL input type and return its JSON Schema
+ * representation. All fields are included by default; fields decorated
+ * with `@excludeFromJsonSchema` are excluded.
+ *
+ * Returns a standard JSON Schema object with `type`, `properties`, and
+ * `required` keys that the UI can use to render typed form controls.
+ */
+export type QueryJsonSchemaArgs = {
+  type: Scalars['String']['input'];
 };
 
 /** Register by OpenID token input */
 export type RegisterByOpenIdTokenInput = {
   /** The organization description. */
-  description: Scalars['NonEmpty']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
   /** The OAuth provider UUID */
   oauthProviderUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The organization email */
@@ -20398,7 +27012,7 @@ export type RegisterByOpenIdTokenInput = {
 /** Register by password input */
 export type RegisterByPasswordInput = {
   /** The organization description. */
-  description: Scalars['NonEmpty']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
   /** The email address of the user. */
   email: Scalars['Email']['input'];
   /** The first name of the user. */
@@ -20413,6 +27027,12 @@ export type RegisterByPasswordInput = {
   phone?: InputMaybe<Scalars['String']['input']>;
   /** The url of the website of the organization. */
   website: Scalars['URL']['input'];
+};
+
+/** Renew access token input */
+export type RenewAccessTokenInput = {
+  /** The current access token */
+  token: Scalars['NonEmpty']['input'];
 };
 
 /** Scheme definition. */
@@ -20485,6 +27105,58 @@ export enum SchemeFilteringField {
   Type = 'type',
   Uuid = 'uuid'
 }
+
+/** Identity scheme label definition. */
+export type SchemeLabel = Model & {
+  __typename?: 'SchemeLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The identity scheme (resolved via federation) */
+  scheme: Scheme;
+  /** The identity scheme UUID (no direct relation - separate database) */
+  schemeUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Connection */
+export type SchemeLabelConnection = {
+  __typename?: 'SchemeLabelConnection';
+  edges: Array<SchemeLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** Edge */
+export type SchemeLabelEdge = {
+  __typename?: 'SchemeLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: SchemeLabel;
+};
+
+/** Fields which can be used to filter identity scheme labels. Value must be camel case. */
+export enum SchemeLabelFilteringField {
+  LabelUuid = 'labelUuid',
+  SchemeUuid = 'schemeUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort identity scheme labels. Value must be camel case. */
+export enum SchemeLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting identity scheme labels. */
+export type SchemeLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SchemeLabelSortEnum;
+};
 
 /** Scheme locale definition. */
 export type SchemeLocale = Model & {
@@ -20821,6 +27493,756 @@ export type SetupBillingMethodOutput = {
   paymentMethodTypes: Array<Scalars['NonEmpty']['output']>;
 };
 
+/** Flow signature definition. */
+export type Signature = Model & {
+  __typename?: 'Signature';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The JWT media type */
+  jwtMediaType: Scalars['JwtMediaType']['output'];
+  /** The meta of the flow. */
+  meta: Scalars['JSONObject']['output'];
+  /** The name of the flow. */
+  name: Scalars['NonEmpty']['output'];
+  /** The organization the flow belongs to. */
+  organization: Organization;
+  /** The indicator if explicit consent is required */
+  requireExplicitConsent: Scalars['Boolean']['output'];
+  /** The associated brands with this signature */
+  signatureBrands: SignatureBrandConnection;
+  /** The associated domains with this signature */
+  signatureDomains: SignatureDomainConnection;
+  /** The associated labels with this signature */
+  signatureLabels: SignatureLabelConnection;
+  /** The associated mappings with this signature */
+  signatureMappings: SignatureMappingConnection;
+  /** A list of flow providers belonging to this flow signature. */
+  signatureProviders: SignatureProviderConnection;
+  /** The state of the flow. */
+  state: SignatureState;
+  /** Shortcut to active studio controls associated to this object */
+  studioControlCompacts: Array<StudioControlCompact>;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow signature definition. */
+export type SignatureSignatureBrandsArgs = {
+  input?: InputMaybe<FindManySignatureBrandsInput>;
+};
+
+
+/** Flow signature definition. */
+export type SignatureSignatureDomainsArgs = {
+  input?: InputMaybe<FindManySignatureDomainsInput>;
+};
+
+
+/** Flow signature definition. */
+export type SignatureSignatureLabelsArgs = {
+  input?: InputMaybe<FindManySignatureLabelsInput>;
+};
+
+
+/** Flow signature definition. */
+export type SignatureSignatureMappingsArgs = {
+  input?: InputMaybe<FindManySignatureMappingsInput>;
+};
+
+
+/** Flow signature definition. */
+export type SignatureSignatureProvidersArgs = {
+  input?: InputMaybe<FindManySignatureProvidersInput>;
+};
+
+/** SignatureAction */
+export enum SignatureAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE'
+}
+
+/** Signature activity definition. */
+export type SignatureActivity = Model & {
+  __typename?: 'SignatureActivity';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The event URN */
+  eventURN: Scalars['URN']['output'];
+  /** The metadata */
+  meta: Scalars['JSONObject']['output'];
+  /** The organization UUID */
+  organizationUuid: Scalars['UUID']['output'];
+  /** The request UUID */
+  requestUuid: Scalars['UUID']['output'];
+  /** The signature UUID */
+  signatureUuid: Scalars['UUID']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The signature activity connection definition. */
+export type SignatureActivityConnection = {
+  __typename?: 'SignatureActivityConnection';
+  edges: Array<Maybe<SignatureActivityEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The signature activity edge definition. */
+export type SignatureActivityEdge = {
+  __typename?: 'SignatureActivityEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureActivity;
+};
+
+/** Fields which can be used to filter signature activities on. */
+export enum SignatureActivityFilteringField {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventURN',
+  OrganizationUuid = 'organizationUuid',
+  RequestUuid = 'requestUuid',
+  SignatureUuid = 'signatureUuid'
+}
+
+/** Fields which can be used to sort signature activities on. */
+export enum SignatureActivitySortEnum {
+  CreatedAt = 'createdAt',
+  EventUrn = 'eventUrn'
+}
+
+/** Input options for sorting signature activities. */
+export type SignatureActivitySortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureActivitySortEnum;
+};
+
+/** Flow signature attribute definition. */
+export type SignatureAttribute = Model & {
+  __typename?: 'SignatureAttribute';
+  /** The attribute the attributeUuid belongs to. */
+  attribute: Attribute;
+  /** The uuid of the flow attribute. */
+  attributeUuid: Scalars['UUID']['output'];
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The flow signature the flow query belongs to. */
+  signatureCredential: SignatureCredential;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The flow signature attribute connection definition. */
+export type SignatureAttributeConnection = {
+  __typename?: 'SignatureAttributeConnection';
+  edges: Array<SignatureAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow signature attribute edge definition. */
+export type SignatureAttributeEdge = {
+  __typename?: 'SignatureAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureAttribute;
+};
+
+/** Fields which can be used to filter flow signature attribute on. Value must be camel case. */
+export enum SignatureAttributeFilteringField {
+  AttributeUuid = 'attributeUuid',
+  SignatureCredentialUuid = 'signatureCredentialUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow signature attribute on. Value must be camel case. */
+export enum SignatureAttributeSortEnum {
+  AttributeUuid = 'attributeUuid',
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow signature attribute. */
+export type SignatureAttributeSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureAttributeSortEnum;
+};
+
+/** Organization brand definition. */
+export type SignatureBrand = Model & {
+  __typename?: 'SignatureBrand';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Is default branding */
+  isDefault: Scalars['Boolean']['output'];
+  /** The user organization brand */
+  organizationBrand: OrganizationBrand;
+  /** The flow signature */
+  signature: Signature;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type SignatureBrandConnection = {
+  __typename?: 'SignatureBrandConnection';
+  edges: Array<SignatureBrandEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type SignatureBrandEdge = {
+  __typename?: 'SignatureBrandEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureBrand;
+};
+
+/** Fields which can be used to filter brands on. Value must be camel case. */
+export enum SignatureBrandFilteringField {
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  RedirectPath = 'redirectPath',
+  SignatureUuid = 'signatureUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort brands on. Value must be camel case. */
+export enum SignatureBrandSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting brands. */
+export type SignatureBrandSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureBrandSortEnum;
+};
+
+/** The flow signature connection definition. */
+export type SignatureConnection = {
+  __typename?: 'SignatureConnection';
+  edges: Array<Maybe<SignatureEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** Flow signature credential definition. */
+export type SignatureCredential = Model & {
+  __typename?: 'SignatureCredential';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The credential the credentialUuid belongs to. */
+  credential: Credential;
+  /** The uuid of the credential. */
+  credentialUuid: Scalars['UUID']['output'];
+  /** The issuer the issuerUuid belongs to. */
+  issuer: Issuer;
+  /** The uuid of the issuer. */
+  issuerUuid: Scalars['UUID']['output'];
+  /** The scheme the schemeUuid belongs to. */
+  scheme: Scheme;
+  /** The uuid of the scheme. */
+  schemeUuid: Scalars['UUID']['output'];
+  /** The associated fields with this credential */
+  signatureAttributes: SignatureAttributeConnection;
+  /** The flow signature group the flow signature credential belongs to. */
+  signatureGroup: SignatureGroup;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow signature credential definition. */
+export type SignatureCredentialSignatureAttributesArgs = {
+  input?: InputMaybe<FindManySignatureAttributesInput>;
+};
+
+/** The flow signature field connection definition. */
+export type SignatureCredentialConnection = {
+  __typename?: 'SignatureCredentialConnection';
+  edges: Array<SignatureCredentialEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow signature field edge definition. */
+export type SignatureCredentialEdge = {
+  __typename?: 'SignatureCredentialEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureCredential;
+};
+
+/** Fields which can be used to filter flow signature field on. Value must be camel case. */
+export enum SignatureCredentialFilteringField {
+  CredentialUuid = 'credentialUuid',
+  IssuerUuid = 'issuerUuid',
+  SchemeUuid = 'schemeUuid',
+  SignatureGroupUuid = 'signatureGroupUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow signature field on. Value must be camel case. */
+export enum SignatureCredentialSortEnum {
+  CreatedAt = 'createdAt',
+  CredentialUuid = 'credentialUuid',
+  IssuerUuid = 'issuerUuid',
+  SchemeUuid = 'schemeUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow signature field. */
+export type SignatureCredentialSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureCredentialSortEnum;
+};
+
+/** Organization domain definition. */
+export type SignatureDomain = Model & {
+  __typename?: 'SignatureDomain';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The user organization domain */
+  organizationDomain: OrganizationDomain;
+  /** The path value. */
+  redirectPath: Scalars['RedirectPath']['output'];
+  /** The port value. */
+  redirectPort: Scalars['RedirectPort']['output'];
+  /** The protocol value. */
+  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  /** The flow signature */
+  signature: Signature;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type SignatureDomainConnection = {
+  __typename?: 'SignatureDomainConnection';
+  edges: Array<SignatureDomainEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type SignatureDomainEdge = {
+  __typename?: 'SignatureDomainEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureDomain;
+};
+
+/** Fields which can be used to filter domains on. Value must be camel case. */
+export enum SignatureDomainFilteringField {
+  OrganizationDomainUuid = 'organizationDomainUuid',
+  RedirectPath = 'redirectPath',
+  SignatureUuid = 'signatureUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort domains on. Value must be camel case. */
+export enum SignatureDomainSortEnum {
+  CreatedAt = 'createdAt',
+  RedirectPath = 'redirectPath',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting domains. */
+export type SignatureDomainSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureDomainSortEnum;
+};
+
+/** The flow signature edge definition. */
+export type SignatureEdge = {
+  __typename?: 'SignatureEdge';
+  cursor: Scalars['String']['output'];
+  node: Signature;
+};
+
+/** Fields which can be used to filter flow signatures on. Value must be camel case. */
+export enum SignatureFilteringField {
+  Name = 'name',
+  OrganizationUuid = 'organizationUuid',
+  State = 'state',
+  Uuid = 'uuid'
+}
+
+/** Flow signature group definition. */
+export type SignatureGroup = Model & {
+  __typename?: 'SignatureGroup';
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The name */
+  name?: Maybe<Scalars['NonEmpty']['output']>;
+  /** A list of flow queries belonging to this flow group. */
+  signatureCredentials: SignatureCredentialConnection;
+  /** The flow signature the flow group belongs to. */
+  signatureProvider: SignatureProvider;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow signature group definition. */
+export type SignatureGroupSignatureCredentialsArgs = {
+  input?: InputMaybe<FindManySignatureCredentialsInput>;
+};
+
+/** The flow signature group connection definition. */
+export type SignatureGroupConnection = {
+  __typename?: 'SignatureGroupConnection';
+  edges: Array<SignatureGroupEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow signature group edge definition. */
+export type SignatureGroupEdge = {
+  __typename?: 'SignatureGroupEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureGroup;
+};
+
+/** Fields which can be used to filter flow signature group on. Value must be camel case. */
+export enum SignatureGroupFilteringField {
+  Name = 'name',
+  SignatureProviderUuid = 'signatureProviderUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow signature group on. Value must be camel case. */
+export enum SignatureGroupSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow signature group. */
+export type SignatureGroupSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureGroupSortEnum;
+};
+
+/** Organization Label definition. */
+export type SignatureLabel = Model & {
+  __typename?: 'SignatureLabel';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The Label */
+  label: Label;
+  /** The flow signature */
+  signature: Signature;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type SignatureLabelConnection = {
+  __typename?: 'SignatureLabelConnection';
+  edges: Array<SignatureLabelEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type SignatureLabelEdge = {
+  __typename?: 'SignatureLabelEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureLabel;
+};
+
+/** Fields which can be used to filter Labels on. Value must be camel case. */
+export enum SignatureLabelFilteringField {
+  LabelUuid = 'labelUuid',
+  SignatureUuid = 'signatureUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort Labels on. Value must be camel case. */
+export enum SignatureLabelSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting Labels. */
+export type SignatureLabelSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureLabelSortEnum;
+};
+
+/** Organization mapping definition. */
+export type SignatureMapping = Model & {
+  __typename?: 'SignatureMapping';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The user verification mapping */
+  mappingVerification: MappingVerification;
+  /** The flow signature */
+  signature: Signature;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** An Connection */
+export type SignatureMappingConnection = {
+  __typename?: 'SignatureMappingConnection';
+  edges: Array<SignatureMappingEdge>;
+  pageInfo: PageInfo;
+};
+
+/** An edge */
+export type SignatureMappingEdge = {
+  __typename?: 'SignatureMappingEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureMapping;
+};
+
+/** Fields which can be used to filter mappings on. Value must be camel case. */
+export enum SignatureMappingFilteringField {
+  MappingVerificationUuid = 'mappingVerificationUuid',
+  SignatureUuid = 'signatureUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort mappings on. Value must be camel case. */
+export enum SignatureMappingSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting mappings. */
+export type SignatureMappingSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureMappingSortEnum;
+};
+
+/** The input for filtering flow signature brands in nested filtering. */
+export type SignatureNestedFilteringSignatureBrandField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow signature brands */
+  input: FindManySignatureBrandsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering flow signature labels in nested filtering. */
+export type SignatureNestedFilteringSignatureLabelField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering flow signature labels */
+  input: FindManySignatureLabelsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** Flow signature provider definition. */
+export type SignatureProvider = Model & {
+  __typename?: 'SignatureProvider';
+  /** The flow signature provider configuration. */
+  configuration?: Maybe<SignatureProviderConfiguration>;
+  /** The creation timestamp. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The provider the providerUuid belongs to. */
+  providerApp: ProviderApp;
+  /** The URN of the flow provider. */
+  providerAppUuid: Scalars['UUID']['output'];
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['output'];
+  /** The flow signature the flow provider belongs to. */
+  signature: Signature;
+  /** A list of flow queries belonging to this flow provider. */
+  signatureGroups: SignatureGroupConnection;
+  /** The timestamp of when the type has been last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+
+/** Flow signature provider definition. */
+export type SignatureProviderSignatureGroupsArgs = {
+  input?: InputMaybe<FindManySignatureGroupsInput>;
+};
+
+/** Flow signature provider configuration definition */
+export type SignatureProviderConfiguration = Model & {
+  __typename?: 'SignatureProviderConfiguration';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The NL Wallet flow signature provider configuration */
+  nlWallet?: Maybe<SignatureProviderConfigurationNlWallet>;
+  /** The SignatureProvider this configuration belongs to */
+  signatureProvider: SignatureProvider;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The SignatureProviderConfiguration connection definition. */
+export type SignatureProviderConfigurationConnection = {
+  __typename?: 'SignatureProviderConfigurationConnection';
+  edges: Array<Maybe<SignatureProviderConfigurationEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The SignatureProviderConfiguration edge definition. */
+export type SignatureProviderConfigurationEdge = {
+  __typename?: 'SignatureProviderConfigurationEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureProviderConfiguration;
+};
+
+/** Fields which can be used to filter SignatureProviderConfiguration on. Value must be camel case. */
+export enum SignatureProviderConfigurationFilteringField {
+  SignatureProviderUuid = 'signatureProviderUuid'
+}
+
+/** SignatureProviderConfigurationNLWallet definition */
+export type SignatureProviderConfigurationNlWallet = Model & {
+  __typename?: 'SignatureProviderConfigurationNLWallet';
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The SignatureProviderConfiguration this object belongs to. */
+  signatureProviderConfiguration: SignatureProviderConfiguration;
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The usecase */
+  usecase: Scalars['String']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The SignatureProviderConfigurationNLWallet connection definition. */
+export type SignatureProviderConfigurationNlWalletConnection = {
+  __typename?: 'SignatureProviderConfigurationNLWalletConnection';
+  edges: Array<Maybe<SignatureProviderConfigurationNlWalletEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The SignatureProviderConfigurationNLWallet edge definition. */
+export type SignatureProviderConfigurationNlWalletEdge = {
+  __typename?: 'SignatureProviderConfigurationNLWalletEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureProviderConfigurationNlWallet;
+};
+
+/** Fields which can be used to filter SignatureProviderConfigurationNLWallet on. Value must be camel case. */
+export enum SignatureProviderConfigurationNlWalletFilteringField {
+  Intent = 'intent',
+  SignatureProviderConfigurationUuid = 'signatureProviderConfigurationUuid'
+}
+
+/** Fields which can be used to sort SignatureProviderConfigurationNLWallet on. Value must be camel case. */
+export enum SignatureProviderConfigurationNlWalletSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting SignatureProviderConfigurationNLWallet. */
+export type SignatureProviderConfigurationNlWalletSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureProviderConfigurationNlWalletSortEnum;
+};
+
+/** Fields which can be used to sort SignatureProviderConfiguration on. Value must be camel case. */
+export enum SignatureProviderConfigurationSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting SignatureProviderConfiguration. */
+export type SignatureProviderConfigurationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureProviderConfigurationSortEnum;
+};
+
+/** The flow signature provider connection definition. */
+export type SignatureProviderConnection = {
+  __typename?: 'SignatureProviderConnection';
+  edges: Array<SignatureProviderEdge>;
+  pageInfo: PageInfo;
+};
+
+/** The flow signature provider edge definition. */
+export type SignatureProviderEdge = {
+  __typename?: 'SignatureProviderEdge';
+  cursor: Scalars['String']['output'];
+  node: SignatureProvider;
+};
+
+/** Fields which can be used to filter flow signature providers on. Value must be camel case. */
+export enum SignatureProviderFilteringField {
+  ProviderUuid = 'providerUuid',
+  SignatureUuid = 'signatureUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort flow signature providers on. Value must be camel case. */
+export enum SignatureProviderSortEnum {
+  CreatedAt = 'createdAt',
+  ProviderUuid = 'providerUuid',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow signature providers. */
+export type SignatureProviderSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureProviderSortEnum;
+};
+
+/** Fields which can be used to sort flow signatures on. Value must be camel case. */
+export enum SignatureSortEnum {
+  CreatedAt = 'createdAt',
+  Name = 'name',
+  State = 'state',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting flow signatures. */
+export type SignatureSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: SignatureSortEnum;
+};
+
+/** SignatureState */
+export enum SignatureState {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
+
 /** Lifecycle states */
 export enum State {
   Active = 'ACTIVE',
@@ -20907,7 +28329,7 @@ export type StudioPlanControl = Model & {
   controlURN: Scalars['URN']['output'];
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The associated StudioPlan  */
+  /** The associated StudioPlan */
   studioPlan: StudioPlan;
   /** The associated StudioPlanControl overrides */
   studioPlanControlOverrides: StudioPlanControlOverrideConnection;
@@ -20954,7 +28376,7 @@ export type StudioPlanControlOverride = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The associated organization */
   organization: Organization;
-  /** The associated StudioPlan  */
+  /** The associated StudioPlan */
   studioPlanControl: StudioPlanControl;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
@@ -21041,7 +28463,7 @@ export type StudioPlanInterval = Model & {
   interval: Interval;
   /** The default cost per setup */
   setupCost: Scalars['UInt']['output'];
-  /** The associated StudioPlan  */
+  /** The associated StudioPlan */
   studioPlan: StudioPlan;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
@@ -21094,7 +28516,7 @@ export type StudioPlanOrganization = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The associated organization */
   organization: Organization;
-  /** The associated StudioPlan  */
+  /** The associated StudioPlan */
   studioPlan: StudioPlan;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
@@ -21161,12 +28583,10 @@ export enum StudioPlanState {
   Inactive = 'INACTIVE'
 }
 
-/** Switch organization input */
-export type SwitchOrganizationInput = {
-  /** The organization UUID. */
-  organizationUuid: Scalars['UUID']['input'];
-  /** The current access token */
-  token: Scalars['NonEmpty']['input'];
+/** Transition Organization Type Input */
+export type TransitionOrganizationTypeInput = {
+  /** The type */
+  type: OrganizationType;
 };
 
 /** Update Input */
@@ -21205,6 +28625,8 @@ export type UpdateAppPrerequisiteLocaleInput = {
 
 /** Update Input */
 export type UpdateAppPrerequisiteStateInput = {
+  /** The grants allowed to take action. */
+  grants?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The name of the state. */
   name?: InputMaybe<AppPrerequisiteStates>;
   /** The roles allowed to take action. */
@@ -21263,8 +28685,8 @@ export type UpdateAttributeMetaMdocInput = {
 
 /** Update Input */
 export type UpdateAttributeMetaNlWalletInput = {
-  /** The name of the attribute */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The DCQL claim path for the attribute */
+  claimPath?: InputMaybe<Scalars['JSONObject']['input']>;
 };
 
 /** Update Input */
@@ -21319,6 +28741,8 @@ export type UpdateAttributeMetaYotiInput = {
 
 /** Update Input */
 export type UpdateAttributeRequestInput = {
+  /** The meta type of the attribute request. */
+  metaType?: InputMaybe<AttributeRequestMetaType>;
   /** The name of the attribute request. */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
@@ -21338,6 +28762,22 @@ export type UpdateAttributeRequestMetaDatakeeperInput = {
 };
 
 /** Update Input */
+export type UpdateAttributeRequestMetaOid4VcmdocInput = {
+  /** The mdoc data element identifier */
+  dataElementIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The mdoc namespace */
+  namespace?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update Input */
+export type UpdateAttributeRequestMetaOid4VcsdjwtInput = {
+  /** The claim path array */
+  claimPath?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The JSON path for the SD-JWT claim */
+  jsonPath?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update Input */
 export type UpdateAttributeRequestMetaYiviInput = {
   /** The identifier of this attribute. */
   id?: InputMaybe<Scalars['NonEmpty']['input']>;
@@ -21349,6 +28789,40 @@ export type UpdateAttributeRequestMetaYiviInput = {
 export type UpdateAttributeRequestMetaYotiInput = {
   /** The identifier of the attribute */
   identifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update input */
+export type UpdateAuthenticationBrandInput = {
+  /** Sets flow brand as default */
+  isDefault: Scalars['Boolean']['input'];
+};
+
+/** Update Input */
+export type UpdateAuthenticationDomainInput = {
+  /** The path value. */
+  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  /** The port value. */
+  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  /** The protocol value. */
+  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+};
+
+/** Update Input */
+export type UpdateAuthenticationInput = {
+  /** The name of the flow authentication. */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update Input */
+export type UpdateAuthenticationProviderConfigurationNlWalletInput = {
+  /** The usecase */
+  usecase?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Update Input */
+export type UpdateAuthenticationProviderInput = {
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['input'];
 };
 
 /** Input type used to update billing method types. */
@@ -21427,14 +28901,30 @@ export type UpdateCredentialMetaNectInput = {
 
 /** Update Input */
 export type UpdateCredentialMetaOid4VcmdocInput = {
+  /** The credential background color */
+  backgroundColor?: InputMaybe<Scalars['String']['input']>;
+  /** The credential background image URI */
+  backgroundImage?: InputMaybe<Scalars['String']['input']>;
   /** mdoc document type */
   docType?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The credential logo (uri and optional alt_text) */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The credential text color */
+  textColor?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Update Input */
 export type UpdateCredentialMetaOid4VcsdjwtInput = {
+  /** The credential background color */
+  backgroundColor?: InputMaybe<Scalars['String']['input']>;
+  /** The credential background image URI */
+  backgroundImage?: InputMaybe<Scalars['String']['input']>;
   /** SD-JWT Key binding */
   keyBinding?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The credential logo (uri and optional alt_text) */
+  logo?: InputMaybe<Scalars['String']['input']>;
+  /** The credential text color */
+  textColor?: InputMaybe<Scalars['String']['input']>;
   /** SD-JWT Type */
   type?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
@@ -21471,6 +28961,8 @@ export type UpdateCredentialMetaYotiInput = {
 
 /** Update Input */
 export type UpdateCredentialRequestInput = {
+  /** The meta type of the credential request. */
+  metaType?: InputMaybe<CredentialRequestMetaType>;
   /** The name of the credential request. */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
@@ -21489,12 +28981,34 @@ export type UpdateCredentialRequestMetaDatakeeperInput = {
   context?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The expiration date of the credential */
   expirationDate?: InputMaybe<Scalars['DateTime']['input']>;
+  /** The issuer UUID */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** Update Input */
+export type UpdateCredentialRequestMetaOid4VcmdocInput = {
+  /** mdoc document type */
+  docType?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The issuer UUID */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** Update Input */
+export type UpdateCredentialRequestMetaOid4VcsdjwtInput = {
+  /** The issuer UUID */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** SD-JWT Key binding */
+  keyBinding?: InputMaybe<Scalars['Boolean']['input']>;
+  /** SD-JWT Type */
+  type?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
 export type UpdateCredentialRequestMetaYiviInput = {
   /** The identifier of this credential */
   id?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The issuer UUID */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Update Input */
@@ -21507,6 +29021,8 @@ export type UpdateCredentialRequestMetaYotiInput = {
   identifier?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The info uri of the credential */
   infoUri?: InputMaybe<Scalars['URL']['input']>;
+  /** The issuer UUID */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The display configuration logo of the credential */
   logo?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The display configuration subtitle of the credential */
@@ -21521,6 +29037,8 @@ export type UpdateCredentialRequestStateInput = {
   canDelete?: InputMaybe<Scalars['Boolean']['input']>;
   /** Is update allowed */
   canUpdate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The grants allowed to take action */
+  grants?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The name of the state */
   name?: InputMaybe<CredentialRequestStates>;
   /** The roles allowed to take action */
@@ -21540,13 +29058,13 @@ export type UpdateCredentialRequestStateLocaleInput = {
 };
 
 /** Update input */
-export type UpdateFlowAuthenticationBrandInput = {
+export type UpdateDisclosureBrandInput = {
   /** Sets flow brand as default */
   isDefault: Scalars['Boolean']['input'];
 };
 
 /** Update Input */
-export type UpdateFlowAuthenticationDomainInput = {
+export type UpdateDisclosureDomainInput = {
   /** The path value. */
   redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
@@ -21556,47 +29074,13 @@ export type UpdateFlowAuthenticationDomainInput = {
 };
 
 /** Update Input */
-export type UpdateFlowAuthenticationInput = {
-  /** The name of the flow authentication. */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowAuthenticationProviderConfigurationNlWalletInput = {
-  /** The usecase */
-  usecase?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowAuthenticationProviderInput = {
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['input'];
-};
-
-/** Update input */
-export type UpdateFlowDisclosureBrandInput = {
-  /** Sets flow brand as default */
-  isDefault: Scalars['Boolean']['input'];
-};
-
-/** Update Input */
-export type UpdateFlowDisclosureDomainInput = {
-  /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
-  /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
-  /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowDisclosureGroupInput = {
+export type UpdateDisclosureGroupInput = {
   /** The name of the flow group. */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
-export type UpdateFlowDisclosureInput = {
+export type UpdateDisclosureInput = {
   /** The JWT media type */
   jwtMediaType?: InputMaybe<Scalars['JwtMediaType']['input']>;
   /** The meta of the flow disclosure. */
@@ -21608,37 +29092,37 @@ export type UpdateFlowDisclosureInput = {
 };
 
 /** Update Input */
-export type UpdateFlowDisclosureProviderConfigurationNlWalletInput = {
+export type UpdateDisclosureProviderConfigurationNlWalletInput = {
   /** The usecase */
   usecase?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Update Input */
-export type UpdateFlowDisclosureProviderInput = {
+export type UpdateDisclosureProviderInput = {
   /** Whether this provider is marked as recommended in this flow. */
   recommended: Scalars['Boolean']['input'];
 };
 
 /** Update input */
-export type UpdateFlowIssuanceBrandInput = {
+export type UpdateIssuanceBrandInput = {
   /** Sets flow brand as default */
   isDefault: Scalars['Boolean']['input'];
 };
 
 /** The input for updating a flow credential meta datakeeper */
-export type UpdateFlowIssuanceCredentialMetaDatakeeperInput = {
+export type UpdateIssuanceCredentialMetaDatakeeperInput = {
   /** The expiration duration, in milliseconds */
   expirationDuration: Scalars['Int']['input'];
 };
 
 /** The input for updating a flow credential meta yivi */
-export type UpdateFlowIssuanceCredentialMetaYiviInput = {
+export type UpdateIssuanceCredentialMetaYiviInput = {
   /** The expiration duration, in milliseconds */
   expirationDuration: Scalars['Int']['input'];
 };
 
 /** Update Input */
-export type UpdateFlowIssuanceDomainInput = {
+export type UpdateIssuanceDomainInput = {
   /** The path value. */
   redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
@@ -21648,7 +29132,7 @@ export type UpdateFlowIssuanceDomainInput = {
 };
 
 /** Update Input */
-export type UpdateFlowIssuanceInput = {
+export type UpdateIssuanceInput = {
   /** The JWT media type */
   jwtMediaType?: InputMaybe<Scalars['JwtMediaType']['input']>;
   /** The meta of the flow issuance. */
@@ -21660,53 +29144,7 @@ export type UpdateFlowIssuanceInput = {
 };
 
 /** Update Input */
-export type UpdateFlowIssuanceProviderInput = {
-  /** Whether this provider is marked as recommended in this flow. */
-  recommended: Scalars['Boolean']['input'];
-};
-
-/** Update input */
-export type UpdateFlowSignatureBrandInput = {
-  /** Sets flow brand as default */
-  isDefault: Scalars['Boolean']['input'];
-};
-
-/** Update Input */
-export type UpdateFlowSignatureDomainInput = {
-  /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
-  /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
-  /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowSignatureGroupInput = {
-  /** The name of the flow group. */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowSignatureInput = {
-  /** The JWT media type */
-  jwtMediaType?: InputMaybe<Scalars['JwtMediaType']['input']>;
-  /** The meta of the flow signature. */
-  meta?: InputMaybe<Scalars['JSONObject']['input']>;
-  /** The name of the flow signature. */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowSignatureProviderConfigurationNlWalletInput = {
-  /** The usecase */
-  usecase?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Update Input */
-export type UpdateFlowSignatureProviderInput = {
+export type UpdateIssuanceProviderInput = {
   /** Whether this provider is marked as recommended in this flow. */
   recommended: Scalars['Boolean']['input'];
 };
@@ -21749,6 +29187,8 @@ export type UpdateIssuerMetaMdocInput = {
 export type UpdateIssuerMetaOid4VcmdocInput = {
   /** The issuer's public key as a JWK */
   jwk?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The issuer's logo image URI */
+  logo?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Update Input */
@@ -21757,12 +29197,22 @@ export type UpdateIssuerMetaOid4VcsdjwtInput = {
   identifier?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The issuer's public key as a JWK */
   jwk?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The issuer's logo image URI */
+  logo?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Update Input */
 export type UpdateIssuerMetaYiviInput = {
   /** The identifier of the issuer */
   id?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Input for updating a label */
+export type UpdateLabelInput = {
+  /** Color string */
+  color?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** Label name */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
@@ -21773,6 +29223,20 @@ export type UpdateLocaleConfigInput = {
   model?: InputMaybe<IdentityModel>;
   /** The properties */
   properties?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** Update Input */
+export type UpdateMaintenanceInput = {
+  /** The estimated duration in minutes. */
+  estimatedMinutes?: InputMaybe<Scalars['Int']['input']>;
+  /** The message body. */
+  messageBody?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The message title. */
+  messageTitle?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The name of the maintenance window. */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The scheduled start time. */
+  scheduledAt?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 /** Update Input */
@@ -21864,7 +29328,7 @@ export type UpdateOrganizationAlertDeprecationInput = {
   /** The flow UUID which is affected */
   flowUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The deprecated model */
-  model?: InputMaybe<IdentityModelType>;
+  model?: InputMaybe<CatalogModelType>;
   /** The model UUID */
   modelUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
@@ -21885,10 +29349,18 @@ export type UpdateOrganizationAppMetaDatakeeperInput = {
 
 /** Update Input */
 export type UpdateOrganizationAppMetaKiwaInput = {
-  /** The certificate serial */
+  /** The issuer ID */
   issuerId?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The private key identifier */
   keyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update Input */
+export type UpdateOrganizationAppMetaOid4vcInput = {
+  /** The verifier certificate identifier */
+  verifierCertIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The verifier key identifier */
+  verifierKeyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
@@ -21907,8 +29379,6 @@ export type UpdateOrganizationBrandInput = {
 
 /** Update Input */
 export type UpdateOrganizationClientInput = {
-  /** The OAuth entitlements of the token. */
-  entitlements?: InputMaybe<Array<Scalars['Entitlement']['input']>>;
   /** The token name */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The OAuth role of the token. */
@@ -21959,8 +29429,6 @@ export type UpdateOrganizationSecretInput = {
 export type UpdateOrganizationUserInput = {
   /** The guide ids the user has completed */
   completedGuides?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** The OAuth entitlements of the user. */
-  entitlements?: InputMaybe<Array<Scalars['Entitlement']['input']>>;
   /** The OAuth role of the user. */
   role?: InputMaybe<OrganizationUserRole>;
 };
@@ -21975,6 +29443,97 @@ export type UpdatePasswordUserInput = {
   passwordConfirmation: Scalars['Password']['input'];
 };
 
+/** Input type used to update pricing catalog entries. */
+export type UpdatePricingCatalogInput = {
+  /** The price amount */
+  amount?: InputMaybe<Scalars['Int']['input']>;
+  /** The currency */
+  currency?: InputMaybe<Currency>;
+  /** The currency unit */
+  currencyUnit?: InputMaybe<CurrencyUnit>;
+};
+
+/** Input type used to update pricing configuration for apps. */
+export type UpdatePricingConfigurationAppInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy?: InputMaybe<PricingAggregationStrategy>;
+  /** Target hierarchy level for pricing calculation */
+  targetLevel?: InputMaybe<PricingHierarchyLevel>;
+};
+
+/** Input type used to update pricing configuration for organizations. */
+export type UpdatePricingConfigurationOrganizationInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy?: InputMaybe<PricingAggregationStrategy>;
+  /** Target hierarchy level for pricing calculation */
+  targetLevel?: InputMaybe<PricingHierarchyLevel>;
+};
+
+/** Input type used to update pricing configuration for studio plans. */
+export type UpdatePricingConfigurationStudioPlanInput = {
+  /** Aggregation strategy for combining multiple prices */
+  aggregationStrategy?: InputMaybe<PricingAggregationStrategy>;
+  /** Target hierarchy level for pricing calculation */
+  targetLevel?: InputMaybe<PricingHierarchyLevel>;
+};
+
+/** Input type used to update pricing groups. */
+export type UpdatePricingGroupInput = {
+  /** Description of the pricing group */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the pricing group */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Input type used to update pricing rule constraints. */
+export type UpdatePricingRuleConstraintInput = {
+  /** The scope */
+  scope?: InputMaybe<PricingHierarchyLevel>;
+  /** Scope group UUIDs */
+  scopeGroupUuids?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  /** Specific scope UUID */
+  scopeUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** Input type used to update pricing rules. */
+export type UpdatePricingRuleInput = {
+  /** The app UUID */
+  appUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /**
+   * Pricing conditions
+   *
+   * Eg:
+   * ```
+   * {
+   *   "country": "NL",
+   *   "usageRange": "0-100",
+   *   "logicalKey": "cred.default"
+   * }
+   * ```
+   */
+  conditions?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The pricing layer */
+  layer?: InputMaybe<PricingLayer>;
+  /** The organization UUID (optional, for ORGANIZATION layer) */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The plan UUID (optional, for PLAN layer) */
+  planUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The pricing catalog UUID */
+  pricingCatalogUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The pricing type */
+  type?: InputMaybe<PricingType>;
+};
+
+/** Input type used to update pricing rule targets. */
+export type UpdatePricingRuleTargetInput = {
+  /** The hierarchy level */
+  level?: InputMaybe<PricingHierarchyLevel>;
+  /** Entity group UUIDs */
+  levelGroupUuids?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  /** Specific entity UUID */
+  levelUuid?: InputMaybe<Scalars['UUID']['input']>;
+};
+
 /** Update Input */
 export type UpdateProviderAppMetaOid4VcInput = {
   /** The client identifier prefix */
@@ -21985,6 +29544,8 @@ export type UpdateProviderAppMetaOid4VcInput = {
   draftVersion?: InputMaybe<Scalars['Int']['input']>;
   /** The protocol */
   protocol?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The spec type supported by this app */
+  specType?: InputMaybe<ProviderAppMetaOid4VcSpecType>;
 };
 
 /** Update Input */
@@ -22061,6 +29622,52 @@ export type UpdateScopeResourceInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
+/** Update input */
+export type UpdateSignatureBrandInput = {
+  /** Sets flow brand as default */
+  isDefault: Scalars['Boolean']['input'];
+};
+
+/** Update Input */
+export type UpdateSignatureDomainInput = {
+  /** The path value. */
+  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  /** The port value. */
+  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  /** The protocol value. */
+  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+};
+
+/** Update Input */
+export type UpdateSignatureGroupInput = {
+  /** The name of the flow group. */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update Input */
+export type UpdateSignatureInput = {
+  /** The JWT media type */
+  jwtMediaType?: InputMaybe<Scalars['JwtMediaType']['input']>;
+  /** The meta of the flow signature. */
+  meta?: InputMaybe<Scalars['JSONObject']['input']>;
+  /** The name of the flow signature. */
+  name?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The indicator if explicit consent is required */
+  requireExplicitConsent?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Update Input */
+export type UpdateSignatureProviderConfigurationNlWalletInput = {
+  /** The usecase */
+  usecase?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Update Input */
+export type UpdateSignatureProviderInput = {
+  /** Whether this provider is marked as recommended in this flow. */
+  recommended: Scalars['Boolean']['input'];
+};
+
 /** Update Input */
 export type UpdateStudioPlanControlInput = {
   /** The JSON Value */
@@ -22115,23 +29722,14 @@ export type UpdateUserInput = {
 
 /** Input type to update userInvitation properties. */
 export type UpdateUserInvitationInput = {
-  /** The OAuth entitlements of the user. */
-  entitlements?: InputMaybe<Array<Scalars['Entitlement']['input']>>;
   /** The first name of the user. */
   firstName?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The grant classification of the user. */
+  grant?: InputMaybe<Scalars['Grant']['input']>;
   /** The last name of the user. */
   lastName?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The OAuth role of the user. */
   role?: InputMaybe<OrganizationUserRole>;
-};
-
-export type UseAuthenticationResetInput = {
-  /** The new password of the user. */
-  password: Scalars['Password']['input'];
-  /** The confirmed password of the user. */
-  passwordConfirmation: Scalars['Password']['input'];
-  /** The password reset token which is used to authorize the user. */
-  token: Scalars['NonEmpty']['input'];
 };
 
 /** An input where a mappingVerification attribute may be used */
@@ -22164,6 +29762,15 @@ export type UseMappingVerificationLinkInput = {
   mappingVerificationAttributes?: InputMaybe<Array<UseMappingVerificationAttributeInput>>;
 };
 
+export type UseUserResetInput = {
+  /** The new password of the user. */
+  password: Scalars['Password']['input'];
+  /** The confirmed password of the user. */
+  passwordConfirmation: Scalars['Password']['input'];
+  /** The password reset token which is used to authorize the user. */
+  token: Scalars['NonEmpty']['input'];
+};
+
 /** User definition. */
 export type User = Model & {
   __typename?: 'User';
@@ -22175,6 +29782,8 @@ export type User = Model & {
   email: Scalars['Email']['output'];
   /** The first name of the user. */
   firstName: Scalars['NonEmpty']['output'];
+  /** The grant classification of the user. */
+  grant: Scalars['Grant']['output'];
   /** The last name of the user. */
   lastName?: Maybe<Scalars['NonEmpty']['output']>;
   /** A list of organization user */
@@ -22222,12 +29831,12 @@ export type UserInvitation = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The email of the user. */
   email: Scalars['Email']['output'];
-  /** The OAuth entitlements of the user. */
-  entitlements: Array<Scalars['Entitlement']['output']>;
   /** The expiration time of the invitation */
   expiresAt: Scalars['DateTime']['output'];
   /** The first name of the user. */
   firstName: Scalars['NonEmpty']['output'];
+  /** The grant classification of the user. */
+  grant: Scalars['Grant']['output'];
   /** The last name of the user. */
   lastName: Scalars['NonEmpty']['output'];
   /** The organization for which user is invited. */
@@ -22303,17 +29912,24 @@ export type UserSortInput = {
   field: UserSortEnum;
 };
 
-export type ValidateAuthenticationInvitationInput = {
-  /** The invitation token which is used to authorize the user. */
-  token: Scalars['NonEmpty']['input'];
-};
-
-export type ValidateAuthenticationResetInput = {
-  /** The password reset token which is used to authorize the user. */
-  token: Scalars['NonEmpty']['input'];
+/** A response to a successful login or registration. */
+export type UserToken = {
+  __typename?: 'UserToken';
+  /** The login response token. */
+  token: Scalars['NonEmpty']['output'];
 };
 
 export type ValidateUserInvitationInput = {
   /** The user invitation token */
+  token: Scalars['NonEmpty']['input'];
+};
+
+export type ValidateUserInvitationTokenInput = {
+  /** The invitation token which is used to authorize the user. */
+  token: Scalars['NonEmpty']['input'];
+};
+
+export type ValidateUserResetInput = {
+  /** The password reset token which is used to authorize the user. */
   token: Scalars['NonEmpty']['input'];
 };
