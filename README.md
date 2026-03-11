@@ -143,7 +143,7 @@ For comprehensive configurations and examples, see the [graphql-client](packages
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 9.0.0
+- yarn >= 4.0.0
 
 ## Example Application
 
@@ -162,8 +162,8 @@ git clone https://github.com/ver-id/verid-sdk-js-mono
 cd verid-sdk-js-mono
 
 # Install dependencies and build
-npm install
-npx nx run-many -t build
+yarn install
+yarn nx run-many -t build
 
 # Configure your Ver.iD credentials for the Vue app
 cd apps/sample-vue-app
@@ -177,10 +177,10 @@ cp .env.example .env
 
 # Run the example app
 cd ../..
-npx nx serve sample-vue-app 
+yarn nx serve sample-vue-app
 
 # In a separate terminal, run the Node.js backend server (required for Node.js flow)
-npx nx serve sample-node-server
+yarn nx serve sample-node-server
 ```
 
 Visit `http://localhost:4200` to explore the examples.

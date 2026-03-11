@@ -215,9 +215,9 @@ Shared cache for distributed / multi-instance deployments. Works with both [`red
 Install one of the Redis client libraries:
 
 ```bash
-npm install redis
+yarn add redis
 # or
-npm install ioredis
+yarn add ioredis
 ```
 
 **Using `redis` (node-redis):**
@@ -256,7 +256,7 @@ Serverless cache for AWS-native environments. Ideal for Lambda deployments where
 Install the AWS SDK packages:
 
 ```bash
-npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+yarn add @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 ```
 
 **DynamoDB table requirements:**
