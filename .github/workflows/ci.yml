@@ -29,13 +29,13 @@ jobs:
         id: set-shas
         uses: nrwl/nx-set-shas@v4
 
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
+
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -48,12 +48,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
       - name: Install dependencies
         run: yarn install --immutable
       - name: Lint affected projects
@@ -71,12 +71,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
       - name: Install dependencies
         run: yarn install --immutable
       - name: Test affected projects
@@ -94,12 +94,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
       - name: Install dependencies
         run: yarn install --immutable
       - name: Type check affected projects
@@ -118,12 +118,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build affected projects
@@ -148,15 +148,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
+
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
-
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -219,7 +219,7 @@ jobs:
           if [ -n "$FIRST_RELEASE" ]; then
             echo "Running first release for: $FIRST_RELEASE"
             npx nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
-            
+
             # Remove first release projects from affected list
             REMAINING_AFFECTED=""
             for project in ${AFFECTED//,/ }; do
@@ -228,7 +228,7 @@ jobs:
               fi
             done
             REMAINING_AFFECTED="${REMAINING_AFFECTED#,}"
-            
+
             # Release remaining projects normally
             if [ -n "$REMAINING_AFFECTED" ]; then
               echo "Running normal release for: $REMAINING_AFFECTED"
@@ -279,12 +279,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 25.8
           cache: yarn
-      - name: Install Corepack and enable Yarn
-        run: npm install -g corepack && corepack enable
       - name: Nx CI self-healing
         if: always()
         run: |
