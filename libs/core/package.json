@@ -39,7 +39,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "jose": "^6.1.0",
-    "oauth4webapi": "^3.8.1"
+    "jose": "^6.2.1",
+    "oauth4webapi": "^3.8.5"
   }
 }

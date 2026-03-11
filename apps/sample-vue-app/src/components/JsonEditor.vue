@@ -16,8 +16,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import loader from '@monaco-editor/loader';
-import type * as Monaco from 'monaco-editor';
+import loader, { type Monaco } from '@monaco-editor/loader';
+
+type EditorInstance = ReturnType<Monaco['editor']['create']>;
 
 interface Props {
   modelValue: string;
@@ -38,7 +39,7 @@ const emit = defineEmits<{
 
 const editorContainer = ref<HTMLElement | null>(null);
 const error = ref<string>('');
-let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
+let editor: EditorInstance | null = null;
 
 onMounted(async () => {
   if (!editorContainer.value) return;
