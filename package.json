@@ -55,5 +55,6 @@
     "libs/*",
     "apps/sample-vue-app",
     "apps/*"
-  ]
+  ],
+  "packageManager": "yarn@4.13.0"
 }

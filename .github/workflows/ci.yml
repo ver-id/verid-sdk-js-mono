@@ -31,11 +31,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
 
   # Stage 2: Lint (runs concurrently)
   lint:
@@ -47,10 +50,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Lint affected projects
         run: |
           npx nx affected -t lint \
@@ -68,10 +73,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Test affected projects
         run: |
           npx nx affected -t test \
@@ -89,10 +96,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Type check affected projects
         run: |
           npx nx affected -t typecheck \
@@ -111,10 +120,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
       - name: Build affected projects
         run: |
           npx nx affected -t build \
@@ -139,13 +150,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
 
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
+
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: yarn install --immutable
 
       - name: Configure Git identity
         run: |
@@ -232,7 +246,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Switch registry to GitHub Packages
-          npm config set registry https://npm.pkg.github.com
+          yarn config set npmRegistryServer https://npm.pkg.github.com
 
           AFFECTED="$(npx nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
@@ -251,7 +265,7 @@ jobs:
             if [ -d "$PKG_DIR/dist" ]; then
               echo "Publishing $project to GitHub Packages..."
               cd "$PKG_DIR"
-              npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
+              yarn npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
               cd "$GITHUB_WORKSPACE"
             fi
           done
@@ -267,8 +281,10 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 25.8
+          cache: yarn
+      - name: Install Corepack and enable Yarn
+        run: npm install -g corepack && corepack enable
       - name: Nx CI self-healing
         if: always()
         run: |
