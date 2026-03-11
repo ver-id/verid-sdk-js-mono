@@ -278,22 +278,11 @@ You have to pass `typeAssert` function based on the output type configured in yo
 If your flow is configured for `ver-id/ssi/output/attested/v1+JWT` token type:
 
 ```ts
-import { assertAttestedJwtPayload } from '@ver-id/node-client';
+import { assertDisclosureV1JwtPayload } from '@ver-id/node-client';
 
 const disclosureDecodedToken = await disclosureClient.decode(
   disclosureResponse,
-  assertAttestedJwtPayload,
-);
-```
-
-If your flow is configured for `ver-id/ssi/output/plain/v1+JWT` token type:
-
-```ts
-import { assertPlainJwtPayload } from '@ver-id/node-client';
-
-const disclosureDecodedToken = await disclosureClient.decode(
-  disclosureResponse,
-  assertPlainJwtPayload,
+  assertDisclosureV1JwtPayload,
 );
 ```
 

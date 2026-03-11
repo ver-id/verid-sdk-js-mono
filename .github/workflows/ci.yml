@@ -61,7 +61,8 @@ jobs:
           yarn nx affected -t lint \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 3: Test (runs concurrently)
   test:
@@ -84,7 +85,8 @@ jobs:
           yarn nx affected -t test \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 4: Type check (runs concurrently)
   typecheck:
@@ -107,7 +109,8 @@ jobs:
           yarn nx affected -t typecheck \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 5: Build for PR validation (only runs on PRs)
   build:
@@ -131,7 +134,8 @@ jobs:
           yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
   # Stage 6: Build and Publish to npm & GitHub Packages (only on main push)
   build-and-publish:
@@ -176,7 +180,8 @@ jobs:
           yarn nx affected -t build \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
-            --parallel=3 --max-parallel=3
+            --parallel=3 --max-parallel=3 \
+            --output-style=stream --verbose
 
       # version + changelog + publish to npm (only affected)
       - name: Release affected (version, changelog, publish to npm)
