@@ -74,6 +74,8 @@ export type SignatureV1Credential = OutputCredential;
  * @public
  */
 export interface IssuanceCredential extends OutputCredential {
+  /** UUID of the credential record in the registry */
+  credentialRecordUuid: UUID;
   /** Per-credential fulfillment status (e.g., "FULFILLED", "PARTIAL") */
   status: string;
 }
