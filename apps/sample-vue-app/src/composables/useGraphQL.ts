@@ -85,18 +85,17 @@ export function useGraphQL() {
   // The GraphQL client instance
   let graphqlClient: VeridGraphQLClient | null = null;
 
-  // Example query
+  // Example query (uses catalog, works with client credentials)
   const EXAMPLE_QUERY = gql`
-    query FindMe {
-      findMe {
-        uuid
-        user {
-          email
+    query FindManySchemes {
+      findManySchemes {
+        edges {
+          node {
+            uuid
+            name
+            createdAt
+          }
         }
-        organization {
-          name
-        }
-        createdAt
       }
     }
   `;
@@ -401,15 +400,14 @@ export function useGraphQL() {
   customQuery.value = `query ExampleQuery {
   # Replace this with your own GraphQL query
   # For example:
-  findMe {
-    uuid
-    user {
-      email
+  findManySchemes {
+    edges {
+      node {
+        uuid
+        name
+        createdAt
+      }
     }
-    organization {
-      name
-    }
-    createdAt
   }
 }`;
 
@@ -464,15 +462,14 @@ export function useGraphQL() {
     customQuery.value = `query ExampleQuery {
   # Replace this with your own GraphQL query
   # For example:
-  findMe {
-    uuid
-    user {
-      email
+  findManySchemes {
+    edges {
+      node {
+        uuid
+        name
+        createdAt
+      }
     }
-    organization {
-      name
-    }
-    createdAt
   }
 }`;
   };

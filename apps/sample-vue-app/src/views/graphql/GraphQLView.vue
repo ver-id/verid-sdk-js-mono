@@ -698,22 +698,21 @@ ${configEntries}
 const queryCode = `import { gql } from '@apollo/client/core';
 
 const EXAMPLE_QUERY = gql\`
-  query FindMe {
-    findMe {
-      uuid
-      user {
-        email
+  query FindManySchemes {
+    findManySchemes {
+      edges {
+        node {
+          uuid
+          name
+          createdAt
+        }
       }
-      organization {
-        name
-      }
-      createdAt
     }
   }
 \`;
 
-const { data } = await graphqlClient.query({ 
-  query: EXAMPLE_QUERY 
+const { data } = await graphqlClient.query({
+  query: EXAMPLE_QUERY
 });`;
 
 // Helper function code examples
