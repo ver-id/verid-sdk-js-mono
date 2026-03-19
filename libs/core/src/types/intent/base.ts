@@ -13,5 +13,5 @@ export interface BaseIntent {
  */
 export interface IntentResponse {
   intent_id: string;
-  credential_batch_uuid?: UUID;
+  issuance_run_uuid?: UUID;
 }
