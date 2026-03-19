@@ -573,6 +573,9 @@ export function assertIssuanceFlatV1JwtPayload(
 
   assertJwtPayload(value, name, ctor);
 
+  // Check credentialBatchUuid (RFC 0013)
+  assertUUID(value.credentialBatchUuid, `"credentialBatchUuid" in ${name}`, ctor);
+
   // Check output property
   assert('output' in value, `Invalid "output" in ${name}: should be defined.`, ctor);
   assertArray(value.output, `"output" in ${name}`, ctor);
@@ -837,6 +840,7 @@ export function assertIssuanceV1JwtPayload(
   assertObject(value.mapping, `"mapping" in ${name}`, ctor);
   assertString(value.issuanceUuid, `"issuanceUuid" in ${name}`, ctor);
   assertString(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
+  assertUUID(value.credentialBatchUuid, `"credentialBatchUuid" in ${name}`, ctor);
 
   assertArray(value.credentials, `"credentials" in ${name}`, ctor);
   assertCredentials(value.credentials as unknown[], name, ctor);

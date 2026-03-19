@@ -122,9 +122,9 @@ export function useIssuance() {
       if (intentOptions.brandUuid) payload.brandUuid = intentOptions.brandUuid;
       if (intentOptions.requireExplicitConsent !== undefined) payload.requireExplicitConsent = intentOptions.requireExplicitConsent;
 
-      const id = await issuanceClient.createIssuanceIntent(payload, codeChallenge.value);
-      
-      intentId.value = id;
+      const response = await issuanceClient.createIssuanceIntent(payload, codeChallenge.value);
+
+      intentId.value = response.intent_id;
       intentCreated.value = true;
     } catch (err) {
       handleError(err);

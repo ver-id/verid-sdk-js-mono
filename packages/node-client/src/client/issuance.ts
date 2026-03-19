@@ -4,6 +4,7 @@ import {
   IssuanceClientConfig,
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
   IssuanceIntentPayload,
+  IntentResponse,
   ClientAuth,
   ICacheManager,
 } from '@verid-sdk-js-mono/core';
@@ -64,7 +65,7 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
     clientAuth: ClientAuth,
-  ): Promise<string> {
+  ): Promise<IntentResponse> {
     return super.createIssuanceIntent(issuanceIntent, codeChallenge, clientAuth);
   }
 

@@ -92,7 +92,8 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     };
 
     // Create intent with optional clientAuth
-    return this.oauthClient.createIntent(intent, clientAuth);
+    const response = await this.oauthClient.createIntent(intent, clientAuth);
+    return response.intent_id;
   }
 
   /**
