@@ -12,7 +12,7 @@ import { InvalidArgumentError, InvalidAssertionError, OperationFailedError } fro
 import { OAuth4WebApiProvider } from './provider/index.js';
 import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
-import { BaseIntent } from '../types/intent/base.js';
+import { BaseIntent, IntentResponse } from '../types/intent/base.js';
 import { UUID } from '../types/generic.js';
 
 /**
@@ -180,7 +180,7 @@ export class VeridOAuthClient {
    * });
    * ```
    */
-  async createIntent(intent: BaseIntent, clientAuth?: ClientAuth): Promise<string> {
+  async createIntent(intent: BaseIntent, clientAuth?: ClientAuth): Promise<IntentResponse> {
     const authorizationServer = await this.provider.discover(this.issuer);
     assertUrlString(
       authorizationServer.intent_endpoint,
@@ -214,8 +214,8 @@ export class VeridOAuthClient {
       throw new OperationFailedError(`Error occurred while calling intent endpoint: ${intentResponse.status}`, await intentResponse.text());
     }
 
-    const intentData = await intentResponse.json() as { intent_id: string };
-    return intentData.intent_id;
+    const intentData = await intentResponse.json() as IntentResponse;
+    return intentData;
   } catch (error) {
     throw new OperationFailedError('Unknown error occurred while creating intent', error);
   }

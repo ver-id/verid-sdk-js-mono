@@ -55,4 +55,6 @@ export interface IssuanceOutputItem {
 export interface IssuanceFlatV1JwtPayload extends JWTPayload {
   /** Array of output items containing issuance data */
   output: IssuanceOutputItem[];
+  /** UUID of the credential batch (RFC 0013) */
+  credentialBatchUuid: UUID;
 }

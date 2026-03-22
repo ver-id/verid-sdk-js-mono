@@ -145,14 +145,14 @@ export async function createIssuanceIntent(
     }
 
     // Create intent with client authentication
-    const intentId = await issuanceClient.createIssuanceIntent(
-      intentPayload, 
+    const intentResponse = await issuanceClient.createIssuanceIntent(
+      intentPayload,
       codeChallenge,
       { client_secret: clientSecret }
     );
 
     // Store intent ID
-    clientService.setIssuanceIntentId(intentId);
+    clientService.setIssuanceIntentId(intentResponse.intent_id);
 
     // Generate code snippet showing actual parameters used
     const codeSnippet = generateIssuanceCreateIntentSnippet(
@@ -167,7 +167,7 @@ export async function createIssuanceIntent(
 
     return res.json({
       success: true,
-      intentId,
+      intentId: intentResponse.intent_id,
       code: codeSnippet,
       message: 'Issuance intent created successfully',
     });
