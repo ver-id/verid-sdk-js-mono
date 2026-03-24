@@ -2,6 +2,10 @@
 
 Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes.
 
+### Prerequisites
+
+> **Important:** Flows intended to be executed via the Node.js client **must have a client secret configured** in Ver.iD Studio. Only a secret that has been configured in Studio can be used for intent creation and token exchange. Without a configured client secret, the Node.js disclosure flow will not work.
+
 ### Create a Disclosure client
 
 ```ts
@@ -21,7 +25,10 @@ The disclosure client can be configured to cache flow context (state and code ve
 To use the default file storage, no additional options are required. To configure the client to use a custom cache directory:
 
 ```ts
-import { VeridDisclosureClient, FileStorageCacheManager } from '@ver-id/node-client';
+import {
+  VeridDisclosureClient,
+  FileStorageCacheManager,
+} from '@ver-id/node-client';
 
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
@@ -52,18 +59,18 @@ To do this, provide an object to the `cacheManager` property of the client confi
 
 The object should implement the following functions. Note that all of these functions can optionally return a Promise or a static value.
 
-| Signature                          | Return type               | Description                                                                                   |
-| ---------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found    |
-| `save(key: string, value: string)` | Promise<void> or void     | Sets an item into the cache                                                                   |
-| `remove(key)`                      | Promise<void> or void     | Removes a single item from the cache at the specified key, or no-op if the item was not found |
+| Signature                          | Return type                       | Description                                                                                   |
+| ---------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------- |
+| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found         |
+| `save(key: string, value: string)` | Promise<void> or void             | Sets an item into the cache                                                                   |
+| `remove(key)`                      | Promise<void> or void             | Removes a single item from the cache at the specified key, or no-op if the item was not found |
 
 Here's an example of a custom cache implementation that uses an in-memory store:
 
 ```ts
 const CustomMemoryCache = {
   private store: Record<string, string> = {};
-  
+
   save(key: string, value: string) {
     this.store[key] = value;
   },
@@ -85,26 +92,13 @@ const disclosureClient = new VeridDisclosureClient({
 })
 ```
 
-### Disclosure Flow Options
+### Disclosure Flow
 
-There are two ways to initiate a disclosure flow:
+The Node.js client requires a `client_secret` for the token endpoint during finalization. Because of this, **creating a disclosure intent is mandatory** for the Node.js client. The intent-based flow ensures the client secret is used to authenticate both the intent creation and the token exchange.
 
-1. **Direct URL Generation** - Generate disclosure URL directly (simpler approach)
-2. **Intent-based Flow** - Create an intent first, then generate URL (more control)
+> **Note:** The `client_secret` used here must be the one configured for your flow in Ver.iD Studio. You cannot use an arbitrary secret — only a Studio-configured secret is accepted for intent creation and token exchange.
 
-#### Option 1: Direct URL Generation (Recommended)
-
-To start the disclosure flow, you need to first generate a disclosure URL. This URL is used to redirect the user to the Ver.iD disclosure experience.
-
-```ts
-const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();
-```
-
-**Note:** The `generateDisclosureUrl` method returns a Promise that resolves to the disclosure URL and state.
-
-#### Option 2: Intent-based Flow (Advanced)
-
-For more control over the disclosure flow, you can create an intent first and then generate the disclosure URL. This is useful when you need to customize the disclosure experience with challenges, brand-specific settings, or explicit consent requirements.
+To initiate a disclosure flow, you must create an intent first and then generate the disclosure URL. This also allows you to customize the disclosure experience with challenges, brand-specific settings, or explicit consent requirements.
 
 ##### Step 1: Generate Code Challenge
 
@@ -126,11 +120,11 @@ const intentId = await disclosureClient.createDisclosureIntent(
     requireExplicitConsent: true, // Optional: Require explicit user consent (default: false)
   },
   codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
+  { client_secret: '<YOUR_CLIENT_SECRET>' } // Client authentication required for Node.js
 );
 ```
 
-**Note:** All parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used. The `client_secret` is required for server-side intent creation.
+**Important:** Creating a disclosure intent is **mandatory** for the Node.js client. The `client_secret` is required for both intent creation and token exchange (finalize). All other parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used.
 
 ##### Step 3: Generate Disclosure URL with Intent
 
@@ -183,7 +177,9 @@ const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
 You can also provide a custom state when generating the code challenge:
 
 ```ts
-const { codeChallenge, state } = await disclosureClient.generateCodeChallenge('<CUSTOM_STATE>');
+const { codeChallenge, state } = await disclosureClient.generateCodeChallenge(
+  '<CUSTOM_STATE>'
+);
 ```
 
 **Security Note:** As per PKCE standards ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)), a code verifier is created when generating a code challenge. The code verifier is stored in the cache manager against the state and is used to complete the OAuth flow. **Never expose the code verifier or transmit it over the network**, as this could compromise security.
@@ -246,14 +242,14 @@ Example backend endpoint for finalization:
 app.post('/api/disclosure/finalize', async (req, res) => {
   try {
     const { callbackUrl } = req.body;
-    
+
     const disclosureResponse = await disclosureClient.finalize({
       clientAuth: {
         client_secret: process.env.VERID_CLIENT_SECRET,
       },
       callbackParams: callbackUrl,
     });
-    
+
     res.json(disclosureResponse);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -282,7 +278,7 @@ import { assertDisclosureV1JwtPayload } from '@ver-id/node-client';
 
 const disclosureDecodedToken = await disclosureClient.decode(
   disclosureResponse,
-  assertDisclosureV1JwtPayload,
+  assertDisclosureV1JwtPayload
 );
 ```
 

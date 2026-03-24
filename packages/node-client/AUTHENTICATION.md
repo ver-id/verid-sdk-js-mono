@@ -2,6 +2,10 @@
 
 Execute an authentication flow to use decentralized identity apps for shifting from traditional, password-based methods to a secure, password-less system utilizing QR codes. This modern approach enhances security, simplifies the login process, and significantly improves user experience by leveraging user-controlled, decentralized authentication.
 
+### Prerequisites
+
+> **Important:** Flows intended to be executed via the Node.js client **must have a client secret configured** in Ver.iD Studio. Only a secret that has been configured in Studio can be used for intent creation and token exchange. Without a configured client secret, the Node.js authentication flow will not work.
+
 ### Create an Authentication client
 
 ```ts
@@ -21,7 +25,10 @@ The authentication client can be configured to cache flow context (state and cod
 To use the default file storage, no additional options are required. To configure the client to use a custom cache directory:
 
 ```ts
-import { VeridAuthenticationClient, FileStorageCacheManager } from '@ver-id/node-client';
+import {
+  VeridAuthenticationClient,
+  FileStorageCacheManager,
+} from '@ver-id/node-client';
 
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
@@ -52,18 +59,18 @@ To do this, provide an object to the `cacheManager` property of the client confi
 
 The object should implement the following functions. Note that all of these functions can optionally return a Promise or a static value.
 
-| Signature                          | Return type               | Description                                                                                   |
-| ---------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found    |
-| `save(key: string, value: string)` | Promise<void> or void     | Sets an item into the cache                                                                   |
-| `remove(key)`                      | Promise<void> or void     | Removes a single item from the cache at the specified key, or no-op if the item was not found |
+| Signature                          | Return type                       | Description                                                                                   |
+| ---------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------- |
+| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found         |
+| `save(key: string, value: string)` | Promise<void> or void             | Sets an item into the cache                                                                   |
+| `remove(key)`                      | Promise<void> or void             | Removes a single item from the cache at the specified key, or no-op if the item was not found |
 
 Here's an example of a custom cache implementation that uses an in-memory store:
 
 ```ts
 const CustomMemoryCache = {
   private store: Record<string, string> = {};
-  
+
   save(key: string, value: string) {
     this.store[key] = value;
   },
@@ -85,37 +92,21 @@ const authenticationClient = new VeridAuthenticationClient({
 })
 ```
 
-### Authentication Flow Options
+### Authentication Flow
 
-There are two ways to initiate an authentication flow:
+The Node.js client requires a `client_secret` for the token endpoint during finalization. Because of this, **creating an authentication intent is mandatory** for the Node.js client. The intent-based flow ensures the client secret is used to authenticate both the intent creation and the token exchange.
 
-1. **Direct URL Generation** - Generate authentication URL directly (simpler approach)
-2. **Intent-based Flow** - Create an intent first, then generate URL (more control)
+> **Note:** The `client_secret` used here must be the one configured for your flow in Ver.iD Studio. You cannot use an arbitrary secret — only a Studio-configured secret is accepted for intent creation and token exchange.
 
-#### Option 1: Direct URL Generation (Recommended)
-
-To start the authentication flow, you need to first generate an authentication URL. This URL is used to redirect the user to the Ver.iD authentication experience.
-
-You can provide multiple scopes separated by spaces (e.g., `'profile email'`). Each scope defines the permissions and information your application is requesting from the user during authentication. Requested scopes should be registered in the authentication flow.
-
-```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-});
-```
-
-**Note:** The `generateAuthenticationUrl` method returns a Promise that resolves to the authentication URL and state.
-
-#### Option 2: Intent-based Flow (Advanced)
-
-For more control over the authentication flow, you can create an intent first and then generate the authentication URL. This is useful when you need to customize the authentication experience with challenges or brand-specific settings.
+To initiate an authentication flow, you must create an intent first and then generate the authentication URL. This also allows you to customize the authentication experience with challenges or brand-specific settings.
 
 ##### Step 1: Generate Code Challenge
 
 First, generate a PKCE code challenge:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge();
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge();
 ```
 
 ##### Step 2: Create Authentication Intent
@@ -129,23 +120,24 @@ const intentId = await authenticationClient.createAuthenticationIntent(
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
   },
   codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
+  { client_secret: '<YOUR_CLIENT_SECRET>' } // Client authentication required for Node.js
 );
 ```
 
-**Note:** Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used. The `client_secret` is required for server-side intent creation.
+**Important:** Creating an authentication intent is **mandatory** for the Node.js client. The `client_secret` is required for both intent creation and token exchange (finalize). Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used.
 
 ##### Step 3: Generate Authentication URL with Intent
 
 Generate the authentication URL using the created intent:
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: state, // Use the state from Step 1
-  codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  intent_id: intentId, // Pass the intent ID from Step 2
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: state, // Use the state from Step 1
+    codeChallenge: codeChallenge, // Use the code challenge from Step 1
+    intent_id: intentId, // Pass the intent ID from Step 2
+  });
 ```
 
 #### Advanced PKCE Configuration
@@ -157,10 +149,11 @@ Authentication flows are compliant with OAuth 2.1 and use PKCE (Proof Key for Co
 You can provide your own unique state identifier:
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: '<UNIQUE_STATE>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: '<UNIQUE_STATE>',
+  });
 ```
 
 **Important:** State is mandatory if code challenge is being provided.
@@ -170,11 +163,12 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
 You can provide an externally generated code challenge. This is useful when the code challenge is generated elsewhere (e.g., via a backend service):
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: '<UNIQUE_STATE>',
-  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: '<UNIQUE_STATE>',
+    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
+  });
 ```
 
 ##### Generating Code Challenge Separately
@@ -182,14 +176,16 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
 You can generate a code challenge independently for use in other contexts:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge();
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge();
 // Use codeChallenge and state for intent creation or other purposes
 ```
 
 You can also provide a custom state when generating the code challenge:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge('<CUSTOM_STATE>');
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge('<CUSTOM_STATE>');
 ```
 
 **Security Note:** As per PKCE standards ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)), a code verifier is created when generating a code challenge. The code verifier is stored in the cache manager against the state and is used to complete the OAuth flow. **Never expose the code verifier or transmit it over the network**, as this could compromise security.
@@ -252,14 +248,14 @@ Example backend endpoint for finalization:
 app.post('/api/authentication/finalize', async (req, res) => {
   try {
     const { callbackUrl } = req.body;
-    
+
     const authenticationResponse = await authenticationClient.finalize({
       clientAuth: {
         client_secret: process.env.VERID_CLIENT_SECRET,
       },
       callbackParams: callbackUrl,
     });
-    
+
     res.json(authenticationResponse);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -280,5 +276,7 @@ The `callbackParams` parameter accepts multiple formats:
 Once you have the authentication response, you can verify and decode the token to get the JWT headers and typed payload:
 
 ```ts
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+const authenticationDecodedToken = await authenticationClient.decode(
+  authenticationResponse
+);
 ```
