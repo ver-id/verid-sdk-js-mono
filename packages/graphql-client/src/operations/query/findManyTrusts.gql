@@ -1,14 +1,15 @@
-query FindManyProviders($input: FindManyProvidersInput) {
-  findManyProviders(input: $input) {
+query FindManyTrusts($input: FindManyTrustsInput) {
+  findManyTrusts(input: $input) {
     edges {
       node {
         uuid
         name
-        locale {
+        locales {
           edges {
             node {
               locale
-              i18n
+              name
+              description
             }
           }
         }

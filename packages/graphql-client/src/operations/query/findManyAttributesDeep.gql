@@ -4,58 +4,24 @@ query FindManyAttributesDeep($input: FindManyAttributesInput) {
       node {
         uuid
         name
-        locale {
+        locales {
           edges {
             node {
               locale
-              i18n
+              label
+              description
             }
           }
         }
         credential {
           uuid
           name
-          locale {
+          locales {
             edges {
               node {
                 locale
-                i18n
-              }
-            }
-          }
-          issuer {
-            uuid
-            name
-            locale {
-              edges {
-                node {
-                  locale
-                  i18n
-                }
-              }
-            }
-            scheme {
-              uuid
-              name
-              locale {
-                edges {
-                  node {
-                    locale
-                    i18n
-                  }
-                }
-              }
-              provider {
-                uuid
                 name
-                locale {
-                  edges {
-                    node {
-                      locale
-                      i18n
-                    }
-                  }
-                }
+                description
               }
             }
           }

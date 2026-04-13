@@ -4,11 +4,12 @@ query FindManyAttributes($input: FindManyAttributesInput) {
       node {
         uuid
         name
-        locale {
+        locales {
           edges {
             node {
               locale
-              i18n
+              label
+              description
             }
           }
         }

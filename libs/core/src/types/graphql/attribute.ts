@@ -1,5 +1,5 @@
 import { JSONValue, UUID } from '../generic.js';
-import { CredentialEntityDeep } from './credential.js';
+import { CredentialEntity } from './credential.js';
 import { LocaleEntity } from './locale.js';
 
 /**
@@ -20,15 +20,15 @@ export interface AttributeEntity {
 }
 
 /**
- * Attribute with its complete parent hierarchy including credential, issuer, scheme, and provider.
- * Used when full context about the attribute's origin is needed.
+ * Attribute with its parent credential.
+ * Used when context about the attribute's credential is needed.
  *
  * @public
  * @extends AttributeEntity
  */
 export interface AttributeEntityDeep extends AttributeEntity {
-  /** Complete credential object including its full hierarchy */
-  credential: CredentialEntityDeep;
+  /** Complete credential object */
+  credential: CredentialEntity;
 }
 
 /**

@@ -26,18 +26,18 @@ export interface OutputCredential {
   credentialUuid: UUID;
   /** UUID of the issuer that issued the credential */
   issuerUuid: UUID;
-  /** UUID of the scheme governing the credential */
-  schemeUuid: UUID;
-  /** UUID of the provider managing the scheme */
-  providerUuid: UUID;
+  /** UUID of the trust governing the credential */
+  trustUuid: UUID;
+  /** UUID of the handler managing the trust */
+  handlerUuid: UUID;
   /** Canonical credential name from catalog (e.g., "PID", "Diploma") */
   credentialName: string;
   /** Canonical issuer name from catalog (e.g., "RvIG", "DUO") */
   issuerName: string;
-  /** Canonical scheme name from catalog (e.g., "PID Scheme NL") */
-  schemeName: string;
-  /** Canonical provider name from catalog (e.g., "OID4VC", "Yivi") */
-  providerName: string;
+  /** Canonical trust name from catalog (e.g., "PID Scheme NL") */
+  trustName: string;
+  /** Canonical handler name from catalog (e.g., "OID4VC", "Yivi") */
+  handlerName: string;
   /** Format discriminator — tells consumer which bucket to read */
   type: OutputCredentialType;
   /** SD-JWT format-specific metadata (present when type is "sd_jwt") */

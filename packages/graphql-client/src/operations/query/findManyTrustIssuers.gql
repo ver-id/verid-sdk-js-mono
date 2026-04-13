@@ -1,0 +1,15 @@
+query FindManyTrustIssuers($input: FindManyTrustIssuersInput) {
+  findManyTrustIssuers(input: $input) {
+    edges {
+      node {
+        uuid
+        trust {
+          uuid
+        }
+        issuer {
+          uuid
+        }
+      }
+    }
+  }
+}

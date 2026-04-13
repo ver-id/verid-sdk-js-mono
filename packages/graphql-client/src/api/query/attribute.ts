@@ -6,7 +6,6 @@ import {
   AttributeEntity,
   AttributeEntityDeep,
   InvalidArgumentError,
-  LocaleEntity,
   OperationFailedError,
   UUID,
 } from '@verid-sdk-js-mono/core';
@@ -16,7 +15,6 @@ import {
   FindManyAttributesDocument,
 } from '../../operations/query/index.js';
 import {
-  convertConnectionToArray,
   convertConnectionToAttributeArray,
   convertConnectionToAttributeDeepArray,
 } from '../../helpers/converter.js';
@@ -32,7 +30,7 @@ import {
  * @param uuid Attribute UUID.
  * @returns Attribute object.
  * @throws {InvalidArgumentError} When uuid is not a valid UUID.
- * @throws {OperationFailedError} When the GraphQL operation fails or provider is not found.
+ * @throws {OperationFailedError} When the GraphQL operation fails or attribute is not found.
  */
 export const getAttribute = async (client: ApolloClient, uuid: UUID): Promise<AttributeEntity> => {
   assertUUID(uuid, 'uuid', InvalidArgumentError);
@@ -48,10 +46,14 @@ export const getAttribute = async (client: ApolloClient, uuid: UUID): Promise<At
     OperationFailedError,
   );
 
+  const locales = response.data.findAttribute.locales.edges
+    .filter((e): e is NonNullable<typeof e> => e !== null)
+    .map((e) => ({ locale: e.node.locale, name: e.node.label, description: e.node.description }));
+
   return {
     uuid: response.data.findAttribute.uuid,
     name: response.data.findAttribute.name,
-    locales: convertConnectionToArray<LocaleEntity>(response.data.findAttribute.locale),
+    locales,
     credentialUuid: response.data.findAttribute.credential.uuid,
   };
 };
@@ -99,8 +101,7 @@ export const getAttributes = async (
 
 /**
  * Get multiple attributes by their UUIDs with all parent entities (deep fetch).
- * This method retrieves attributes along with their complete parent hierarchy including
- * credentials, issuers, schemes, and providers.
+ * This method retrieves attributes along with their parent credential.
  * @param client Apollo client
  * @param attributeUuids Array of attribute UUIDs to retrieve with deep data.
  * @returns Promise that resolves to an array of AttributeDeep objects containing full entity hierarchy.

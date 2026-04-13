@@ -480,8 +480,8 @@ function assertOutputDataItems(
       'attributeUuid',
       'credentialUuid',
       'issuerUuid',
-      'schemeUuid',
-      'providerUuid',
+      'trustUuid',
+      'handlerUuid',
     ]) {
       assertUUID(
         dataItem[prop],
@@ -721,12 +721,12 @@ function assertCredentials(
     const c = cred as Record<string, unknown>;
 
     // UUID fields
-    for (const prop of ['credentialUuid', 'issuerUuid', 'schemeUuid', 'providerUuid']) {
+    for (const prop of ['credentialUuid', 'issuerUuid', 'trustUuid', 'handlerUuid']) {
       assertUUID(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
     }
 
     // Name fields
-    for (const prop of ['credentialName', 'issuerName', 'schemeName', 'providerName']) {
+    for (const prop of ['credentialName', 'issuerName', 'trustName', 'handlerName']) {
       assertString(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
     }
 

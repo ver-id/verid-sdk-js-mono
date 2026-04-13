@@ -29,8 +29,8 @@ export interface IssuanceV1JwtPayload extends JWTPayload {
   issuanceUuid: UUID;
   /** Organization that configured the flow */
   organizationUuid: UUID;
-  /** ProviderApp UUID — the app instance used to complete the flow */
-  providerAppUuid: UUID;
+  /** HandlerApp UUID — the app instance used to complete the flow */
+  handlerAppUuid: UUID;
   /** App name — human-readable name of the app */
   appName: string;
   /** UUID of the credential batch (RFC 0013) */
