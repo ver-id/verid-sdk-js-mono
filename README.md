@@ -1,12 +1,23 @@
-# Ver.iD SDK for JavaScript
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/images/header.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./public/images/header.svg">
+    <img alt="Ver.iD TypeScript SDK" src="./public/images/header.svg" width="100%">
+  </picture>
+</p>
 
-The Ver.iD SDK for javascript which enables you to easily work with Ver.iD services.
+> [!WARNING]
+> **Pre-release software** · This SDK has not yet reached version 1.0. Public APIs, configuration options, and behavior may change between minor releases without prior deprecation. We recommend pinning to an exact version and reviewing the changelog before upgrading.
+
+# Ver.iD SDK for TypeScript
+
+The Ver.iD SDK for TypeScript which enables you to easily work with Ver.iD services.
 
 ## Packages
 
 ### [@ver-id/browser-client](./packages/browser-client)
 
-The JavaScript SDK for browser applications to perform authentication and verification flows.
+The TypeScript SDK for browser applications to perform authentication and verification flows.
 
 **Features:**
 
@@ -55,7 +66,7 @@ For comprehensive configurations and examples, see the [browser-client.](./packa
 
 ### [@ver-id/node-client](./packages/node-client)
 
-The JavaScript SDK for Node.js server applications to perform authentication and verification flows.
+The TypeScript SDK for Node.js server applications to perform authentication and verification flows.
 
 **Features:**
 
