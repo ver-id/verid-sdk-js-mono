@@ -1,9 +1,8 @@
 import { ref, reactive } from 'vue';
 import {
   createVeridGraphQLClient,
-  getHandler,
-  getHandlers,
   getTrust,
+  getTrusts,
   getIssuer,
   getIssuers,
   getCredential,
@@ -11,6 +10,12 @@ import {
   getAttribute,
   getAttributes,
   getAttributesWithHierarchy,
+  getTrustAppsByTrust,
+  getTrustAppsByApp,
+  getTrustIssuersByTrust,
+  getTrustIssuersByIssuer,
+  getCredentialTrustIssuersByCredential,
+  getCredentialTrustIssuersByTrustIssuer,
 } from '@ver-id/graphql-client';
 import { gql } from '@apollo/client/core';
 import { formatError } from '../utils/errorHandler.js';
@@ -38,11 +43,11 @@ export function useGraphQL() {
   });
 
   const expandedCategories = reactive({
-    handler: false,
     trust: false,
     issuer: false,
     credential: false,
     attribute: false,
+    joinTables: false,
   });
 
   // Main state
@@ -56,8 +61,6 @@ export function useGraphQL() {
   const customQueryResult = ref<any>(null);
 
   // Helper function states - Single
-  const handlerUuid = ref('');
-  const handlerResult = ref<any>(null);
   const trustUuid = ref('');
   const trustResult = ref<any>(null);
   const issuerUuid = ref('');
@@ -68,8 +71,8 @@ export function useGraphQL() {
   const attributeResult = ref<any>(null);
 
   // Helper function states - Multiple
-  const handlerUuids = ref('');
-  const handlersResult = ref<any>(null);
+  const trustUuids = ref('');
+  const trustsResult = ref<any>(null);
   const issuerUuids = ref('');
   const issuersResult = ref<any>(null);
   const credentialUuids = ref('');
@@ -78,6 +81,20 @@ export function useGraphQL() {
   const attributesResult = ref<any>(null);
   const attributeDeepUuids = ref('');
   const attributesDeepResult = ref<any>(null);
+
+  // Join table states
+  const trustAppTrustUuid = ref('');
+  const trustAppsByTrustResult = ref<any>(null);
+  const trustAppAppUuid = ref('');
+  const trustAppsByAppResult = ref<any>(null);
+  const trustIssuerTrustUuid = ref('');
+  const trustIssuersByTrustResult = ref<any>(null);
+  const trustIssuerIssuerUuid = ref('');
+  const trustIssuersByIssuerResult = ref<any>(null);
+  const ctiCredentialUuid = ref('');
+  const ctiByCredentialResult = ref<any>(null);
+  const ctiTrustIssuerUuid = ref('');
+  const ctiByTrustIssuerResult = ref<any>(null);
 
   // The GraphQL client instance
   let graphqlClient: VeridGraphQLClient | null = null;
@@ -158,24 +175,6 @@ export function useGraphQL() {
   };
 
   // Helper function execution handlers - Single
-  const executeGetHandler = async () => {
-    if (!graphqlClient || !handlerUuid.value.trim()) return;
-
-    loading.value = true;
-    error.value = null;
-    errorSource.value = null;
-    handlerResult.value = null;
-    try {
-      const result = await getHandler(graphqlClient, handlerUuid.value);
-      handlerResult.value = result;
-    } catch (err) {
-      handleError(err);
-      errorSource.value = 'getHandler';
-    } finally {
-      loading.value = false;
-    }
-  };
-
   const executeGetTrust = async () => {
     if (!graphqlClient || !trustUuid.value.trim()) return;
 
@@ -253,24 +252,24 @@ export function useGraphQL() {
   };
 
   // Helper function execution handlers - Multiple
-  const executeGetHandlers = async () => {
-    if (!graphqlClient || !handlerUuids.value.trim()) return;
+  const executeGetTrusts = async () => {
+    if (!graphqlClient || !trustUuids.value.trim()) return;
 
     loading.value = true;
     error.value = null;
     errorSource.value = null;
-    handlersResult.value = null;
+    trustsResult.value = null;
 
     try {
-      const uuids = handlerUuids.value
+      const uuids = trustUuids.value
         .split(',')
         .map((id) => id.trim())
         .filter(Boolean);
-      const result = await getHandlers(graphqlClient, uuids);
-      handlersResult.value = result;
+      const result = await getTrusts(graphqlClient, uuids);
+      trustsResult.value = result;
     } catch (err) {
       handleError(err);
-      errorSource.value = 'getHandlers';
+      errorSource.value = 'getTrusts';
     } finally {
       loading.value = false;
     }
@@ -368,6 +367,103 @@ export function useGraphQL() {
     }
   };
 
+  // Join table execution handlers
+  const executeGetTrustAppsByTrust = async () => {
+    if (!graphqlClient || !trustAppTrustUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    trustAppsByTrustResult.value = null;
+    try {
+      trustAppsByTrustResult.value = await getTrustAppsByTrust(graphqlClient, trustAppTrustUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getTrustAppsByTrust';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const executeGetTrustAppsByApp = async () => {
+    if (!graphqlClient || !trustAppAppUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    trustAppsByAppResult.value = null;
+    try {
+      trustAppsByAppResult.value = await getTrustAppsByApp(graphqlClient, trustAppAppUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getTrustAppsByApp';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const executeGetTrustIssuersByTrust = async () => {
+    if (!graphqlClient || !trustIssuerTrustUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    trustIssuersByTrustResult.value = null;
+    try {
+      trustIssuersByTrustResult.value = await getTrustIssuersByTrust(graphqlClient, trustIssuerTrustUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getTrustIssuersByTrust';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const executeGetTrustIssuersByIssuer = async () => {
+    if (!graphqlClient || !trustIssuerIssuerUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    trustIssuersByIssuerResult.value = null;
+    try {
+      trustIssuersByIssuerResult.value = await getTrustIssuersByIssuer(graphqlClient, trustIssuerIssuerUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getTrustIssuersByIssuer';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const executeGetCtiByCredential = async () => {
+    if (!graphqlClient || !ctiCredentialUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    ctiByCredentialResult.value = null;
+    try {
+      ctiByCredentialResult.value = await getCredentialTrustIssuersByCredential(graphqlClient, ctiCredentialUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getCredentialTrustIssuersByCredential';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const executeGetCtiByTrustIssuer = async () => {
+    if (!graphqlClient || !ctiTrustIssuerUuid.value.trim()) return;
+    loading.value = true;
+    error.value = null;
+    errorSource.value = null;
+    ctiByTrustIssuerResult.value = null;
+    try {
+      ctiByTrustIssuerResult.value = await getCredentialTrustIssuersByTrustIssuer(graphqlClient, ctiTrustIssuerUuid.value);
+    } catch (err) {
+      handleError(err);
+      errorSource.value = 'getCredentialTrustIssuersByTrustIssuer';
+    } finally {
+      loading.value = false;
+    }
+  };
+
   /**
    * Set default custom query
    */
@@ -401,32 +497,46 @@ export function useGraphQL() {
     customQueryResult.value = null;
 
     // Clear single results
-    handlerResult.value = null;
     trustResult.value = null;
     issuerResult.value = null;
     credentialResult.value = null;
     attributeResult.value = null;
 
     // Clear multiple results
-    handlersResult.value = null;
+    trustsResult.value = null;
     issuersResult.value = null;
     credentialsResult.value = null;
     attributesResult.value = null;
     attributesDeepResult.value = null;
 
+    // Clear join table results
+    trustAppsByTrustResult.value = null;
+    trustAppsByAppResult.value = null;
+    trustIssuersByTrustResult.value = null;
+    trustIssuersByIssuerResult.value = null;
+    ctiByCredentialResult.value = null;
+    ctiByTrustIssuerResult.value = null;
+
     // Clear inputs - single
-    handlerUuid.value = '';
     trustUuid.value = '';
     issuerUuid.value = '';
     credentialUuid.value = '';
     attributeUuid.value = '';
 
     // Clear inputs - multiple
-    handlerUuids.value = '';
+    trustUuids.value = '';
     issuerUuids.value = '';
     credentialUuids.value = '';
     attributeUuids.value = '';
     attributeDeepUuids.value = '';
+
+    // Clear join table inputs
+    trustAppTrustUuid.value = '';
+    trustAppAppUuid.value = '';
+    trustIssuerTrustUuid.value = '';
+    trustIssuerIssuerUuid.value = '';
+    ctiCredentialUuid.value = '';
+    ctiTrustIssuerUuid.value = '';
 
     graphqlClient = null;
     error.value = null;
@@ -460,8 +570,6 @@ export function useGraphQL() {
     showConfigForm,
 
     // Helper states - Single
-    handlerUuid,
-    handlerResult,
     trustUuid,
     trustResult,
     issuerUuid,
@@ -472,8 +580,8 @@ export function useGraphQL() {
     attributeResult,
 
     // Helper states - Multiple
-    handlerUuids,
-    handlersResult,
+    trustUuids,
+    trustsResult,
     issuerUuids,
     issuersResult,
     credentialUuids,
@@ -483,6 +591,20 @@ export function useGraphQL() {
     attributeDeepUuids,
     attributesDeepResult,
 
+    // Join table states
+    trustAppTrustUuid,
+    trustAppsByTrustResult,
+    trustAppAppUuid,
+    trustAppsByAppResult,
+    trustIssuerTrustUuid,
+    trustIssuersByTrustResult,
+    trustIssuerIssuerUuid,
+    trustIssuersByIssuerResult,
+    ctiCredentialUuid,
+    ctiByCredentialResult,
+    ctiTrustIssuerUuid,
+    ctiByTrustIssuerResult,
+
     // Configuration (reactive, can be modified)
     clientConfig,
 
@@ -490,16 +612,21 @@ export function useGraphQL() {
     initializeClient,
     executeExampleQuery,
     executeCustomQuery,
-    executeGetHandler,
     executeGetTrust,
     executeGetIssuer,
     executeGetCredential,
     executeGetAttribute,
-    executeGetHandlers,
+    executeGetTrusts,
     executeGetIssuers,
     executeGetCredentials,
     executeGetAttributes,
     executeGetAttributesWithHierarchy,
+    executeGetTrustAppsByTrust,
+    executeGetTrustAppsByApp,
+    executeGetTrustIssuersByTrust,
+    executeGetTrustIssuersByIssuer,
+    executeGetCtiByCredential,
+    executeGetCtiByTrustIssuer,
     startOver,
   };
 }

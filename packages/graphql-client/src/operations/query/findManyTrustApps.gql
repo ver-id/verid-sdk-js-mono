@@ -1,0 +1,15 @@
+query FindManyTrustApps($input: FindManyTrustAppsInput) {
+  findManyTrustApps(input: $input) {
+    edges {
+      node {
+        uuid
+        trust {
+          uuid
+        }
+        app {
+          uuid
+        }
+      }
+    }
+  }
+}

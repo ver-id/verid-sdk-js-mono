@@ -16,7 +16,7 @@
       <p v-if="!clientInitialized">
         Configure your GraphQL client settings and initialize:
       </p>
-      
+
       <!-- Configuration -->
       <div v-if="!clientInitialized" class="config-form">
         <div class="form-group">
@@ -122,80 +122,6 @@ class="start-over-btn" @click="startOver">Try Again</button>
         <p>The SDK provides helper functions for common queries:</p>
 
         <div class="helper-functions">
-          <!-- Handler Functions -->
-          <div class="helper-category">
-            <div class="category-header" @click="toggleCategory('handler')">
-              <h3>
-                <span class="toggle-icon">{{ expandedCategories.handler ? '▼' : '▶' }}</span>
-                Handler Functions
-              </h3>
-            </div>
-            <div v-show="expandedCategories.handler" class="category-content">
-              <!-- Get Handler -->
-              <div class="helper-function">
-                <h4>Get Handler (Single)</h4>
-                <div class="code-block-wrapper">
-                  <CopyButton :content="getHandlerCode" />
-                  <pre><code>{{ getHandlerCode }}</code></pre>
-                </div>
-                <div class="input-group">
-                  <input
-v-model="handlerUuid" type="text" placeholder="Enter Handler UUID" />
-                  <button :disabled="loading || !handlerUuid.trim()" @click="executeGetHandler">
-                    {{ loading ? 'Executing...' : 'Get Handler' }}
-                  </button>
-                </div>
-                <!-- Result or Error -->
-                <div v-if="handlerResult"
-class="info">
-                  <h5>✓ Result:</h5>
-                  <div class="code-block-wrapper">
-                    <CopyButton :content="JSON.stringify(handlerResult, null, 2)" />
-                    <pre>{{ JSON.stringify(handlerResult, null, 2) }}</pre>
-                  </div>
-                </div>
-                <div v-else-if="error && !loading && errorSource === 'getHandler'"
-class="error">
-                  <h5>❌ Error:</h5>
-                  <pre>{{ error }}</pre>
-                </div>
-              </div>
-
-              <!-- Get Handlers -->
-              <div class="helper-function">
-                <h4>Get Handlers (Multiple)</h4>
-                <div class="code-block-wrapper">
-                  <CopyButton :content="getHandlersCode" />
-                  <pre><code>{{ getHandlersCode }}</code></pre>
-                </div>
-                <div class="input-group">
-                  <input
-                    v-model="handlerUuids"
-                    type="text"
-                    placeholder="Enter Handler UUIDs (comma-separated)"
-                  />
-                  <button :disabled="loading || !handlerUuids.trim()" @click="executeGetHandlers">
-                    {{ loading ? 'Executing...' : 'Get Handlers' }}
-                  </button>
-                </div>
-                <!-- Result or Error -->
-                <div v-if="handlersResult"
-class="info">
-                  <h5>✓ Result:</h5>
-                  <div class="code-block-wrapper">
-                    <CopyButton :content="JSON.stringify(handlersResult, null, 2)" />
-                    <pre>{{ JSON.stringify(handlersResult, null, 2) }}</pre>
-                  </div>
-                </div>
-                <div v-else-if="error && !loading && errorSource === 'getHandlers'"
-class="error">
-                  <h5>❌ Error:</h5>
-                  <pre>{{ error }}</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Trust Functions -->
           <div class="helper-category">
             <div class="category-header" @click="toggleCategory('trust')">
@@ -219,7 +145,6 @@ v-model="trustUuid" type="text" placeholder="Enter Trust UUID" />
                     {{ loading ? 'Executing...' : 'Get Trust' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="trustResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -235,6 +160,37 @@ class="error">
                 </div>
               </div>
 
+              <!-- Get Trusts -->
+              <div class="helper-function">
+                <h4>Get Trusts (Multiple)</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getTrustsCode" />
+                  <pre><code>{{ getTrustsCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input
+                    v-model="trustUuids"
+                    type="text"
+                    placeholder="Enter Trust UUIDs (comma-separated)"
+                  />
+                  <button :disabled="loading || !trustUuids.trim()" @click="executeGetTrusts">
+                    {{ loading ? 'Executing...' : 'Get Trusts' }}
+                  </button>
+                </div>
+                <div v-if="trustsResult"
+class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(trustsResult, null, 2)" />
+                    <pre>{{ JSON.stringify(trustsResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getTrusts'"
+class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -261,7 +217,6 @@ v-model="issuerUuid" type="text" placeholder="Enter Issuer UUID" />
                     {{ loading ? 'Executing...' : 'Get Issuer' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="issuerResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -294,7 +249,6 @@ class="error">
                     {{ loading ? 'Executing...' : 'Get Issuers' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="issuersResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -338,7 +292,6 @@ v-model="credentialUuid" type="text" placeholder="Enter Credential UUID" />
                     {{ loading ? 'Executing...' : 'Get Credential' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="credentialResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -374,7 +327,6 @@ class="error">
                     {{ loading ? 'Executing...' : 'Get Credentials' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="credentialsResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -417,7 +369,6 @@ v-model="attributeUuid" type="text" placeholder="Enter Attribute UUID" />
                     {{ loading ? 'Executing...' : 'Get Attribute' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="attributeResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -453,7 +404,6 @@ class="error">
                     {{ loading ? 'Executing...' : 'Get Attributes' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="attributesResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -489,7 +439,6 @@ class="error">
                     {{ loading ? 'Executing...' : 'Get Attributes (Deep)' }}
                   </button>
                 </div>
-                <!-- Result or Error -->
                 <div v-if="attributesDeepResult"
 class="info">
                   <h5>✓ Result:</h5>
@@ -502,6 +451,173 @@ class="info">
                   v-else-if="error && !loading && errorSource === 'getAttributesWithHierarchy'"
                   class="error"
                 >
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Join Table Functions -->
+          <div class="helper-category">
+            <div class="category-header" @click="toggleCategory('joinTables')">
+              <h3>
+                <span class="toggle-icon">{{ expandedCategories.joinTables ? '▼' : '▶' }}</span>
+                Relationship Functions (Join Tables)
+              </h3>
+            </div>
+            <div v-show="expandedCategories.joinTables" class="category-content">
+              <!-- TrustApps by Trust -->
+              <div class="helper-function">
+                <h4>Get Trust-Apps by Trust UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getTrustAppsByTrustCode" />
+                  <pre><code>{{ getTrustAppsByTrustCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="trustAppTrustUuid" type="text" placeholder="Enter Trust UUID" />
+                  <button :disabled="loading || !trustAppTrustUuid.trim()" @click="executeGetTrustAppsByTrust">
+                    {{ loading ? 'Executing...' : 'Get Trust-Apps' }}
+                  </button>
+                </div>
+                <div v-if="trustAppsByTrustResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(trustAppsByTrustResult, null, 2)" />
+                    <pre>{{ JSON.stringify(trustAppsByTrustResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getTrustAppsByTrust'" class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+
+              <!-- TrustApps by App -->
+              <div class="helper-function">
+                <h4>Get Trust-Apps by App UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getTrustAppsByAppCode" />
+                  <pre><code>{{ getTrustAppsByAppCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="trustAppAppUuid" type="text" placeholder="Enter App UUID" />
+                  <button :disabled="loading || !trustAppAppUuid.trim()" @click="executeGetTrustAppsByApp">
+                    {{ loading ? 'Executing...' : 'Get Trust-Apps' }}
+                  </button>
+                </div>
+                <div v-if="trustAppsByAppResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(trustAppsByAppResult, null, 2)" />
+                    <pre>{{ JSON.stringify(trustAppsByAppResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getTrustAppsByApp'" class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+
+              <!-- TrustIssuers by Trust -->
+              <div class="helper-function">
+                <h4>Get Trust-Issuers by Trust UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getTrustIssuersByTrustCode" />
+                  <pre><code>{{ getTrustIssuersByTrustCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="trustIssuerTrustUuid" type="text" placeholder="Enter Trust UUID" />
+                  <button :disabled="loading || !trustIssuerTrustUuid.trim()" @click="executeGetTrustIssuersByTrust">
+                    {{ loading ? 'Executing...' : 'Get Trust-Issuers' }}
+                  </button>
+                </div>
+                <div v-if="trustIssuersByTrustResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(trustIssuersByTrustResult, null, 2)" />
+                    <pre>{{ JSON.stringify(trustIssuersByTrustResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getTrustIssuersByTrust'" class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+
+              <!-- TrustIssuers by Issuer -->
+              <div class="helper-function">
+                <h4>Get Trust-Issuers by Issuer UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getTrustIssuersByIssuerCode" />
+                  <pre><code>{{ getTrustIssuersByIssuerCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="trustIssuerIssuerUuid" type="text" placeholder="Enter Issuer UUID" />
+                  <button :disabled="loading || !trustIssuerIssuerUuid.trim()" @click="executeGetTrustIssuersByIssuer">
+                    {{ loading ? 'Executing...' : 'Get Trust-Issuers' }}
+                  </button>
+                </div>
+                <div v-if="trustIssuersByIssuerResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(trustIssuersByIssuerResult, null, 2)" />
+                    <pre>{{ JSON.stringify(trustIssuersByIssuerResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getTrustIssuersByIssuer'" class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+
+              <!-- CredentialTrustIssuers by Credential -->
+              <div class="helper-function">
+                <h4>Get Credential-Trust-Issuers by Credential UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getCtiByCredentialCode" />
+                  <pre><code>{{ getCtiByCredentialCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="ctiCredentialUuid" type="text" placeholder="Enter Credential UUID" />
+                  <button :disabled="loading || !ctiCredentialUuid.trim()" @click="executeGetCtiByCredential">
+                    {{ loading ? 'Executing...' : 'Get CTIs' }}
+                  </button>
+                </div>
+                <div v-if="ctiByCredentialResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(ctiByCredentialResult, null, 2)" />
+                    <pre>{{ JSON.stringify(ctiByCredentialResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getCredentialTrustIssuersByCredential'" class="error">
+                  <h5>❌ Error:</h5>
+                  <pre>{{ error }}</pre>
+                </div>
+              </div>
+
+              <!-- CredentialTrustIssuers by TrustIssuer -->
+              <div class="helper-function">
+                <h4>Get Credential-Trust-Issuers by Trust-Issuer UUID</h4>
+                <div class="code-block-wrapper">
+                  <CopyButton :content="getCtiByTrustIssuerCode" />
+                  <pre><code>{{ getCtiByTrustIssuerCode }}</code></pre>
+                </div>
+                <div class="input-group">
+                  <input v-model="ctiTrustIssuerUuid" type="text" placeholder="Enter Trust-Issuer UUID" />
+                  <button :disabled="loading || !ctiTrustIssuerUuid.trim()" @click="executeGetCtiByTrustIssuer">
+                    {{ loading ? 'Executing...' : 'Get CTIs' }}
+                  </button>
+                </div>
+                <div v-if="ctiByTrustIssuerResult" class="info">
+                  <h5>✓ Result:</h5>
+                  <div class="code-block-wrapper">
+                    <CopyButton :content="JSON.stringify(ctiByTrustIssuerResult, null, 2)" />
+                    <pre>{{ JSON.stringify(ctiByTrustIssuerResult, null, 2) }}</pre>
+                  </div>
+                </div>
+                <div v-else-if="error && !loading && errorSource === 'getCredentialTrustIssuersByTrustIssuer'" class="error">
                   <h5>❌ Error:</h5>
                   <pre>{{ error }}</pre>
                 </div>
@@ -593,8 +709,6 @@ const {
   expandedCategories,
 
   // Helper states - Single
-  handlerUuid,
-  handlerResult,
   trustUuid,
   trustResult,
   issuerUuid,
@@ -605,8 +719,8 @@ const {
   attributeResult,
 
   // Helper states - Multiple
-  handlerUuids,
-  handlersResult,
+  trustUuids,
+  trustsResult,
   issuerUuids,
   issuersResult,
   credentialUuids,
@@ -616,6 +730,20 @@ const {
   attributeDeepUuids,
   attributesDeepResult,
 
+  // Join table states
+  trustAppTrustUuid,
+  trustAppsByTrustResult,
+  trustAppAppUuid,
+  trustAppsByAppResult,
+  trustIssuerTrustUuid,
+  trustIssuersByTrustResult,
+  trustIssuerIssuerUuid,
+  trustIssuersByIssuerResult,
+  ctiCredentialUuid,
+  ctiByCredentialResult,
+  ctiTrustIssuerUuid,
+  ctiByTrustIssuerResult,
+
   // Configuration (for code generation)
   clientConfig,
 
@@ -623,16 +751,21 @@ const {
   initializeClient,
   executeExampleQuery,
   executeCustomQuery,
-  executeGetHandler,
   executeGetTrust,
   executeGetIssuer,
   executeGetCredential,
   executeGetAttribute,
-  executeGetHandlers,
+  executeGetTrusts,
   executeGetIssuers,
   executeGetCredentials,
   executeGetAttributes,
   executeGetAttributesWithHierarchy,
+  executeGetTrustAppsByTrust,
+  executeGetTrustAppsByApp,
+  executeGetTrustIssuersByTrust,
+  executeGetTrustIssuersByIssuer,
+  executeGetCtiByCredential,
+  executeGetCtiByTrustIssuer,
   startOver,
 } = useGraphQL();
 
@@ -642,7 +775,7 @@ const toggleSection = (section: 'helperFunctions' | 'customQuery') => {
 };
 
 const toggleCategory = (
-  category: 'handler' | 'trust' | 'issuer' | 'credential' | 'attribute',
+  category: 'trust' | 'issuer' | 'credential' | 'attribute' | 'joinTables',
 ) => {
   expandedCategories[category] = !expandedCategories[category];
 };
@@ -681,25 +814,18 @@ const { data } = await graphqlClient.query({
 });`;
 
 // Helper function code examples
-const getHandlerCode = `import { getHandler } from '@ver-id/graphql-client';
-
-const handler = await getHandler(
-  graphqlClient,
-  'handler-uuid-here'
-);`;
-
-const getHandlersCode = `import { getHandlers } from '@ver-id/graphql-client';
-
-const handlers = await getHandlers(
-  graphqlClient,
-  ['uuid-1', 'uuid-2', 'uuid-3']
-);`;
-
 const getTrustCode = `import { getTrust } from '@ver-id/graphql-client';
 
 const trust = await getTrust(
   graphqlClient,
   'trust-uuid-here'
+);`;
+
+const getTrustsCode = `import { getTrusts } from '@ver-id/graphql-client';
+
+const trusts = await getTrusts(
+  graphqlClient,
+  ['uuid-1', 'uuid-2', 'uuid-3']
 );`;
 
 const getIssuerCode = `import { getIssuer } from '@ver-id/graphql-client';
@@ -746,10 +872,52 @@ const attributes = await getAttributes(
 
 const getAttributesWithHierarchyCode = `import { getAttributesWithHierarchy } from '@ver-id/graphql-client';
 
-// Gets attributes with full parent hierarchy
-// (credential, issuer, trust, handler)
+// Gets attributes with parent credential
 const attributesDeep = await getAttributesWithHierarchy(
   graphqlClient,
   ['uuid-1', 'uuid-2', 'uuid-3']
-);`
+);`;
+
+// Join table code examples
+const getTrustAppsByTrustCode = `import { getTrustAppsByTrust } from '@ver-id/graphql-client';
+
+const trustApps = await getTrustAppsByTrust(
+  graphqlClient,
+  'trust-uuid-here'
+);`;
+
+const getTrustAppsByAppCode = `import { getTrustAppsByApp } from '@ver-id/graphql-client';
+
+const trustApps = await getTrustAppsByApp(
+  graphqlClient,
+  'app-uuid-here'
+);`;
+
+const getTrustIssuersByTrustCode = `import { getTrustIssuersByTrust } from '@ver-id/graphql-client';
+
+const trustIssuers = await getTrustIssuersByTrust(
+  graphqlClient,
+  'trust-uuid-here'
+);`;
+
+const getTrustIssuersByIssuerCode = `import { getTrustIssuersByIssuer } from '@ver-id/graphql-client';
+
+const trustIssuers = await getTrustIssuersByIssuer(
+  graphqlClient,
+  'issuer-uuid-here'
+);`;
+
+const getCtiByCredentialCode = `import { getCredentialTrustIssuersByCredential } from '@ver-id/graphql-client';
+
+const cti = await getCredentialTrustIssuersByCredential(
+  graphqlClient,
+  'credential-uuid-here'
+);`;
+
+const getCtiByTrustIssuerCode = `import { getCredentialTrustIssuersByTrustIssuer } from '@ver-id/graphql-client';
+
+const cti = await getCredentialTrustIssuersByTrustIssuer(
+  graphqlClient,
+  'trust-issuer-uuid-here'
+);`;
 </script>

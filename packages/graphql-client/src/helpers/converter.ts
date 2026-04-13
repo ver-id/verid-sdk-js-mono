@@ -3,17 +3,21 @@ import {
   AttributeEntityDeep,
   LocaleEntity,
   CredentialEntity,
-  HandlerEntity,
   TrustEntity,
   IssuerEntity,
+  TrustAppEntity,
+  TrustIssuerEntity,
+  CredentialTrustIssuerEntity,
 } from '@verid-sdk-js-mono/core';
 import {
   FindManyAttributesDeepQuery,
   FindManyAttributesQuery,
   FindManyCredentialsQuery,
   FindManyIssuersQuery,
-  FindManyHandlersQuery,
   FindManyTrustsQuery,
+  FindManyTrustAppsQuery,
+  FindManyTrustIssuersQuery,
+  FindManyCredentialTrustIssuersQuery,
 } from '../operations/query/index.js';
 
 /**
@@ -126,16 +130,48 @@ export function convertConnectionToTrustArray(data: FindManyTrustsQuery): TrustE
 }
 
 /**
- * Converts a GraphQL connection object to an array of handlers.
+ * Converts a GraphQL connection object to an array of trust-app entities.
  */
-export function convertConnectionToHandlerArray(data: FindManyHandlersQuery): HandlerEntity[] {
-  const handlers = convertConnectionToArray(data.findManyHandlers);
+export function convertConnectionToTrustAppArray(data: FindManyTrustAppsQuery): TrustAppEntity[] {
+  const trustApps = convertConnectionToArray(data.findManyTrustApps);
 
-  return handlers.map((handler) => {
+  return trustApps.map((trustApp) => {
     return {
-      uuid: handler.uuid,
-      name: handler.name,
-      locales: convertConnectionToArray<LocaleEntity>(handler.locales),
+      uuid: trustApp.uuid,
+      trustUuid: trustApp.trust.uuid,
+      appUuid: trustApp.app.uuid,
+    };
+  });
+}
+
+/**
+ * Converts a GraphQL connection object to an array of trust-issuer entities.
+ */
+export function convertConnectionToTrustIssuerArray(data: FindManyTrustIssuersQuery): TrustIssuerEntity[] {
+  const trustIssuers = convertConnectionToArray(data.findManyTrustIssuers);
+
+  return trustIssuers.map((trustIssuer) => {
+    return {
+      uuid: trustIssuer.uuid,
+      trustUuid: trustIssuer.trust.uuid,
+      issuerUuid: trustIssuer.issuer.uuid,
+    };
+  });
+}
+
+/**
+ * Converts a GraphQL connection object to an array of credential-trust-issuer entities.
+ */
+export function convertConnectionToCredentialTrustIssuerArray(
+  data: FindManyCredentialTrustIssuersQuery,
+): CredentialTrustIssuerEntity[] {
+  const items = convertConnectionToArray(data.findManyCredentialTrustIssuers);
+
+  return items.map((item) => {
+    return {
+      uuid: item.uuid,
+      credentialUuid: item.credential.uuid,
+      trustIssuerUuid: item.trustIssuer.uuid,
     };
   });
 }
