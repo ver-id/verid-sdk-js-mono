@@ -1,0 +1,12 @@
+import type * as Types from '../../contrib/graphql/schema-types.js';
+
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type FindManyTrustsQueryVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.FindManyTrustsInput>;
+}>;
+
+
+export type FindManyTrustsQuery = { __typename?: 'Query', findManyTrusts: { __typename?: 'TrustConnection', edges: Array<{ __typename?: 'TrustEdge', node: { __typename?: 'Trust', uuid: string, name: string, locales: { __typename?: 'TrustLocaleConnection', edges: Array<{ __typename?: 'TrustLocaleEdge', node: { __typename?: 'TrustLocale', locale: string, name: string, description?: string | null } } | null> } } } | null> } };
+
+
+export const FindManyTrustsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindManyTrusts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"FindManyTrustsInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findManyTrusts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"locales"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<FindManyTrustsQuery, FindManyTrustsQueryVariables>;

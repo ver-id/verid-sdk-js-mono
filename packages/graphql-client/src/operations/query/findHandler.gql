@@ -1,5 +1,5 @@
-query FindIssuer($uuid: UUID!) {
-  findIssuer(uuid: $uuid) {
+query FindHandler($uuid: UUID!) {
+  findHandler(uuid: $uuid) {
     uuid
     name
     locales {

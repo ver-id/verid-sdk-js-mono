@@ -7,6 +7,8 @@
 export interface LocaleEntity {
   /** Language code (e.g., 'en', 'nl', 'de') */
   locale: string;
-  /** Key-value pairs of localized strings (e.g., name, description) */
-  i18n: Record<string, string>;
+  /** Localized name */
+  name: string;
+  /** Localized description */
+  description?: string | null;
 }

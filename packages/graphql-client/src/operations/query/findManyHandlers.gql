@@ -1,14 +1,15 @@
-query FindManyProviders($input: FindManyProvidersInput) {
-  findManyProviders(input: $input) {
+query FindManyHandlers($input: FindManyHandlersInput) {
+  findManyHandlers(input: $input) {
     edges {
       node {
         uuid
         name
-        locale {
+        locales {
           edges {
             node {
               locale
-              i18n
+              name
+              description
             }
           }
         }

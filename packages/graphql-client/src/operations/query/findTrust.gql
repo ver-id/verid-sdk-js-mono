@@ -1,5 +1,5 @@
-query FindIssuer($uuid: UUID!) {
-  findIssuer(uuid: $uuid) {
+query FindTrust($uuid: UUID!) {
+  findTrust(uuid: $uuid) {
     uuid
     name
     locales {

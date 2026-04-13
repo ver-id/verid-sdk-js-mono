@@ -46,11 +46,8 @@ export type {
   AttributeEntityDeep,
   AttributeEntityEnriched,
   CredentialEntity,
-  CredentialEntityDeep,
   IssuerEntity,
-  IssuerEntityDeep,
-  SchemeEntity,
-  SchemeEntityDeep,
-  ProviderEntity,
+  TrustEntity,
+  HandlerEntity,
   LocaleEntity
 } from '@verid-sdk-js-mono/core/types';

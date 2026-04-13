@@ -3,8 +3,8 @@ import {
   AttributeEntityDeep,
   LocaleEntity,
   CredentialEntity,
-  ProviderEntity,
-  SchemeEntity,
+  HandlerEntity,
+  TrustEntity,
   IssuerEntity,
 } from '@verid-sdk-js-mono/core';
 import {
@@ -12,8 +12,8 @@ import {
   FindManyAttributesQuery,
   FindManyCredentialsQuery,
   FindManyIssuersQuery,
-  FindManyProvidersQuery,
-  FindManySchemesQuery,
+  FindManyHandlersQuery,
+  FindManyTrustsQuery,
 } from '../operations/query/index.js';
 
 /**
@@ -26,7 +26,19 @@ export function convertConnectionToArray<T>(data: { edges: Array<{ node: T } | n
 }
 
 /**
+ * Converts AttributeLocale nodes (which use `label` instead of `name`) to LocaleEntity[].
+ */
+function convertAttributeLocales(
+  data: { edges: Array<{ node: { locale: string; label: string; description?: string | null } } | null> },
+): LocaleEntity[] {
+  return data.edges
+    .filter((edge): edge is { node: { locale: string; label: string; description?: string | null } } => edge !== null)
+    .map((edge) => ({ locale: edge.node.locale, name: edge.node.label, description: edge.node.description }));
+}
+
+/**
  * Converts a GraphQL connection object to an array of deep attributes.
+ * Includes parent credential.
  */
 export function convertConnectionToAttributeDeepArray(
   data: FindManyAttributesDeepQuery,
@@ -37,34 +49,12 @@ export function convertConnectionToAttributeDeepArray(
     return {
       uuid: attribute.uuid,
       name: attribute.name,
-      locales: convertConnectionToArray<LocaleEntity>(attribute.locale),
+      locales: convertAttributeLocales(attribute.locales),
       credentialUuid: attribute.credential.uuid,
       credential: {
         uuid: attribute.credential.uuid,
         name: attribute.credential.name,
-        locales: convertConnectionToArray<LocaleEntity>(attribute.credential.locale),
-        issuerUuid: attribute.credential.issuer.uuid,
-        issuer: {
-          uuid: attribute.credential.issuer.uuid,
-          name: attribute.credential.issuer.name,
-          locales: convertConnectionToArray<LocaleEntity>(attribute.credential.issuer.locale),
-          schemeUuid: attribute.credential.issuer.scheme.uuid,
-          scheme: {
-            uuid: attribute.credential.issuer.scheme.uuid,
-            name: attribute.credential.issuer.scheme.name,
-            locales: convertConnectionToArray<LocaleEntity>(
-              attribute.credential.issuer.scheme.locale,
-            ),
-            providerUuid: attribute.credential.issuer.scheme.provider.uuid,
-            provider: {
-              uuid: attribute.credential.issuer.scheme.provider.uuid,
-              name: attribute.credential.issuer.scheme.provider.name,
-              locales: convertConnectionToArray<LocaleEntity>(
-                attribute.credential.issuer.scheme.provider.locale,
-              ),
-            },
-          },
-        },
+        locales: convertConnectionToArray<LocaleEntity>(attribute.credential.locales),
       },
     };
   });
@@ -82,7 +72,7 @@ export function convertConnectionToAttributeArray(
     return {
       uuid: attribute.uuid,
       name: attribute.name,
-      locales: convertConnectionToArray<LocaleEntity>(attribute.locale),
+      locales: convertAttributeLocales(attribute.locales),
       credentialUuid: attribute.credential.uuid,
     };
   });
@@ -100,8 +90,7 @@ export function convertConnectionToCredentialArray(
     return {
       uuid: credential.uuid,
       name: credential.name,
-      locales: convertConnectionToArray<LocaleEntity>(credential.locale),
-      issuerUuid: credential.issuer.uuid,
+      locales: convertConnectionToArray<LocaleEntity>(credential.locales),
     };
   });
 }
@@ -116,39 +105,37 @@ export function convertConnectionToIssuerArray(data: FindManyIssuersQuery): Issu
     return {
       uuid: issuer.uuid,
       name: issuer.name,
-      locales: convertConnectionToArray<LocaleEntity>(issuer.locale),
-      schemeUuid: issuer.scheme.uuid,
+      locales: convertConnectionToArray<LocaleEntity>(issuer.locales),
     };
   });
 }
 
 /**
- * Converts a GraphQL connection object to an array of schemes.
+ * Converts a GraphQL connection object to an array of trusts.
  */
-export function convertConnectionToSchemeArray(data: FindManySchemesQuery): SchemeEntity[] {
-  const schemes = convertConnectionToArray(data.findManySchemes);
+export function convertConnectionToTrustArray(data: FindManyTrustsQuery): TrustEntity[] {
+  const trusts = convertConnectionToArray(data.findManyTrusts);
 
-  return schemes.map((scheme) => {
+  return trusts.map((trust) => {
     return {
-      uuid: scheme.uuid,
-      name: scheme.name,
-      locales: convertConnectionToArray<LocaleEntity>(scheme.locale),
-      providerUuid: scheme.provider.uuid,
+      uuid: trust.uuid,
+      name: trust.name,
+      locales: convertConnectionToArray<LocaleEntity>(trust.locales),
     };
   });
 }
 
 /**
- * Converts a GraphQL connection object to an array of providers.
+ * Converts a GraphQL connection object to an array of handlers.
  */
-export function convertConnectionToProviderArray(data: FindManyProvidersQuery): ProviderEntity[] {
-  const providers = convertConnectionToArray(data.findManyProviders);
+export function convertConnectionToHandlerArray(data: FindManyHandlersQuery): HandlerEntity[] {
+  const handlers = convertConnectionToArray(data.findManyHandlers);
 
-  return providers.map((provider) => {
+  return handlers.map((handler) => {
     return {
-      uuid: provider.uuid,
-      name: provider.name,
-      locales: convertConnectionToArray<LocaleEntity>(provider.locale),
+      uuid: handler.uuid,
+      name: handler.name,
+      locales: convertConnectionToArray<LocaleEntity>(handler.locales),
     };
   });
 }

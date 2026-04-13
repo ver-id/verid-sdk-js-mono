@@ -14,10 +14,10 @@ export interface AttestedOutputData {
   credentialUuid: UUID;
   /** UUID of the issuer that issued the credential */
   issuerUuid: UUID;
-  /** UUID of the scheme governing the credential */
-  schemeUuid: UUID;
-  /** UUID of the provider managing the scheme */
-  providerUuid: UUID;
+  /** UUID of the trust governing the credential */
+  trustUuid: UUID;
+  /** UUID of the handler managing the trust */
+  handlerUuid: UUID;
   /** The actual disclosed value of the attribute */
   value: JSONValue;
 }

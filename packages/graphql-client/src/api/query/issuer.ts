@@ -26,7 +26,7 @@ import {
  * @param uuid Issuer UUID.
  * @returns Issuer object.
  * @throws {InvalidArgumentError} When uuid is not a valid UUID.
- * @throws {OperationFailedError} When the GraphQL operation fails or provider is not found.
+ * @throws {OperationFailedError} When the GraphQL operation fails or issuer is not found.
  */
 export const getIssuer = async (client: ApolloClient, uuid: UUID): Promise<IssuerEntity> => {
   assertUUID(uuid, 'uuid', InvalidArgumentError);
@@ -45,8 +45,7 @@ export const getIssuer = async (client: ApolloClient, uuid: UUID): Promise<Issue
   return {
     uuid: response.data.findIssuer.uuid,
     name: response.data.findIssuer.name,
-    locales: convertConnectionToArray<LocaleEntity>(response.data.findIssuer.locale),
-    schemeUuid: response.data.findIssuer.scheme.uuid,
+    locales: convertConnectionToArray<LocaleEntity>(response.data.findIssuer.locales),
   };
 };
 

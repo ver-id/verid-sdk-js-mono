@@ -1,10 +1,9 @@
 import { ref, reactive } from 'vue';
 import {
   createVeridGraphQLClient,
-  getProvider,
-  getProviders,
-  getScheme,
-  getSchemes,
+  getHandler,
+  getHandlers,
+  getTrust,
   getIssuer,
   getIssuers,
   getCredential,
@@ -39,8 +38,8 @@ export function useGraphQL() {
   });
 
   const expandedCategories = reactive({
-    provider: false,
-    scheme: false,
+    handler: false,
+    trust: false,
     issuer: false,
     credential: false,
     attribute: false,
@@ -57,10 +56,10 @@ export function useGraphQL() {
   const customQueryResult = ref<any>(null);
 
   // Helper function states - Single
-  const providerUuid = ref('');
-  const providerResult = ref<any>(null);
-  const schemeUuid = ref('');
-  const schemeResult = ref<any>(null);
+  const handlerUuid = ref('');
+  const handlerResult = ref<any>(null);
+  const trustUuid = ref('');
+  const trustResult = ref<any>(null);
   const issuerUuid = ref('');
   const issuerResult = ref<any>(null);
   const credentialUuid = ref('');
@@ -69,10 +68,8 @@ export function useGraphQL() {
   const attributeResult = ref<any>(null);
 
   // Helper function states - Multiple
-  const providerUuids = ref('');
-  const providersResult = ref<any>(null);
-  const schemeUuids = ref('');
-  const schemesResult = ref<any>(null);
+  const handlerUuids = ref('');
+  const handlersResult = ref<any>(null);
   const issuerUuids = ref('');
   const issuersResult = ref<any>(null);
   const credentialUuids = ref('');
@@ -87,8 +84,8 @@ export function useGraphQL() {
 
   // Example query (uses catalog, works with client credentials)
   const EXAMPLE_QUERY = gql`
-    query FindManySchemes {
-      findManySchemes {
+    query FindManyTrusts {
+      findManyTrusts {
         edges {
           node {
             uuid
@@ -161,38 +158,38 @@ export function useGraphQL() {
   };
 
   // Helper function execution handlers - Single
-  const executeGetProvider = async () => {
-    if (!graphqlClient || !providerUuid.value.trim()) return;
+  const executeGetHandler = async () => {
+    if (!graphqlClient || !handlerUuid.value.trim()) return;
 
     loading.value = true;
     error.value = null;
     errorSource.value = null;
-    providerResult.value = null;
+    handlerResult.value = null;
     try {
-      const result = await getProvider(graphqlClient, providerUuid.value);
-      providerResult.value = result;
+      const result = await getHandler(graphqlClient, handlerUuid.value);
+      handlerResult.value = result;
     } catch (err) {
       handleError(err);
-      errorSource.value = 'getProvider';
+      errorSource.value = 'getHandler';
     } finally {
       loading.value = false;
     }
   };
 
-  const executeGetScheme = async () => {
-    if (!graphqlClient || !schemeUuid.value.trim()) return;
+  const executeGetTrust = async () => {
+    if (!graphqlClient || !trustUuid.value.trim()) return;
 
     loading.value = true;
     error.value = null;
     errorSource.value = null;
-    schemeResult.value = null;
+    trustResult.value = null;
 
     try {
-      const result = await getScheme(graphqlClient, schemeUuid.value);
-      schemeResult.value = result;
+      const result = await getTrust(graphqlClient, trustUuid.value);
+      trustResult.value = result;
     } catch (err) {
       handleError(err);
-      errorSource.value = 'getScheme';
+      errorSource.value = 'getTrust';
     } finally {
       loading.value = false;
     }
@@ -256,47 +253,24 @@ export function useGraphQL() {
   };
 
   // Helper function execution handlers - Multiple
-  const executeGetProviders = async () => {
-    if (!graphqlClient || !providerUuids.value.trim()) return;
+  const executeGetHandlers = async () => {
+    if (!graphqlClient || !handlerUuids.value.trim()) return;
 
     loading.value = true;
     error.value = null;
     errorSource.value = null;
-    providersResult.value = null;
+    handlersResult.value = null;
 
     try {
-      const uuids = providerUuids.value
+      const uuids = handlerUuids.value
         .split(',')
         .map((id) => id.trim())
         .filter(Boolean);
-      const result = await getProviders(graphqlClient, uuids);
-      providersResult.value = result;
+      const result = await getHandlers(graphqlClient, uuids);
+      handlersResult.value = result;
     } catch (err) {
       handleError(err);
-      errorSource.value = 'getProviders';
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const executeGetSchemes = async () => {
-    if (!graphqlClient || !schemeUuids.value.trim()) return;
-
-    loading.value = true;
-    error.value = null;
-    errorSource.value = null;
-    schemesResult.value = null;
-
-    try {
-      const uuids = schemeUuids.value
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean);
-      const result = await getSchemes(graphqlClient, uuids);
-      schemesResult.value = result;
-    } catch (err) {
-      handleError(err);
-      errorSource.value = 'getSchemes';
+      errorSource.value = 'getHandlers';
     } finally {
       loading.value = false;
     }
@@ -400,7 +374,7 @@ export function useGraphQL() {
   customQuery.value = `query ExampleQuery {
   # Replace this with your own GraphQL query
   # For example:
-  findManySchemes {
+  findManyTrusts {
     edges {
       node {
         uuid
@@ -427,30 +401,28 @@ export function useGraphQL() {
     customQueryResult.value = null;
 
     // Clear single results
-    providerResult.value = null;
-    schemeResult.value = null;
+    handlerResult.value = null;
+    trustResult.value = null;
     issuerResult.value = null;
     credentialResult.value = null;
     attributeResult.value = null;
 
     // Clear multiple results
-    providersResult.value = null;
-    schemesResult.value = null;
+    handlersResult.value = null;
     issuersResult.value = null;
     credentialsResult.value = null;
     attributesResult.value = null;
     attributesDeepResult.value = null;
 
     // Clear inputs - single
-    providerUuid.value = '';
-    schemeUuid.value = '';
+    handlerUuid.value = '';
+    trustUuid.value = '';
     issuerUuid.value = '';
     credentialUuid.value = '';
     attributeUuid.value = '';
 
     // Clear inputs - multiple
-    providerUuids.value = '';
-    schemeUuids.value = '';
+    handlerUuids.value = '';
     issuerUuids.value = '';
     credentialUuids.value = '';
     attributeUuids.value = '';
@@ -462,7 +434,7 @@ export function useGraphQL() {
     customQuery.value = `query ExampleQuery {
   # Replace this with your own GraphQL query
   # For example:
-  findManySchemes {
+  findManyTrusts {
     edges {
       node {
         uuid
@@ -488,10 +460,10 @@ export function useGraphQL() {
     showConfigForm,
 
     // Helper states - Single
-    providerUuid,
-    providerResult,
-    schemeUuid,
-    schemeResult,
+    handlerUuid,
+    handlerResult,
+    trustUuid,
+    trustResult,
     issuerUuid,
     issuerResult,
     credentialUuid,
@@ -500,10 +472,8 @@ export function useGraphQL() {
     attributeResult,
 
     // Helper states - Multiple
-    providerUuids,
-    providersResult,
-    schemeUuids,
-    schemesResult,
+    handlerUuids,
+    handlersResult,
     issuerUuids,
     issuersResult,
     credentialUuids,
@@ -520,13 +490,12 @@ export function useGraphQL() {
     initializeClient,
     executeExampleQuery,
     executeCustomQuery,
-    executeGetProvider,
-    executeGetScheme,
+    executeGetHandler,
+    executeGetTrust,
     executeGetIssuer,
     executeGetCredential,
     executeGetAttribute,
-    executeGetProviders,
-    executeGetSchemes,
+    executeGetHandlers,
     executeGetIssuers,
     executeGetCredentials,
     executeGetAttributes,

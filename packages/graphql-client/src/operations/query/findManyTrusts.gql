@@ -1,5 +1,5 @@
-query FindManyAttributes($input: FindManyAttributesInput) {
-  findManyAttributes(input: $input) {
+query FindManyTrusts($input: FindManyTrustsInput) {
+  findManyTrusts(input: $input) {
     edges {
       node {
         uuid
@@ -8,13 +8,10 @@ query FindManyAttributes($input: FindManyAttributesInput) {
           edges {
             node {
               locale
-              label
+              name
               description
             }
           }
-        }
-        credential {
-          uuid
         }
       }
     }

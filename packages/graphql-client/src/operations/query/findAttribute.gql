@@ -2,11 +2,12 @@ query FindAttribute($uuid: UUID!) {
   findAttribute(uuid: $uuid) {
     uuid
     name
-    locale {
+    locales {
       edges {
         node {
           locale
-          i18n
+          label
+          description
         }
       }
     }
