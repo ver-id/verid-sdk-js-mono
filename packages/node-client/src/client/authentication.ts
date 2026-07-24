@@ -6,6 +6,7 @@ import {
   AuthenticationIntentPayload,
   ClientAuth,
   ICacheManager,
+  FlowRedirectBinding,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
@@ -21,6 +22,8 @@ export type {
  * `options` is optional — defaults to using FileStorageCacheManager for caching.
  */
 export type NodeAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -42,13 +45,21 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
+  private readonly redirectUri: string;
+
   constructor(config: NodeAuthenticationClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      client_id: config.client_id,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override redirectBinding(): FlowRedirectBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**

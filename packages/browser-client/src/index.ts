@@ -53,6 +53,7 @@ export type {
   OAuthAuthorizationCodeGrantParams,
   OAuthClientCredentialsGrantParams,
   IOAuthProvider,
+  FlowRedirectBinding,
 } from '@verid-sdk-js-mono/core/oauth';
 
 /**

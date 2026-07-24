@@ -6,6 +6,7 @@ import {
   DisclosureIntentPayload,
   ClientAuth,
   ICacheManager,
+  FlowRedirectBinding,
 } from '@verid-sdk-js-mono/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
@@ -21,6 +22,8 @@ export type {
  * `options` is optional — defaults to using FileStorageCacheManager for caching.
  */
 export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -42,13 +45,21 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
+  private readonly redirectUri: string;
+
   constructor(config: NodeDisclosureClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      client_id: config.client_id,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override redirectBinding(): FlowRedirectBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**

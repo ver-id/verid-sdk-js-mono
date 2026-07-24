@@ -4,6 +4,7 @@ import {
   DisclosureFinalizeParams as CoreDisclosureFinalizeParams,
   DisclosureResponse,
   ICacheManager,
+  FlowRedirectBinding,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -19,6 +20,8 @@ export type {
  * `options` is optional — defaults to using SessionStorageCacheManager for caching.
  */
 export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -37,13 +40,21 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
+  private readonly redirectUri: string;
+
   constructor(config: BrowserDisclosureClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      client_id: config.client_id,
       options: {
         cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override redirectBinding(): FlowRedirectBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**

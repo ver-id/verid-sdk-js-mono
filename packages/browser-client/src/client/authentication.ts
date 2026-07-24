@@ -4,6 +4,7 @@ import {
   AuthenticationClientConfig,
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
   ICacheManager,
+  FlowRedirectBinding,
 } from '@verid-sdk-js-mono/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -19,6 +20,8 @@ export type {
  * `options` is optional — defaults to using SessionStorageCacheManager for caching.
  */
 export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -37,13 +40,21 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
+  private readonly redirectUri: string;
+
   constructor(config: BrowserAuthenticationClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      client_id: config.client_id,
       options: {
         cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override redirectBinding(): FlowRedirectBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**
