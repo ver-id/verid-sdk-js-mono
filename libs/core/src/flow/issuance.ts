@@ -65,7 +65,6 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
       {
         issuerUri: config.issuerUri,
         client_id: config.client_id,
-        redirectUri: config.redirectUri,
         options: config.options,
       },
     );
@@ -157,7 +156,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
 
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
       {
-        redirect_uri: this.redirectUri,
+        binding: this.redirectBinding(),
         scope: ISSUANCE_SCOPE,
         state,
         code_challenge: codeChallenge,

@@ -1,4 +1,5 @@
 import { AuthorizationServer, ClientConfig, GrantResponse, ClientAuth } from '../types/index.js';
+import { FlowRedirectBinding } from '../oauth/redirect-binding.js';
 
 /**
  * Interface for OAuth provider implementations.
@@ -67,7 +68,7 @@ export interface IOAuthProvider {
    * @param clientConfig - The client configuration
    * @param clientAuth - The client authentication credentials, if applicable
    * @param params - The callback parameters including the authorization code
-   * @param redirectUri - The redirect URI used in the authorization request
+   * @param binding - How the authorization code is bound (redirect carries a redirect_uri; embedded omits it)
    * @param codeVerifier - Optional PKCE code verifier
    * @returns Promise resolving to the token endpoint response
    */
@@ -76,8 +77,8 @@ export interface IOAuthProvider {
     clientConfig: ClientConfig,
     clientAuth: ClientAuth | null,
     params: URLSearchParams,
-    redirectUri: string,
-    codeVerifier?: string,
+    binding: FlowRedirectBinding,
+    codeVerifier: string,
   ): Promise<Response>;
 
   /**

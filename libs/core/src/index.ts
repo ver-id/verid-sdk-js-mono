@@ -11,6 +11,9 @@ export * from './flow/index.js';
 // OAuth client exports
 export * from './oauth/index.js';
 
+// Embedded protocol exports
+export * from './embedded/index.js';
+
 // Error exports
 export * from './error/index.js';
 

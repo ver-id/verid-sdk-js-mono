@@ -1,4 +1,5 @@
 import { ICacheManager } from '../interface/ICacheManager.js';
+import { FlowRedirectBinding } from '../oauth/redirect-binding.js';
 import {
   VeridOAuthClient,
   InvalidArgumentError,
@@ -23,10 +24,6 @@ export interface FlowBaseClientConfig {
    * The client_id (flow identifier)
    */
   client_id: string;
-  /**
-   * The registered redirect URI for the flow.
-   */
-  redirectUri: string;
   /**
    * Additional options for the flow client.
    */
@@ -100,18 +97,12 @@ export interface FlowBasePkceResult {
  * 
  * @public
  */
-export class VeridFlowBaseClient {
+export abstract class VeridFlowBaseClient {
   /**
    * Underlying OAuth client for handling authorization flows.
    * @protected
    */
   protected oauthClient: VeridOAuthClient;
-
-  /**
-   * The OAuth 2.1 redirect URI for authorization code flow.
-   * @protected
-   */
-  protected redirectUri: string;
 
   /**
    * Cache manager for storing code verifiers and state values.
@@ -126,7 +117,6 @@ export class VeridFlowBaseClient {
    */
   constructor(config: FlowBaseClientConfig) {
     assertUrlString(config.issuerUri, 'issuerUri');
-    assertUrlString(config.redirectUri, 'redirectUri');
     assertString(config.client_id, 'flowId', InvalidArgumentError);
 
     this.oauthClient = new VeridOAuthClient({
@@ -134,11 +124,17 @@ export class VeridFlowBaseClient {
       issuer: config.issuerUri,
     });
 
-    this.redirectUri = config.redirectUri;
-
     assertCacheManager(config.options.cacheManager, 'cacheManager', InvalidArgumentError);
     this.cacheManager = config.options.cacheManager;
   }
+
+  /**
+   * How this client binds the authorization code across the authorization and
+   * token requests. Redirect-flow leaf clients return a `redirect` binding
+   * carrying their registered `redirect_uri`; embedded-flow leaf clients return
+   * an `embedded` binding. Read by both `finalizeFlow` and each `generateXUrl`.
+   */
+  protected abstract redirectBinding(): FlowRedirectBinding;
 
   /**
    * Generates a PKCE code challenge and state for secure OAuth flows.
@@ -269,7 +265,7 @@ export class VeridFlowBaseClient {
     await this.cacheManager.remove(state);
 
     const response = await this.oauthClient.authorizationCodeGrant({
-      redirect_uri: this.redirectUri,
+      binding: this.redirectBinding(),
       parameters: callbackParams,
       state,
       code_verifier: codeVerifier,

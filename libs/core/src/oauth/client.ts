@@ -14,6 +14,7 @@ import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
 import { BaseIntent, IntentResponse } from '../types/intent/base.js';
 import { UUID } from '../types/generic.js';
+import { FlowRedirectBinding } from './redirect-binding.js';
 
 /**
  * Configuration options for the OAuth client.
@@ -34,9 +35,10 @@ export interface OAuthClientConfig {
  */
 export interface OAuthRequestParams {
   /**
-   * The redirect URI for the authorization request.
+   * How the authorization code is bound to the client (redirect vs embedded).
+   * Only the redirect variant contributes a `redirect_uri` query parameter.
    */
-  redirect_uri: string;
+  binding: FlowRedirectBinding;
   /**
    * The scope of the authorization request.
    */
@@ -67,9 +69,9 @@ export interface OAuthRequestParams {
  */
 export interface OAuthAuthorizationCodeGrantParams {
   /**
-   * The redirect URI for the authorization request.
+   * How the authorization code is bound to the client (redirect vs embedded).
    */
-  redirect_uri: string;
+  binding: FlowRedirectBinding;
   /**
    * The authorization response.
    */
@@ -261,9 +263,9 @@ export class VeridOAuthClient {
 
     const url = new URL(authorizationServer.authorization_endpoint);
 
-    if (params.redirect_uri) {
-      assertUrlString(params.redirect_uri, 'redirect_uri', InvalidArgumentError);
-      url.searchParams.set('redirect_uri', params.redirect_uri);
+    if (params.binding.kind === 'redirect') {
+      assertUrlString(params.binding.redirectUri, 'redirect_uri', InvalidArgumentError);
+      url.searchParams.set('redirect_uri', params.binding.redirectUri);
     }
 
     if (params.scope) {
@@ -315,7 +317,9 @@ export class VeridOAuthClient {
    * @throws {InvalidArgumentError} When callback parameters are invalid
    */
   async authorizationCodeGrant(params: OAuthAuthorizationCodeGrantParams): Promise<GrantResponse> {
-    assertUrlString(params.redirect_uri, 'redirect_uri', InvalidArgumentError);
+    if (params.binding.kind === 'redirect') {
+      assertUrlString(params.binding.redirectUri, 'redirect_uri', InvalidArgumentError);
+    }
     assertString(params.code_verifier, 'code_verifier', InvalidArgumentError);
     assert(
       params.parameters instanceof URL || params.parameters instanceof URLSearchParams,
@@ -352,7 +356,7 @@ export class VeridOAuthClient {
       clientConfig,
       params.client_auth ?? null,
       callbackParams,
-      params.redirect_uri,
+      params.binding,
       params.code_verifier,
     );
 

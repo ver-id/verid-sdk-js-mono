@@ -15,13 +15,14 @@ import {
 import { IOAuthProvider } from '../../interface/IOAuthProvider.js';
 import { AuthorizationServer, ClientAuth, ClientConfig } from '../../types/oauth/index.js';
 import { GrantResponse, RecognizedTokenTypes } from '../../types/response/index.js';
-import { assertObject, assertString } from '../../utils/assert.js';
+import { assertObject, assertString, assertUrlString } from '../../utils/assert.js';
 import { InvalidArgumentError } from '../../error/invalid-argument.js';
 import {
   OperationFailedError,
   AuthorizationResponseError as AuthResponseError,
   TokenGrantError,
 } from '../../error/index.js';
+import { FlowRedirectBinding } from '../redirect-binding.js';
 
 export class OAuth4WebApiProvider implements IOAuthProvider {
   /**
@@ -87,29 +88,90 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
     clientConfig: ClientConfig,
     clientAuth: ClientAuth | null,
     params: URLSearchParams,
-    redirectUri: string,
+    binding: FlowRedirectBinding,
     codeVerifier: string,
   ): Promise<Response> {
-    let clientAuthentication;
-    if (clientAuth) {
-      assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
-      assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-      clientAuthentication = this.ClientSecretBasic(clientAuth.client_secret);
-    } else {
-      clientAuthentication = None();
-    }
     try {
+      if (binding.kind === 'embedded') {
+        return await this.embeddedAuthorizationCodeGrantRequest(
+          authorizationServer,
+          clientConfig,
+          clientAuth,
+          params,
+          codeVerifier,
+        );
+      }
+
+      let clientAuthentication;
+      if (clientAuth) {
+        assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
+        assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
+        clientAuthentication = this.ClientSecretBasic(clientAuth.client_secret);
+      } else {
+        clientAuthentication = None();
+      }
+
       return await authorizationCodeGrantRequest(
         authorizationServer,
         clientConfig,
         clientAuthentication,
         params,
-        redirectUri,
+        binding.redirectUri,
         codeVerifier,
       );
     } catch (error) {
       throw new TokenGrantError('Authorization code grant request failed', error);
     }
+  }
+
+  /**
+   * Performs the embedded-flow authorization code token exchange.
+   *
+   * Embedded flows are registered without a `redirect_uri`, which oauth4webapi
+   * cannot omit, so this hand-builds the `authorization_code` token request
+   * (grant_type + code + client_id + code_verifier, plus optional
+   * ClientSecretBasic auth). The resulting response is validated by the shared
+   * `processAuthorizationCodeResponse`.
+   */
+  private async embeddedAuthorizationCodeGrantRequest(
+    authorizationServer: AuthorizationServer,
+    clientConfig: ClientConfig,
+    clientAuth: ClientAuth | null,
+    params: URLSearchParams,
+    codeVerifier: string,
+  ): Promise<Response> {
+    assertUrlString(
+      authorizationServer.token_endpoint,
+      'token_endpoint in authorization server metadata',
+    );
+
+    const code = params.get('code');
+    assertString(code, 'code in authorization response', InvalidArgumentError);
+
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      client_id: clientConfig.client_id,
+      code_verifier: codeVerifier,
+    });
+
+    const headers = new Headers({
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    });
+
+    if (clientAuth) {
+      assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
+      assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
+      const credentials = btoa(`${clientConfig.client_id}:${clientAuth.client_secret}`);
+      headers.set('Authorization', `Basic ${credentials}`);
+    }
+
+    return fetch(authorizationServer.token_endpoint, {
+      method: 'POST',
+      headers,
+      body,
+    });
   }
   async clientCredentialsGrantRequest(
     authorizationServer: AuthorizationServer,

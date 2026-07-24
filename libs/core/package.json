@@ -21,6 +21,11 @@
       "import": "./src/oauth/index.ts",
       "default": "./src/oauth/index.ts"
     },
+    "./embedded": {
+      "types": "./src/embedded/index.ts",
+      "import": "./src/embedded/index.ts",
+      "default": "./src/embedded/index.ts"
+    },
     "./types": {
       "types": "./src/types/index.ts",
       "import": "./src/types/index.ts",
