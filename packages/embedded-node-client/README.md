@@ -79,6 +79,14 @@ The same shape applies to `EmbeddedAuthenticationClient` and
 - **The token exchange sends no `redirect_uri`.** Embedded flows are registered
   without one; the authorization code is bound to the client purely through PKCE.
 
+## Per-flow guides
+
+For other comprehensive configurations and examples, see the per-flow documents:
+
+- [Authentication](./AUTHENTICATION.md) — server-side embedded authentication with `EmbeddedAuthenticationClient`.
+- [Verification](./VERIFICATION.md) — server-side embedded disclosure with `EmbeddedDisclosureClient`.
+- [Issuance](./ISSUANCE.md) — server-side embedded issuance with `EmbeddedIssuanceClient` (requires an intent).
+
 ## License
 
 MIT

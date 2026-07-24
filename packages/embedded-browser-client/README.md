@@ -70,6 +70,14 @@ session.addEventListener('cancel',   () => session.destroy());
   fixed to the Ronan origin, and inbound messages are accepted only from that origin
   and from the session's own iframe.
 
+## Per-flow guides
+
+For other comprehensive configurations and examples, see the per-flow documents. The browser API (`createEmbeddedSession`) is the same in all three — each guide frames it for that flow:
+
+- [Authentication](./AUTHENTICATION.md) — mounting an embedded authentication session.
+- [Verification](./VERIFICATION.md) — mounting an embedded disclosure session.
+- [Issuance](./ISSUANCE.md) — mounting an embedded issuance session (the bootstrap carries an `intentId`).
+
 ## License
 
 MIT
