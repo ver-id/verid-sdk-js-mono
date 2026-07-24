@@ -15,10 +15,7 @@ export type {
   IssuanceRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Browser Issuance client.
- * `options` is optional — defaults to using SessionStorageCacheManager for caching.
- */
+/** Configuration for the browser issuance client. */
 export type BrowserIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -35,8 +32,8 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
 }
 
 /**
- * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles user issuance and retrieves access tokens with verified credentials.
+ * Browser issuance client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
@@ -57,18 +54,10 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Finalizes the issuance flow and retrieves the issuance response.
-   * Exchanges the authorization code for tokens including the access token.
-   *
-   * @param params - Parameters for finalizing the issuance flow
-   * @returns The issuance response containing access_token and token metadata
-   */
+  /** Finalizes the issuance flow, defaulting to window.location if no params are provided. */
   async finalize(params?: IssuanceFinalizeParams): Promise<IssuanceResponse> {
-    // Assign callbackParams from params
     let callbackParams = params?.callbackParams;
 
-    // If not provided, use current window location
     if (!callbackParams) {
       callbackParams = window.location.href;
     }

@@ -1,8 +1,4 @@
-/**
- * The signed server-to-server webhook payload Ronan / webhook-worker delivers
- * to the relying-party backend (RFC 20260707a). Shared with the embedded node
- * client so the parser is typed against a single source.
- */
+/** Signed server-to-server webhook payload delivered to the relying-party backend. */
 export interface EmbeddedWebhookPayload {
   /** Event type, e.g. "verification.completed". */
   readonly type: string;
@@ -21,10 +17,7 @@ export type ParseEmbeddedWebhookResult =
   | { readonly ok: true; readonly payload: EmbeddedWebhookPayload }
   | { readonly ok: false; readonly reason: string };
 
-/**
- * Validates untrusted webhook JSON against the {@link EmbeddedWebhookPayload}
- * schema. Dependency-free narrowing (no bundled Zod).
- */
+/** Validates untrusted webhook JSON against {@link EmbeddedWebhookPayload}. */
 export function parseEmbeddedWebhookPayload(data: unknown): ParseEmbeddedWebhookResult {
   if (typeof data !== 'object' || data === null) {
     return { ok: false, reason: 'payload must be an object' };

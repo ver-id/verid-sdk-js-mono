@@ -17,10 +17,7 @@ export type {
   DisclosureRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Node.js Disclosure client.
- * `options` is optional — defaults to using FileStorageCacheManager for caching.
- */
+/** Configuration for the Node.js disclosure client. */
 export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -40,8 +37,8 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
 }
 
 /**
- * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles credential disclosure and retrieves access tokens with verified credentials.
+ * Node.js disclosure client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
@@ -62,15 +59,7 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Creates a new disclosure intent.
-   * Client authentication is mandatory for server-side disclosure intent creation.
-   * 
-   * @param disclosureIntent - The intent payload
-   * @param codeChallenge - The PKCE code challenge
-   * @param clientAuth - The client authentication credentials (required)
-   * @returns The ID of the created intent
-   */
+  /** Creates a disclosure intent; clientAuth is required server-side. */
   override async createDisclosureIntent(
     disclosureIntent: DisclosureIntentPayload,
     codeChallenge: string,
@@ -79,13 +68,7 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return super.createDisclosureIntent(disclosureIntent, codeChallenge, clientAuth);
   }
 
-  /**
-   * Finalizes the disclosure flow and retrieves the disclosure response.
-   * Exchanges the authorization code for tokens including the ID token.
-   *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token, id_token, and token metadata
-   */
+  /** Finalizes the disclosure flow using the provided callback params. */
   async finalize(params: DisclosureFinalizeParams): Promise<DisclosureResponse> {
     return this.finalizeDisclosure({ ...params, clientAuth: params.clientAuth });
   }

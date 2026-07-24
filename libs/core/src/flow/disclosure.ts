@@ -41,15 +41,10 @@ export interface DisclosureFinalizeParams extends FlowBaseFinalizeParams {}
 
 /**
  * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles user disclosure and retrieves access tokens with verified credentials.
+ *
  * @public
  */
 export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
-  /**
-   * Creates a new disclosure client.
-   * 
-   * @param config - The disclosure client configuration
-   */
   constructor(config: DisclosureClientConfig) {
     super(
       {
@@ -60,29 +55,12 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     );
   }
 
-  /**
-   * Creates a new disclosure intent.
-   * 
-   * @param disclosureIntent - The intent payload
-   * @param codeChallenge - The PKCE code challenge
-   * @param clientAuth - Optional client authentication (required in node-client)
-   * @returns The ID of the created intent
-   * @example
-   * ```typescript
-   * const { codeChallenge } = await client.generateCodeChallenge();
-   * const intentId = await client.createDisclosureIntent({
-   *   challenge: 'your-challenge-string',
-   *   brandUuid: 'your-brand-uuid',
-   *   requireExplicitConsent: true,
-   * }, codeChallenge);
-   * ```
-   */
+  /** Creates a disclosure intent and returns its ID. */
   async createDisclosureIntent(
     disclosureIntent: DisclosureIntentPayload,
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<string> {
-    // Construct VerificationIntent from DisclosureIntentPayload
     const intent: VerificationIntent = {
       scope: 'disclosure',
       client_id: this.oauthClient.clientId(),
@@ -90,32 +68,17 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
       ...disclosureIntent,
     };
 
-    // Create intent with optional clientAuth
     const response = await this.oauthClient.createIntent(intent, clientAuth);
     return response.intent_id;
   }
 
-  /**
-   * Generates a disclosure URL for initiating the OpenID Connect flow.
-   *
-   * @param params - Parameters for the disclosure request including optional PKCE options
-   * @param additionalParams - Additional query parameters to append to the disclosure URL
-   * @returns Object containing the disclosure URL and state
-   * @example
-   * ```typescript
-   * const { disclosureUrl, state } = await client.generateDisclosureUrl();
-   * // Browser: window.location.href = disclosureUrl;
-   * // Node: res.redirect(disclosureUrl);
-   * ```
-   */
+  /** Generates the authorization URL for the disclosure flow. */
   async generateDisclosureUrl(
     params?: DisclosureRequestParams,
     additionalParams?: Record<string, string>,
   ): Promise<{ disclosureUrl: string; state: string }> {
-    // Validate PKCE params using base class method
     this.validateAuthorizationRequestParams(params);
 
-    // Generate or use provided PKCE params
     const { codeChallenge, state } = await this.getPkceParams(params);
 
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
@@ -138,19 +101,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     };
   }
 
-  /**
-   * Finalizes the disclosure flow and retrieves the disclosure response.
-   * Exchanges the authorization code for tokens including the access token.
-   * 
-   * This method should be overridden by package-specific implementations to handle
-   * clientAuth requirements (optional in browser, required in node).
-   *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token and token metadata
-   * @throws {InvalidResponseError} When the response is not a valid disclosure response
-   * @throws {OperationFailedError} When code verifier is missing or token exchange fails
-   * @protected
-   */
+  /** Finalizes the disclosure flow and returns the token response. */
   protected async finalizeDisclosure(
     params: DisclosureFinalizeParams,
   ): Promise<DisclosureResponse> {
@@ -158,17 +109,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     return response as DisclosureResponse;
   }
 
-  /**
-   * Verifies and decodes the access token from the disclosure response.
-   * Also, validates and typecasts the decoded token to a specific payload type.
-   * Ensures the token payload conforms to desired structure.
-   *
-   * @param disclosureResponse - The disclosure response containing the access token
-   * @param typeAssertFunc - The function to assert the token payload type
-   * @returns Typed JWT with typed payload
-   * @throws {OperationFailedError} When JWT verification fails
-   * @throws {InvalidAssertionError} When token payload doesn't match expected structure
-   */
+  /** Verifies and decodes the access token from a disclosure response. */
   async decode<T extends JWTPayload>(
     disclosureResponse: DisclosureResponse,
     typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,

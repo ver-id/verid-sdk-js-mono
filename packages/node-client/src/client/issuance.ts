@@ -18,10 +18,7 @@ export type {
   IssuanceRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Node.js Issuance client.
- * `options` is optional — defaults to using FileStorageCacheManager for caching.
- */
+/** Configuration for the Node.js issuance client. */
 export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -41,8 +38,8 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
 }
 
 /**
- * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles credential issuance and retrieves access tokens for credential storage.
+ * Node.js issuance client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
@@ -63,15 +60,7 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Creates a new issuance intent.
-   * Client authentication is mandatory for server-side issuance intent creation.
-   * 
-   * @param issuanceIntent - The intent payload
-   * @param codeChallenge - The PKCE code challenge
-   * @param clientAuth - The client authentication credentials (required)
-   * @returns The ID of the created intent
-   */
+  /** Creates an issuance intent; clientAuth is required server-side. */
   override async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
@@ -80,13 +69,7 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return super.createIssuanceIntent(issuanceIntent, codeChallenge, clientAuth);
   }
 
-  /**
-   * Finalizes the issuance flow and retrieves the issuance response.
-   * Exchanges the authorization code for tokens including the ID token.
-   *
-   * @param params - Parameters for finalizing the issuance flow
-   * @returns The issuance response containing access_token, id_token, and token metadata
-   */
+  /** Finalizes the issuance flow using the provided callback params. */
   async finalize(params: IssuanceFinalizeParams): Promise<IssuanceResponse> {
     return this.finalizeIssuance({ ...params, clientAuth: params.clientAuth });
   }

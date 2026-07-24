@@ -1,7 +1,4 @@
-/**
- * The `ronan:*` postMessage protocol shared by the embedded browser client and
- * the Ronan iframe. Defined once here so client and server stay in lockstep.
- */
+/** The `ronan:*` postMessage protocol types shared between the embedded browser client and the iframe. */
 
 /** Outbound handshake message the parent posts to the Ronan iframe on load. */
 export interface RonanInitMessage {
@@ -19,10 +16,7 @@ export interface RonanReadyMessage {
   readonly type: 'ronan:ready';
 }
 
-/**
- * Ronan signals the flow finished. Lifecycle only — carries NO authorization
- * code. The code is delivered to the backend over the signed webhook.
- */
+/** Ronan signals the flow finished; carries no authorization code. */
 export interface RonanCompleteMessage {
   readonly type: 'ronan:complete';
 }
@@ -54,10 +48,7 @@ export type ParseRonanMessageResult =
   | { readonly ok: true; readonly message: RonanInboundMessage }
   | { readonly ok: false; readonly reason: string };
 
-/**
- * Validates an untrusted `postMessage` payload against the inbound `ronan:*`
- * protocol. Minimal, dependency-free, and tree-shakeable (no bundled Zod).
- */
+/** Validates an untrusted `postMessage` payload against the inbound `ronan:*` protocol. */
 export function parseRonanMessage(data: unknown): ParseRonanMessageResult {
   if (typeof data !== 'object' || data === null) {
     return { ok: false, reason: 'message must be an object' };

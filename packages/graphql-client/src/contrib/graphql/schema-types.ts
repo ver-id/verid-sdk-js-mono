@@ -1098,6 +1098,8 @@ export type Authentication = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
+  /** The active provisioning task, if the flow is currently being provisioned. */
+  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The data retention policy. */
@@ -1146,7 +1148,6 @@ export type AuthenticationAuthenticationSecretsArgs = {
 
 /** AuthenticationAction */
 export enum AuthenticationAction {
-  Activate = 'ACTIVATE',
   Deactivate = 'DEACTIVATE'
 }
 
@@ -1412,10 +1413,18 @@ export type AuthenticationHandlerConfigurationNlWallet = Model & {
   authenticationHandlerConfiguration: AuthenticationHandlerConfiguration;
   /** The creation timestamp */
   createdAt: Scalars['DateTime']['output'];
+  /** Whether the user can request deletion of their retained data. */
+  deletable: Scalars['Boolean']['output'];
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain: Scalars['Boolean']['output'];
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare: Scalars['Boolean']['output'];
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: Maybe<Scalars['Int']['output']>;
+  /** Purpose statement */
+  purposeStatement: Scalars['JSONObject']['output'];
   /** The timestamp of when the type has been last updated */
   updatedAt: Scalars['DateTime']['output'];
-  /** The usecase */
-  usecase: Scalars['String']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
 };
@@ -1694,7 +1703,8 @@ export type AuthenticationSortInput = {
 /** AuthenticationState */
 export enum AuthenticationState {
   Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
+  Inactive = 'INACTIVE',
+  Provisioning = 'PROVISIONING'
 }
 
 /** Billing definition. */
@@ -1751,6 +1761,139 @@ export enum BillingFilteringField {
   OrganizationUuid = 'organizationUuid',
   Uuid = 'uuid'
 }
+
+/**
+ * BillingFlowAppCostOverview definition - aggregated flow cost grouped by flow and
+ * handler app over a time window. It powers the per-flow detail view: scope it to a
+ * single flow with the `flowUuid` filter to see that flow's cost broken down per
+ * handler app. Each node represents a single (flow, handler app) combination with
+ * the summed cost and revenue of all of its executions inside the requested window.
+ */
+export type BillingFlowAppCostOverview = {
+  __typename?: 'BillingFlowAppCostOverview';
+  /** The authentication flow these costs belong to (only set when flowType is AUTHENTICATION) */
+  authentication?: Maybe<Authentication>;
+  /** The disclosure flow these costs belong to (only set when flowType is DISCLOSURE) */
+  disclosure?: Maybe<Disclosure>;
+  /** Number of flow executions aggregated in the window */
+  flowCount: Scalars['Int']['output'];
+  /** Flow Type */
+  flowType: FlowType;
+  /** Flow UUID the costs are aggregated for */
+  flowUuid: Scalars['UUID']['output'];
+  /** The handler app that handled these flow executions */
+  handlerApp?: Maybe<HandlerApp>;
+  /** Handler app UUID the costs are aggregated for (the app that handled the flow) */
+  handlerAppUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The issuance flow these costs belong to (only set when flowType is ISSUANCE) */
+  issuance?: Maybe<Issuance>;
+  /** Timestamp of the most recent flow execution in the window */
+  lastActivityAt: Scalars['DateTime']['output'];
+  /** The signature flow these costs belong to (only set when flowType is SIGNATURE) */
+  signature?: Maybe<Signature>;
+  /** Total cost of all flow executions in the window (in the wallet currency unit) */
+  totalCost: Scalars['Int']['output'];
+  /** Total revenue of all flow executions in the window (in the wallet currency unit) */
+  totalRevenue: Scalars['Int']['output'];
+};
+
+export type BillingFlowAppCostOverviewConnection = {
+  __typename?: 'BillingFlowAppCostOverviewConnection';
+  edges: Array<BillingFlowAppCostOverviewEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingFlowAppCostOverviewEdge = {
+  __typename?: 'BillingFlowAppCostOverviewEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingFlowAppCostOverview;
+};
+
+/** Fields which can be used to filter billing flow app cost overviews on. Value must be camel case. */
+export enum BillingFlowAppCostOverviewFilteringField {
+  BillingWalletUuid = 'billingWalletUuid',
+  FlowType = 'flowType',
+  FlowUuid = 'flowUuid'
+}
+
+/** Fields which can be used to sort billing flow app cost overviews on. Value must be camel case. */
+export enum BillingFlowAppCostOverviewSortEnum {
+  FlowCount = 'flowCount',
+  LastActivityAt = 'lastActivityAt',
+  TotalCost = 'totalCost',
+  TotalRevenue = 'totalRevenue'
+}
+
+/** Input options for sorting billing flow app cost overviews. */
+export type BillingFlowAppCostOverviewSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingFlowAppCostOverviewSortEnum;
+};
+
+/**
+ * BillingFlowCostOverview definition - aggregated flow cost grouped by flow over a time window.
+ * Each node represents a single flow (by flowUuid) with the summed cost and revenue of all
+ * of its executions inside the requested window.
+ */
+export type BillingFlowCostOverview = {
+  __typename?: 'BillingFlowCostOverview';
+  /** The authentication flow these costs belong to (only set when flowType is AUTHENTICATION) */
+  authentication?: Maybe<Authentication>;
+  /** The disclosure flow these costs belong to (only set when flowType is DISCLOSURE) */
+  disclosure?: Maybe<Disclosure>;
+  /** Number of flow executions aggregated in the window */
+  flowCount: Scalars['Int']['output'];
+  /** Flow Type */
+  flowType: FlowType;
+  /** Flow UUID the costs are aggregated for */
+  flowUuid: Scalars['UUID']['output'];
+  /** The issuance flow these costs belong to (only set when flowType is ISSUANCE) */
+  issuance?: Maybe<Issuance>;
+  /** Timestamp of the most recent flow execution in the window */
+  lastActivityAt: Scalars['DateTime']['output'];
+  /** The signature flow these costs belong to (only set when flowType is SIGNATURE) */
+  signature?: Maybe<Signature>;
+  /** Total cost of all flow executions in the window (in the wallet currency unit) */
+  totalCost: Scalars['Int']['output'];
+  /** Total revenue of all flow executions in the window (in the wallet currency unit) */
+  totalRevenue: Scalars['Int']['output'];
+};
+
+export type BillingFlowCostOverviewConnection = {
+  __typename?: 'BillingFlowCostOverviewConnection';
+  edges: Array<BillingFlowCostOverviewEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingFlowCostOverviewEdge = {
+  __typename?: 'BillingFlowCostOverviewEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingFlowCostOverview;
+};
+
+/** Fields which can be used to filter billing flow cost overviews on. Value must be camel case. */
+export enum BillingFlowCostOverviewFilteringField {
+  BillingWalletUuid = 'billingWalletUuid',
+  FlowType = 'flowType'
+}
+
+/** Fields which can be used to sort billing flow cost overviews on. Value must be camel case. */
+export enum BillingFlowCostOverviewSortEnum {
+  FlowCount = 'flowCount',
+  LastActivityAt = 'lastActivityAt',
+  TotalCost = 'totalCost',
+  TotalRevenue = 'totalRevenue'
+}
+
+/** Input options for sorting billing flow cost overviews. */
+export type BillingFlowCostOverviewSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingFlowCostOverviewSortEnum;
+};
 
 /** BillingMethod definition. */
 export type BillingMethod = Model & {
@@ -2597,8 +2740,16 @@ export type CreateAuthenticationDomainInput = {
 export type CreateAuthenticationHandlerConfigurationNlWalletInput = {
   /** The AuthenticationHandler UUID */
   authenticationHandlerUuid: Scalars['UUID']['input'];
-  /** The usecase */
-  usecase: Scalars['String']['input'];
+  /** Whether the user can request deletion of their retained data. */
+  deletable: Scalars['Boolean']['input'];
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain: Scalars['Boolean']['input'];
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare: Scalars['Boolean']['input'];
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** Purpose statement */
+  purposeStatement: Scalars['JSONObject']['input'];
 };
 
 /** The input for creating a flow authentication handler. */
@@ -2913,12 +3064,36 @@ export enum CreateDisclosureHandlerByAttributesMode {
   DisjunctionMerge = 'DisjunctionMerge'
 }
 
+/** Input for creating DisclosureHandlerConfiguration */
+export type CreateDisclosureHandlerConfigurationInput = {
+  nlWallet?: InputMaybe<CreateDisclosureHandlerConfigurationNlWalletInput>;
+  oid4vc?: InputMaybe<CreateDisclosureHandlerConfigurationOid4VcInput>;
+};
+
 /** Create Input */
 export type CreateDisclosureHandlerConfigurationNlWalletInput = {
+  /** Whether the user can request deletion of their retained data. */
+  deletable: Scalars['Boolean']['input'];
   /** The DisclosureHandler UUID */
   disclosureHandlerUuid: Scalars['UUID']['input'];
-  /** The usecase */
-  usecase: Scalars['String']['input'];
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain: Scalars['Boolean']['input'];
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare: Scalars['Boolean']['input'];
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
+  /** Purpose statement */
+  purposeStatement: Scalars['JSONObject']['input'];
+};
+
+/** Create Input */
+export type CreateDisclosureHandlerConfigurationOid4VcInput = {
+  /** The DisclosureHandler UUID */
+  disclosureHandlerUuid: Scalars['UUID']['input'];
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
 };
 
 /** The input for creating a flow disclosure handler. */
@@ -2967,8 +3142,12 @@ export type CreateDisclosureSecretInput = {
 export type CreateHandlerAppInput = {
   /** The UUID of the app. */
   appUuid: Scalars['UUID']['input'];
+  /** The configuration type for this handler app. */
+  configurationType?: InputMaybe<HandlerAppConfigurationType>;
   /** The UUID of the handler. */
   handlerUuid: Scalars['UUID']['input'];
+  /** The provisioning requirements for this handler app. */
+  provisioningRequirements?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** The input for creating a handler app protocol mDOC configuration. */
@@ -2979,54 +3158,16 @@ export type CreateHandlerAppProtocolMdocInput = {
 
 /** The input for creating a handler app protocol OID4VC configuration. */
 export type CreateHandlerAppProtocolOid4vcInput = {
-  /** The client identifier prefix. */
-  clientIdentifierPrefix?: InputMaybe<HandlerAppProtocolOid4vcClientIdentifierPrefix>;
-  /** The credential offer delivery method. */
-  credentialOfferDelivery?: InputMaybe<HandlerAppProtocolOid4vcCredentialOfferDelivery>;
-  /** The credential response format for SD-JWT. */
-  credentialResponseFormatSdJwt?: InputMaybe<Scalars['String']['input']>;
-  /** Whether DCQL is enabled. */
-  dcql?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether DCQL claim values should be stripped. */
-  dcqlStripClaimValues?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The deep link base URL. */
-  deepLinkBaseUrl?: InputMaybe<Scalars['String']['input']>;
-  /** The deep link disclosure path. */
-  deepLinkDisclosurePath?: InputMaybe<Scalars['String']['input']>;
-  /** The deep link issuance path. */
-  deepLinkIssuancePath?: InputMaybe<Scalars['String']['input']>;
-  /** Whether disclosure based issuance is enabled. */
-  disclosureBasedIssuance?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether HAIP is enabled. */
-  haip?: InputMaybe<Scalars['Boolean']['input']>;
   /** The UUID of the handler app. */
   handlerAppUuid: Scalars['UUID']['input'];
-  /** Whether credential previews are included. */
-  includeCredentialPreviews?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether VCT integrity is included. */
-  includeVctIntegrity?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The issuance draft version. */
-  issuanceDraftVersion?: InputMaybe<Scalars['Int']['input']>;
-  /** The issuance spec type. */
-  issuanceSpecType?: InputMaybe<HandlerAppProtocolOid4vcIssuanceSpecType>;
-  /** The JAR header typ. */
-  jarHeaderTyp?: InputMaybe<HandlerAppProtocolOid4vcJarHeaderTyp>;
-  /** Whether encrypted response is required. */
-  requireEncryptedResponse?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether redirect URI is required. */
-  requireRedirectUri?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The response encryption enc. */
-  responseEncryptionEnc?: InputMaybe<HandlerAppProtocolOid4vcResponseEncryptionEnc>;
-  /** The SD-JWT client metadata VP format. */
-  sdJwtClientMetadataVpFormat?: InputMaybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** The SD-JWT VP format. */
-  sdJwtVpFormat?: InputMaybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** Whether credential sets are supported. */
-  supportsCredentialSets?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The verification draft version. */
-  verificationDraftVersion?: InputMaybe<Scalars['Int']['input']>;
-  /** The verification spec type. */
-  verificationSpecType?: InputMaybe<HandlerAppProtocolOid4vcVerificationSpecType>;
+  /** The supported issuance flows. */
+  supportedIssuanceFlows?: InputMaybe<Array<HandlerAppProtocolOid4vcIssuanceFlow>>;
+  /** The supported issuance profiles. */
+  supportedIssuanceProfiles?: InputMaybe<Array<HandlerAppProtocolOid4vcIssuanceProfile>>;
+  /** The supported verification profiles. */
+  supportedVerificationProfiles?: InputMaybe<Array<HandlerAppProtocolOid4vcVerificationProfile>>;
+  /** The wallet implementation. */
+  walletImplementation?: InputMaybe<HandlerAppProtocolOid4vcWalletImplementation>;
 };
 
 /** The input for creating a handler. */
@@ -3153,8 +3294,28 @@ export type CreateIssuanceHandlerByAttributesInput = {
 export type CreateIssuanceHandlerConfigurationNlWalletInput = {
   /** The attribute UUIDs that must be disclosed before issuance */
   attributeUuids: Array<Scalars['UUID']['input']>;
+  /** Whether the user can request deletion of their retained data. */
+  deletable: Scalars['Boolean']['input'];
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain: Scalars['Boolean']['input'];
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare: Scalars['Boolean']['input'];
   /** The IssuanceHandler UUID */
   issuanceHandlerUuid: Scalars['UUID']['input'];
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** Purpose statement */
+  purposeStatement: Scalars['JSONObject']['input'];
+};
+
+/** Create Input */
+export type CreateIssuanceHandlerConfigurationOid4VcInput = {
+  /** The OID4VC issuance flow */
+  flow?: InputMaybe<Oid4vcIssuanceFlow>;
+  /** The IssuanceHandler UUID */
+  issuanceHandlerUuid: Scalars['UUID']['input'];
+  /** The OID4VC issuance profile */
+  profile?: InputMaybe<Oid4vcIssuanceProfile>;
 };
 
 /** The input for creating a flow issuance handler. */
@@ -5775,6 +5936,8 @@ export type Disclosure = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
+  /** The active provisioning task, if the flow is currently being provisioned. */
+  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The indicator if explicit consent is required */
@@ -5831,7 +5994,6 @@ export type DisclosureDisclosureSecretsArgs = {
 
 /** DisclosureAction */
 export enum DisclosureAction {
-  Activate = 'ACTIVATE',
   Deactivate = 'DEACTIVATE'
 }
 
@@ -6250,6 +6412,8 @@ export type DisclosureHandlerConfiguration = Model & {
   disclosureHandler: DisclosureHandler;
   /** The NL Wallet flow disclosure handler configuration */
   nlWallet?: Maybe<DisclosureHandlerConfigurationNlWallet>;
+  /** The OID4VC flow disclosure handler configuration */
+  oid4vc?: Maybe<DisclosureHandlerConfigurationOid4Vc>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -6280,12 +6444,22 @@ export type DisclosureHandlerConfigurationNlWallet = Model & {
   __typename?: 'DisclosureHandlerConfigurationNLWallet';
   /** The creation timestamp */
   createdAt: Scalars['DateTime']['output'];
+  /** Whether the user can request deletion of their retained data. */
+  deletable?: Maybe<Scalars['Boolean']['output']>;
   /** The DisclosureHandlerConfiguration this object belongs to. */
   disclosureHandlerConfiguration: DisclosureHandlerConfiguration;
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare?: Maybe<Scalars['Boolean']['output']>;
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: Maybe<Scalars['Int']['output']>;
+  /** The OID4VC verification profile */
+  profile: Oid4vcVerificationProfile;
+  /** Purpose statement */
+  purposeStatement?: Maybe<Scalars['JSONObject']['output']>;
   /** The timestamp of when the type has been last updated */
   updatedAt: Scalars['DateTime']['output'];
-  /** The usecase */
-  usecase: Scalars['String']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
 };
@@ -6321,6 +6495,53 @@ export type DisclosureHandlerConfigurationNlWalletSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: DisclosureHandlerConfigurationNlWalletSortEnum;
+};
+
+/** DisclosureHandlerConfigurationOID4VC definition */
+export type DisclosureHandlerConfigurationOid4Vc = Model & {
+  __typename?: 'DisclosureHandlerConfigurationOID4VC';
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The DisclosureHandlerConfiguration this object belongs to. */
+  disclosureHandlerConfiguration: DisclosureHandlerConfiguration;
+  /** The OID4VC verification profile */
+  profile: Oid4vcVerificationProfile;
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The DisclosureHandlerConfigurationOID4VC connection definition. */
+export type DisclosureHandlerConfigurationOid4VcConnection = {
+  __typename?: 'DisclosureHandlerConfigurationOID4VCConnection';
+  edges: Array<Maybe<DisclosureHandlerConfigurationOid4VcEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The DisclosureHandlerConfigurationOID4VC edge definition. */
+export type DisclosureHandlerConfigurationOid4VcEdge = {
+  __typename?: 'DisclosureHandlerConfigurationOID4VCEdge';
+  cursor: Scalars['String']['output'];
+  node: DisclosureHandlerConfigurationOid4Vc;
+};
+
+/** Fields which can be used to filter DisclosureHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum DisclosureHandlerConfigurationOid4VcFilteringField {
+  DisclosureHandlerConfigurationUuid = 'disclosureHandlerConfigurationUuid'
+}
+
+/** Fields which can be used to sort DisclosureHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum DisclosureHandlerConfigurationOid4VcSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting DisclosureHandlerConfigurationOID4VC. */
+export type DisclosureHandlerConfigurationOid4VcSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: DisclosureHandlerConfigurationOid4VcSortEnum;
 };
 
 /** Fields which can be used to sort DisclosureHandlerConfiguration on. Value must be camel case. */
@@ -6561,7 +6782,8 @@ export type DisclosureSortInput = {
 /** DisclosureState */
 export enum DisclosureState {
   Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
+  Inactive = 'INACTIVE',
+  Provisioning = 'PROVISIONING'
 }
 
 /** Update Input */
@@ -7224,6 +7446,57 @@ export type FindManyAuthenticationsNestedFilter = {
   authenticationBrands?: InputMaybe<AuthenticationNestedFilteringAuthenticationBrandField>;
   /** Flow authentication labels nested filter */
   authenticationLabels?: InputMaybe<AuthenticationNestedFilteringAuthenticationLabelField>;
+};
+
+/** Input for filtering billing flow app cost overviews on provided fields. */
+export type FindManyBillingFlowAppCostOverviewsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingFlowAppCostOverviewFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for retrieving aggregated flow app cost overviews on filters, pagination, sorting and a time window. */
+export type FindManyBillingFlowAppCostOverviewsInput = {
+  /**
+   * Filtering options. A `billingWalletUuid` filter is required to scope the overview
+   * to a wallet, and a `flowUuid` filter is required to scope it to a single flow.
+   */
+  filtering?: InputMaybe<Array<FindManyBillingFlowAppCostOverviewsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingFlowAppCostOverviewSortInput>;
+};
+
+/** Input for filtering billing flow cost overviews on provided fields. */
+export type FindManyBillingFlowCostOverviewsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingFlowCostOverviewFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for retrieving aggregated flow cost overviews on filters, pagination, sorting and a time window. */
+export type FindManyBillingFlowCostOverviewsInput = {
+  /** Filtering options. A `billingWalletUuid` filter is required to scope the overview to a wallet. */
+  filtering?: InputMaybe<Array<FindManyBillingFlowCostOverviewsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingFlowCostOverviewSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -8154,6 +8427,30 @@ export type FindManyDisclosureHandlerConfigurationNlWalletsInput = {
   sorting?: InputMaybe<DisclosureHandlerConfigurationNlWalletSortInput>;
 };
 
+/** Input for filtering finding many DisclosureHandlerConfigurationOID4VC. */
+export type FindManyDisclosureHandlerConfigurationOid4VCsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: DisclosureHandlerConfigurationOid4VcFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for finding many DisclosureHandlerConfigurationOID4VC. */
+export type FindManyDisclosureHandlerConfigurationOid4VCsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyDisclosureHandlerConfigurationOid4VCsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<DisclosureHandlerConfigurationOid4VcSortInput>;
+};
+
 /** Input for filtering DisclosureHandlerConfiguration on provided fields. */
 export type FindManyDisclosureHandlerConfigurationsFilter = {
   /** The query connector */
@@ -8690,6 +8987,30 @@ export type FindManyIssuanceHandlerConfigurationNlWalletsInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<IssuanceHandlerConfigurationNlWalletSortInput>;
+};
+
+/** Input for filtering finding many IssuanceHandlerConfigurationOID4VC. */
+export type FindManyIssuanceHandlerConfigurationOid4VCsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: IssuanceHandlerConfigurationOid4VcFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for finding many IssuanceHandlerConfigurationOID4VC. */
+export type FindManyIssuanceHandlerConfigurationOid4VCsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyIssuanceHandlerConfigurationOid4VCsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<IssuanceHandlerConfigurationOid4VcSortInput>;
 };
 
 /** Input for filtering IssuanceHandlerConfiguration on provided fields. */
@@ -11266,6 +11587,8 @@ export type HandlerApp = Model & {
   __typename?: 'HandlerApp';
   /** The app this handler app belongs to. */
   app: App;
+  /** The configuration type for this handler app. */
+  configurationType: HandlerAppConfigurationType;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The handler this handler app belongs to. */
@@ -11274,6 +11597,8 @@ export type HandlerApp = Model & {
   protocolMdoc?: Maybe<HandlerAppProtocolMdoc>;
   /** The OID4VC protocol configuration. */
   protocolOid4vc?: Maybe<HandlerAppProtocolOid4vc>;
+  /** The provisioning requirements for this handler app. */
+  provisioningRequirements: Array<Scalars['String']['output']>;
   /** The collection of scopes */
   scopes: ScopeConnection;
   /** The update time */
@@ -11287,6 +11612,13 @@ export type HandlerApp = Model & {
 export type HandlerAppScopesArgs = {
   input?: InputMaybe<FindManyScopesInput>;
 };
+
+/** The configuration type for a handler app. */
+export enum HandlerAppConfigurationType {
+  NlWallet = 'NL_WALLET',
+  None = 'NONE',
+  Oid4Vc = 'OID4VC'
+}
 
 /** The handler app connection definition. */
 export type HandlerAppConnection = {
@@ -11359,66 +11691,23 @@ export type HandlerAppProtocolMdocSortInput = {
 /** Handler app protocol OID4VC definition. */
 export type HandlerAppProtocolOid4vc = Model & {
   __typename?: 'HandlerAppProtocolOid4vc';
-  /** The client identifier prefix. */
-  clientIdentifierPrefix?: Maybe<HandlerAppProtocolOid4vcClientIdentifierPrefix>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential offer delivery method. */
-  credentialOfferDelivery?: Maybe<HandlerAppProtocolOid4vcCredentialOfferDelivery>;
-  /** The credential response format for SD-JWT. */
-  credentialResponseFormatSdJwt?: Maybe<Scalars['String']['output']>;
-  /** Whether DCQL is enabled. */
-  dcql?: Maybe<Scalars['Boolean']['output']>;
-  /** Whether DCQL claim values should be stripped. */
-  dcqlStripClaimValues?: Maybe<Scalars['Boolean']['output']>;
-  /** The deep link base URL. */
-  deepLinkBaseUrl?: Maybe<Scalars['String']['output']>;
-  /** The deep link disclosure path. */
-  deepLinkDisclosurePath?: Maybe<Scalars['String']['output']>;
-  /** The deep link issuance path. */
-  deepLinkIssuancePath?: Maybe<Scalars['String']['output']>;
-  /** Whether disclosure based issuance is enabled. */
-  disclosureBasedIssuance?: Maybe<Scalars['Boolean']['output']>;
-  /** Whether HAIP is enabled. */
-  haip?: Maybe<Scalars['Boolean']['output']>;
   /** The handler app this protocol configuration belongs to. */
   handlerApp: HandlerApp;
-  /** Whether credential previews are included. */
-  includeCredentialPreviews?: Maybe<Scalars['Boolean']['output']>;
-  /** Whether VCT integrity is included. */
-  includeVctIntegrity?: Maybe<Scalars['Boolean']['output']>;
-  /** The issuance draft version. */
-  issuanceDraftVersion?: Maybe<Scalars['Int']['output']>;
-  /** The issuance spec type. */
-  issuanceSpecType?: Maybe<HandlerAppProtocolOid4vcIssuanceSpecType>;
-  /** The JAR header typ. */
-  jarHeaderTyp: HandlerAppProtocolOid4vcJarHeaderTyp;
-  /** Whether encrypted response is required. */
-  requireEncryptedResponse?: Maybe<Scalars['Boolean']['output']>;
-  /** Whether redirect URI is required. */
-  requireRedirectUri?: Maybe<Scalars['Boolean']['output']>;
-  /** The response encryption enc. */
-  responseEncryptionEnc?: Maybe<HandlerAppProtocolOid4vcResponseEncryptionEnc>;
-  /** The SD-JWT client metadata VP format. */
-  sdJwtClientMetadataVpFormat?: Maybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** The SD-JWT VP format. */
-  sdJwtVpFormat?: Maybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** Whether credential sets are supported. */
-  supportsCredentialSets?: Maybe<Scalars['Boolean']['output']>;
+  /** The supported issuance flows. */
+  supportedIssuanceFlows: Array<HandlerAppProtocolOid4vcIssuanceFlow>;
+  /** The supported issuance profiles. */
+  supportedIssuanceProfiles: Array<HandlerAppProtocolOid4vcIssuanceProfile>;
+  /** The supported verification profiles. */
+  supportedVerificationProfiles: Array<HandlerAppProtocolOid4vcVerificationProfile>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The verification draft version. */
-  verificationDraftVersion?: Maybe<Scalars['Int']['output']>;
-  /** The verification spec type. */
-  verificationSpecType: HandlerAppProtocolOid4vcVerificationSpecType;
+  /** The wallet implementation. */
+  walletImplementation?: Maybe<HandlerAppProtocolOid4vcWalletImplementation>;
 };
-
-/** Client identifier prefix for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcClientIdentifierPrefix {
-  RedirectUri = 'REDIRECT_URI'
-}
 
 /** The handler app protocol OID4VC connection definition. */
 export type HandlerAppProtocolOid4vcConnection = {
@@ -11426,12 +11715,6 @@ export type HandlerAppProtocolOid4vcConnection = {
   edges: Array<Maybe<HandlerAppProtocolOid4vcEdge>>;
   pageInfo: PageInfo;
 };
-
-/** Credential offer delivery for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcCredentialOfferDelivery {
-  Inline = 'INLINE',
-  Uri = 'URI'
-}
 
 /** The handler app protocol OID4VC edge definition. */
 export type HandlerAppProtocolOid4vcEdge = {
@@ -11446,29 +11729,16 @@ export enum HandlerAppProtocolOid4vcFilteringField {
   HandlerAppUuid = 'handlerAppUuid'
 }
 
-/** Issuance spec type for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcIssuanceSpecType {
-  Draft = 'DRAFT',
-  V1 = 'V1'
+/** Issuance flow for OID4VC protocol. */
+export enum HandlerAppProtocolOid4vcIssuanceFlow {
+  DisclosureBasedIssuance = 'DISCLOSURE_BASED_ISSUANCE',
+  PreAuthIssuance = 'PRE_AUTH_ISSUANCE'
 }
 
-/** JAR header typ for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcJarHeaderTyp {
-  Jwt = 'JWT',
-  OauthAuthzReqJwt = 'OAUTH_AUTHZ_REQ_JWT'
-}
-
-/** Response encryption enc for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcResponseEncryptionEnc {
-  A128Gcm = 'A128GCM',
-  A256Gcm = 'A256GCM'
-}
-
-/** SD-JWT VP format for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcSdJwtVpFormat {
-  DcSdJwt = 'DC_SD_JWT',
-  SdJwt = 'SD_JWT',
-  VcSdJwt = 'VC_SD_JWT'
+/** Issuance profile for OID4VC protocol. */
+export enum HandlerAppProtocolOid4vcIssuanceProfile {
+  EuAv = 'EU_AV',
+  Standard = 'STANDARD'
 }
 
 /** Fields which can be used to sort handler app protocol OID4VC on. Value must be camel case. */
@@ -11484,10 +11754,20 @@ export type HandlerAppProtocolOid4vcSortInput = {
   field: HandlerAppProtocolOid4vcSortEnum;
 };
 
-/** Verification spec type for OID4VC protocol. */
-export enum HandlerAppProtocolOid4vcVerificationSpecType {
-  Draft = 'DRAFT',
-  V1 = 'V1'
+/** Verification profile for OID4VC protocol. */
+export enum HandlerAppProtocolOid4vcVerificationProfile {
+  EuAv = 'EU_AV',
+  Haip = 'HAIP',
+  Standard = 'STANDARD'
+}
+
+/** Wallet implementation identifier for OID4VC protocol. */
+export enum HandlerAppProtocolOid4vcWalletImplementation {
+  FranceIdentite = 'FRANCE_IDENTITE',
+  Lissi = 'LISSI',
+  NlWalletDemo = 'NL_WALLET_DEMO',
+  NlWalletPreprod = 'NL_WALLET_PREPROD',
+  ThalesWallet = 'THALES_WALLET'
 }
 
 /** Fields which can be used to sort handler app on. Value must be camel case. */
@@ -11680,6 +11960,8 @@ export type Issuance = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
+  /** The active provisioning task, if the flow is currently being provisioned. */
+  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The indicator if explicit consent is required */
@@ -11736,7 +12018,6 @@ export type IssuanceIssuanceSecretsArgs = {
 
 /** IssuanceAction */
 export enum IssuanceAction {
-  Activate = 'ACTIVATE',
   Deactivate = 'DEACTIVATE'
 }
 
@@ -12269,8 +12550,6 @@ export type IssuanceHandler = Model & {
   __typename?: 'IssuanceHandler';
   /** The flow issuance handler configuration. */
   configuration?: Maybe<IssuanceHandlerConfiguration>;
-  /** The configuration type for this handler. */
-  configurationType?: Maybe<IssuanceHandlerConfigurationType>;
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
   /** The handler app the handlerAppUuid belongs to. */
@@ -12304,6 +12583,8 @@ export type IssuanceHandlerConfiguration = Model & {
   issuanceHandler: IssuanceHandler;
   /** The NL Wallet flow issuance handler configuration */
   nlWallet?: Maybe<IssuanceHandlerConfigurationNlWallet>;
+  /** The OID4VC flow issuance handler configuration */
+  oid4vc?: Maybe<IssuanceHandlerConfigurationOid4Vc>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -12336,8 +12617,18 @@ export type IssuanceHandlerConfigurationNlWallet = Model & {
   attributeUuids: Array<Scalars['UUID']['output']>;
   /** The creation timestamp */
   createdAt: Scalars['DateTime']['output'];
+  /** Whether the user can request deletion of their retained data. */
+  deletable?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare?: Maybe<Scalars['Boolean']['output']>;
   /** The IssuanceHandlerConfiguration this object belongs to. */
   issuanceHandlerConfiguration: IssuanceHandlerConfiguration;
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: Maybe<Scalars['Int']['output']>;
+  /** Purpose statement */
+  purposeStatement?: Maybe<Scalars['JSONObject']['output']>;
   /** The timestamp of when the type has been last updated */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -12376,6 +12667,55 @@ export type IssuanceHandlerConfigurationNlWalletSortInput = {
   field: IssuanceHandlerConfigurationNlWalletSortEnum;
 };
 
+/** IssuanceHandlerConfigurationOID4VC definition */
+export type IssuanceHandlerConfigurationOid4Vc = Model & {
+  __typename?: 'IssuanceHandlerConfigurationOID4VC';
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The OID4VC issuance flow */
+  flow: Oid4vcIssuanceFlow;
+  /** The IssuanceHandlerConfiguration this object belongs to. */
+  issuanceHandlerConfiguration: IssuanceHandlerConfiguration;
+  /** The OID4VC issuance profile */
+  profile: Oid4vcIssuanceProfile;
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The IssuanceHandlerConfigurationOID4VC connection definition. */
+export type IssuanceHandlerConfigurationOid4VcConnection = {
+  __typename?: 'IssuanceHandlerConfigurationOID4VCConnection';
+  edges: Array<Maybe<IssuanceHandlerConfigurationOid4VcEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The IssuanceHandlerConfigurationOID4VC edge definition. */
+export type IssuanceHandlerConfigurationOid4VcEdge = {
+  __typename?: 'IssuanceHandlerConfigurationOID4VCEdge';
+  cursor: Scalars['String']['output'];
+  node: IssuanceHandlerConfigurationOid4Vc;
+};
+
+/** Fields which can be used to filter IssuanceHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum IssuanceHandlerConfigurationOid4VcFilteringField {
+  IssuanceHandlerConfigurationUuid = 'issuanceHandlerConfigurationUuid'
+}
+
+/** Fields which can be used to sort IssuanceHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum IssuanceHandlerConfigurationOid4VcSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting IssuanceHandlerConfigurationOID4VC. */
+export type IssuanceHandlerConfigurationOid4VcSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: IssuanceHandlerConfigurationOid4VcSortEnum;
+};
+
 /** Fields which can be used to sort IssuanceHandlerConfiguration on. Value must be camel case. */
 export enum IssuanceHandlerConfigurationSortEnum {
   CreatedAt = 'createdAt'
@@ -12388,11 +12728,6 @@ export type IssuanceHandlerConfigurationSortInput = {
   /** The field to sort on. */
   field: IssuanceHandlerConfigurationSortEnum;
 };
-
-/** The issuance handler configuration type. */
-export enum IssuanceHandlerConfigurationType {
-  NlWallet = 'NL_WALLET'
-}
 
 /** The flow issuance handler connection definition. */
 export type IssuanceHandlerConnection = {
@@ -12807,7 +13142,8 @@ export type IssuanceSortInput = {
 /** IssuanceState */
 export enum IssuanceState {
   Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
+  Inactive = 'INACTIVE',
+  Provisioning = 'PROVISIONING'
 }
 
 /** Issuer definition (RFC 0012 versioned). */
@@ -14304,6 +14640,8 @@ export type Mutation = {
   createDisclosureHandlerByAttributes: DisclosureHandler;
   /** Create a DisclosureHandlerConfigurationNLWallet. */
   createDisclosureHandlerConfigurationNLWallet: DisclosureHandlerConfigurationNlWallet;
+  /** Create a DisclosureHandlerConfigurationOID4VC. */
+  createDisclosureHandlerConfigurationOID4VC: DisclosureHandlerConfigurationOid4Vc;
   /** Create and store a new Label type. */
   createDisclosureLabel: DisclosureLabel;
   /** Create and store a new mapping type. */
@@ -14344,6 +14682,8 @@ export type Mutation = {
   createIssuanceHandlerByAttributes: IssuanceHandler;
   /** Create a IssuanceHandlerConfigurationNLWallet. */
   createIssuanceHandlerConfigurationNLWallet: IssuanceHandlerConfigurationNlWallet;
+  /** Create an IssuanceHandlerConfigurationOID4VC. */
+  createIssuanceHandlerConfigurationOID4VC: IssuanceHandlerConfigurationOid4Vc;
   /** Create and store a new Label type. */
   createIssuanceLabel: IssuanceLabel;
   /** Create and store a new mapping type. */
@@ -14621,6 +14961,8 @@ export type Mutation = {
   deleteDisclosureHandler?: Maybe<Scalars['Null']['output']>;
   /** Delete a DisclosureHandlerConfigurationNLWallet. */
   deleteDisclosureHandlerConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  /** Delete a DisclosureHandlerConfigurationOID4VC. */
+  deleteDisclosureHandlerConfigurationOID4VC?: Maybe<Scalars['Null']['output']>;
   /** Delete a Label. */
   deleteDisclosureLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a mapping. */
@@ -14659,6 +15001,8 @@ export type Mutation = {
   deleteIssuanceHandler?: Maybe<Scalars['Null']['output']>;
   /** Delete a IssuanceHandlerConfigurationNLWallet. */
   deleteIssuanceHandlerConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  /** Delete an IssuanceHandlerConfigurationOID4VC. */
+  deleteIssuanceHandlerConfigurationOID4VC?: Maybe<Scalars['Null']['output']>;
   /** Delete a Label. */
   deleteIssuanceLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a mapping. */
@@ -14851,6 +15195,24 @@ export type Mutation = {
   moveDisclosureCredential: DisclosureGroup;
   /** Move a flow credential to new or existing groups */
   moveSignatureCredential: SignatureGroup;
+  /**
+   * Activate an authentication. Provisions required handler app infrastructure,
+   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * If no provisioning is needed, the task resolves immediately.
+   */
+  provisionAuthenticationActivation: ProvisioningTask;
+  /**
+   * Activate a disclosure. Provisions required handler app infrastructure,
+   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * If no provisioning is needed, the task resolves immediately.
+   */
+  provisionDisclosureActivation: ProvisioningTask;
+  /**
+   * Activate an issuance. Provisions required handler app infrastructure,
+   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * If no provisioning is needed, the task resolves immediately.
+   */
+  provisionIssuanceActivation: ProvisioningTask;
   /** Publish a credential (RFC 0012). */
   publishCredential: Credential;
   /** Publish an issuer (RFC 0012). */
@@ -14945,6 +15307,8 @@ export type Mutation = {
   updateDisclosureHandler: DisclosureHandler;
   /** Update a DisclosureHandlerConfigurationNLWallet. */
   updateDisclosureHandlerConfigurationNLWallet: DisclosureHandlerConfigurationNlWallet;
+  /** Update a DisclosureHandlerConfigurationOID4VC. */
+  updateDisclosureHandlerConfigurationOID4VC: DisclosureHandlerConfigurationOid4Vc;
   /** Update a handler. */
   updateHandler: Handler;
   /** Update a handler app protocol OID4VC configuration. */
@@ -14967,6 +15331,8 @@ export type Mutation = {
   updateIssuanceHandler: IssuanceHandler;
   /** Update a IssuanceHandlerConfigurationNLWallet. */
   updateIssuanceHandlerConfigurationNLWallet: IssuanceHandlerConfigurationNlWallet;
+  /** Update an IssuanceHandlerConfigurationOID4VC. */
+  updateIssuanceHandlerConfigurationOID4VC: IssuanceHandlerConfigurationOid4Vc;
   /** Update an issuer draft (RFC 0012). */
   updateIssuerDraft: Issuer;
   /** Update an issuer locale. */
@@ -15500,6 +15866,11 @@ export type MutationCreateDisclosureHandlerConfigurationNlWalletArgs = {
 };
 
 
+export type MutationCreateDisclosureHandlerConfigurationOid4VcArgs = {
+  input: CreateDisclosureHandlerConfigurationOid4VcInput;
+};
+
+
 export type MutationCreateDisclosureLabelArgs = {
   input: CreateDisclosureLabelInput;
 };
@@ -15597,6 +15968,11 @@ export type MutationCreateIssuanceHandlerByAttributesArgs = {
 
 export type MutationCreateIssuanceHandlerConfigurationNlWalletArgs = {
   input: CreateIssuanceHandlerConfigurationNlWalletInput;
+};
+
+
+export type MutationCreateIssuanceHandlerConfigurationOid4VcArgs = {
+  input: CreateIssuanceHandlerConfigurationOid4VcInput;
 };
 
 
@@ -16286,6 +16662,11 @@ export type MutationDeleteDisclosureHandlerConfigurationNlWalletArgs = {
 };
 
 
+export type MutationDeleteDisclosureHandlerConfigurationOid4VcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteDisclosureLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -16377,6 +16758,11 @@ export type MutationDeleteIssuanceHandlerArgs = {
 
 
 export type MutationDeleteIssuanceHandlerConfigurationNlWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteIssuanceHandlerConfigurationOid4VcArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -16869,6 +17255,21 @@ export type MutationMoveSignatureCredentialArgs = {
 };
 
 
+export type MutationProvisionAuthenticationActivationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationProvisionDisclosureActivationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationProvisionIssuanceActivationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationPublishCredentialArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -17143,6 +17544,12 @@ export type MutationUpdateDisclosureHandlerConfigurationNlWalletArgs = {
 };
 
 
+export type MutationUpdateDisclosureHandlerConfigurationOid4VcArgs = {
+  input: UpdateDisclosureHandlerConfigurationOid4VcInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateHandlerArgs = {
   input: UpdateHandlerInput;
   uuid: Scalars['UUID']['input'];
@@ -17205,6 +17612,12 @@ export type MutationUpdateIssuanceHandlerArgs = {
 
 export type MutationUpdateIssuanceHandlerConfigurationNlWalletArgs = {
   input: UpdateIssuanceHandlerConfigurationNlWalletInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateIssuanceHandlerConfigurationOid4VcArgs = {
+  input: UpdateIssuanceHandlerConfigurationOid4VcInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17718,6 +18131,25 @@ export type OAuthProviderSortInput = {
 export enum OAuthProviderState {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE'
+}
+
+/** OID4VC issuance flow type */
+export enum Oid4vcIssuanceFlow {
+  DisclosureBasedIssuance = 'DISCLOSURE_BASED_ISSUANCE',
+  PreAuthIssuance = 'PRE_AUTH_ISSUANCE'
+}
+
+/** OID4VC issuance profile type */
+export enum Oid4vcIssuanceProfile {
+  EuAv = 'EU_AV',
+  Standard = 'STANDARD'
+}
+
+/** OID4VC verification profile type */
+export enum Oid4vcVerificationProfile {
+  EuAv = 'EU_AV',
+  Haip = 'HAIP',
+  Standard = 'STANDARD'
 }
 
 /** Possible directions in which to order a list of items when provided an `orderBy` argument. */
@@ -20223,16 +20655,75 @@ export enum Protocol {
   Yoti = 'YOTI'
 }
 
+/** Progress of a single provisioning child task. */
+export type ProvisioningChildProgress = {
+  __typename?: 'ProvisioningChildProgress';
+  /** Error category (TRANSIENT or PERMANENT) if the task failed. */
+  errorCategory?: Maybe<Scalars['String']['output']>;
+  /** Error code if the task failed. */
+  errorCode?: Maybe<Scalars['String']['output']>;
+  /** Error hint (suggested action) if the task failed. */
+  errorHint?: Maybe<Scalars['String']['output']>;
+  /** Error message if the task failed. */
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  /** Human-readable label for the task. */
+  label: Scalars['NonEmpty']['output'];
+  /** Current status of the child task. */
+  status: ProvisioningTaskStatus;
+  /** The task type (maps to a ProvisioningTaskTemplate). */
+  taskType: ProvisioningTaskType;
+  /** The child job UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Progress of a provisioning task group (parent + children). */
+export type ProvisioningProgress = {
+  __typename?: 'ProvisioningProgress';
+  /** Per-child task progress. */
+  children: Array<ProvisioningChildProgress>;
+  /** Overall status of the provisioning task. */
+  status: ProvisioningTaskStatus;
+};
+
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * A handle to an async provisioning operation.
+ * Use the returned UUID with the `provisioningProgressUpdated` subscription.
+ */
+export type ProvisioningTask = {
+  __typename?: 'ProvisioningTask';
+  /** Unique identifier for this task. Use with `provisioningProgressUpdated` subscription. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** ProvisioningTaskStatus — domain-level task status mapped from collector job states. */
+export enum ProvisioningTaskStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  InProgress = 'IN_PROGRESS',
+  Pending = 'PENDING'
+}
+
+/** ProvisioningTaskType — certificate task types. */
+export enum ProvisioningTaskType {
+  NlWalletDemoIssuance = 'NL_WALLET_DEMO_ISSUANCE',
+  NlWalletDemoVerification = 'NL_WALLET_DEMO_VERIFICATION',
+  NlWalletPreprodIssuance = 'NL_WALLET_PREPROD_ISSUANCE',
+  NlWalletPreprodVerification = 'NL_WALLET_PREPROD_VERIFICATION',
+  PkiIssuance = 'PKI_ISSUANCE',
+  PkiVerification = 'PKI_VERIFICATION'
+}
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type Query = {
   __typename?: 'Query';
+  /**
+   * Returns a JSON Schema for the given GraphQL input type name.
+   * Fields annotated with @excludeFromJsonSchema are excluded.
+   */
+  catalogJsonSchema: Scalars['JSONObject']['output'];
   /** Get billing method configuration */
   configBillingMethod: ConfigBillingMethodOutput;
   /** Get constants */
@@ -20369,6 +20860,8 @@ export type Query = {
   findDisclosureHandlerConfiguration: DisclosureHandlerConfiguration;
   /** Retrieve a single credential meta NL Wallet. */
   findDisclosureHandlerConfigurationNLWallet: DisclosureHandlerConfigurationNlWallet;
+  /** Retrieve a single DisclosureHandlerConfigurationOID4VC. */
+  findDisclosureHandlerConfigurationOID4VC: DisclosureHandlerConfigurationOid4Vc;
   /** Get Label */
   findDisclosureLabel: DisclosureLabel;
   /** Get mapping */
@@ -20414,6 +20907,8 @@ export type Query = {
   findIssuanceHandlerConfiguration: IssuanceHandlerConfiguration;
   /** Retrieve a single IssuanceHandlerConfigurationNLWallet. */
   findIssuanceHandlerConfigurationNLWallet: IssuanceHandlerConfigurationNlWallet;
+  /** Retrieve a single IssuanceHandlerConfigurationOID4VC. */
+  findIssuanceHandlerConfigurationOID4VC: IssuanceHandlerConfigurationOid4Vc;
   /** Get Label */
   findIssuanceLabel: IssuanceLabel;
   /** Get mapping */
@@ -20490,6 +20985,10 @@ export type Query = {
   findManyAuthenticationSecrets: AuthenticationSecretConnection;
   /** Retreive many flow authentications. */
   findManyAuthentications: AuthenticationConnection;
+  /** Retrieve aggregated flow costs grouped by handler app for a single flow over a time window */
+  findManyBillingFlowAppCostOverviews: BillingFlowAppCostOverviewConnection;
+  /** Retrieve aggregated flow costs grouped by flow over a time window */
+  findManyBillingFlowCostOverviews: BillingFlowCostOverviewConnection;
   /** Retrieve a list of many billings. */
   findManyBillingMethods: BillingMethodConnection;
   /** Retrieve a list of many billings. */
@@ -20566,6 +21065,8 @@ export type Query = {
   findManyDisclosureGroups: DisclosureGroupConnection;
   /** Retrieve many credential meta NL Wallet. */
   findManyDisclosureHandlerConfigurationNLWallets: DisclosureHandlerConfigurationNlWalletConnection;
+  /** Retrieve many DisclosureHandlerConfigurationOID4VC. */
+  findManyDisclosureHandlerConfigurationOID4VCs: DisclosureHandlerConfigurationOid4VcConnection;
   /** Retrieve many DisclosureHandlerConfiguration. */
   findManyDisclosureHandlerConfigurations: DisclosureHandlerConfigurationConnection;
   /** Retrieve many flow disclosure handlers. */
@@ -20610,6 +21111,8 @@ export type Query = {
   findManyIssuanceDomains: IssuanceDomainConnection;
   /** Retrieve many IssuanceHandlerConfigurationNLWallet. */
   findManyIssuanceHandlerConfigurationNLWallets: IssuanceHandlerConfigurationNlWalletConnection;
+  /** Retrieve many IssuanceHandlerConfigurationOID4VC. */
+  findManyIssuanceHandlerConfigurationOID4VCs: IssuanceHandlerConfigurationOid4VcConnection;
   /** Retrieve many IssuanceHandlerConfiguration. */
   findManyIssuanceHandlerConfigurations: IssuanceHandlerConfigurationConnection;
   /** Retrieve many flow issuance handlers. */
@@ -20989,21 +21492,22 @@ export type Query = {
   findUserInvitation: UserInvitation;
   /** Get payment provider invoice receipt */
   getPaymentProviderInvoiceReceipt: Scalars['URL']['output'];
-  /**
-   * Returns a JSON Schema for the given GraphQL input type name.
-   * Fields annotated with @excludeFromJsonSchema are excluded.
-   */
-  jsonSchema: Scalars['JSONObject']['output'];
+  studioJsonSchema: Scalars['JSONObject']['output'];
 };
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryCatalogJsonSchemaArgs = {
+  type: Scalars['String']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAppArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21011,12 +21515,8 @@ export type QueryFindAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAppLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21024,12 +21524,8 @@ export type QueryFindAppLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21037,12 +21533,8 @@ export type QueryFindAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21050,12 +21542,8 @@ export type QueryFindAttributeFormatDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatDigidentityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21063,12 +21551,8 @@ export type QueryFindAttributeFormatDigidentityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatMsoMdocArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21076,12 +21560,8 @@ export type QueryFindAttributeFormatMsoMdocArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatNectArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21089,12 +21569,8 @@ export type QueryFindAttributeFormatNectArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21102,12 +21578,8 @@ export type QueryFindAttributeFormatNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatReadidArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21115,12 +21587,8 @@ export type QueryFindAttributeFormatReadidArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatSdJwtArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21128,12 +21596,8 @@ export type QueryFindAttributeFormatSdJwtArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatYiviArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21141,12 +21605,8 @@ export type QueryFindAttributeFormatYiviArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeFormatYotiArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21154,12 +21614,8 @@ export type QueryFindAttributeFormatYotiArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21167,12 +21623,8 @@ export type QueryFindAttributeLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAttributeLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21180,12 +21632,8 @@ export type QueryFindAttributeLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21193,12 +21641,8 @@ export type QueryFindAuthenticationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationActivityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21206,12 +21650,8 @@ export type QueryFindAuthenticationActivityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21219,12 +21659,8 @@ export type QueryFindAuthenticationBrandArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21232,12 +21668,8 @@ export type QueryFindAuthenticationDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationHandlerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21245,12 +21677,8 @@ export type QueryFindAuthenticationHandlerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationHandlerConfigurationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21258,12 +21686,8 @@ export type QueryFindAuthenticationHandlerConfigurationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationHandlerConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21271,12 +21695,8 @@ export type QueryFindAuthenticationHandlerConfigurationNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21284,12 +21704,8 @@ export type QueryFindAuthenticationLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationScopeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21297,12 +21713,8 @@ export type QueryFindAuthenticationScopeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindAuthenticationSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21310,12 +21722,8 @@ export type QueryFindAuthenticationSecretArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21323,12 +21731,8 @@ export type QueryFindBillingArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingMethodArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21336,12 +21740,8 @@ export type QueryFindBillingMethodArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingPlanArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21349,12 +21749,8 @@ export type QueryFindBillingPlanArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21362,12 +21758,8 @@ export type QueryFindBillingWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21375,12 +21767,8 @@ export type QueryFindBillingWalletTransactionArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21388,12 +21776,8 @@ export type QueryFindBillingWalletTransactionMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaFlowArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21401,12 +21785,8 @@ export type QueryFindBillingWalletTransactionMetaFlowArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaFlowAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21414,12 +21794,8 @@ export type QueryFindBillingWalletTransactionMetaFlowAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaPlanArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21427,12 +21803,8 @@ export type QueryFindBillingWalletTransactionMetaPlanArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21440,12 +21812,8 @@ export type QueryFindBillingWalletTransactionMetaWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21453,12 +21821,8 @@ export type QueryFindCredentialArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialChangeLogArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21466,12 +21830,8 @@ export type QueryFindCredentialChangeLogArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21479,12 +21839,8 @@ export type QueryFindCredentialFormatDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatDigidentityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21492,12 +21848,8 @@ export type QueryFindCredentialFormatDigidentityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatMsoMdocArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21505,12 +21857,8 @@ export type QueryFindCredentialFormatMsoMdocArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatNectArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21518,12 +21866,8 @@ export type QueryFindCredentialFormatNectArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21531,12 +21875,8 @@ export type QueryFindCredentialFormatNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatReadidArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21544,12 +21884,8 @@ export type QueryFindCredentialFormatReadidArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatSdJwtArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21557,12 +21893,8 @@ export type QueryFindCredentialFormatSdJwtArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatYiviArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21570,12 +21902,8 @@ export type QueryFindCredentialFormatYiviArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialFormatYotiArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21583,12 +21911,8 @@ export type QueryFindCredentialFormatYotiArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21596,12 +21920,8 @@ export type QueryFindCredentialLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21609,12 +21929,8 @@ export type QueryFindCredentialLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21622,12 +21938,8 @@ export type QueryFindCredentialRecordArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordEventArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21635,12 +21947,8 @@ export type QueryFindCredentialRecordEventArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordMetaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21648,12 +21956,8 @@ export type QueryFindCredentialRecordMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordMetaTokenStatusListArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21661,12 +21965,8 @@ export type QueryFindCredentialRecordMetaTokenStatusListArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordMetaYiviRevocationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21674,12 +21974,8 @@ export type QueryFindCredentialRecordMetaYiviRevocationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialRecordSnapshotArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21687,12 +21983,8 @@ export type QueryFindCredentialRecordSnapshotArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialTrustIssuerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21700,12 +21992,8 @@ export type QueryFindCredentialTrustIssuerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindCredentialVersionArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21713,12 +22001,8 @@ export type QueryFindCredentialVersionArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21726,12 +22010,8 @@ export type QueryFindDisclosureArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureActivityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21739,12 +22019,8 @@ export type QueryFindDisclosureActivityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21752,12 +22028,8 @@ export type QueryFindDisclosureAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21765,12 +22037,8 @@ export type QueryFindDisclosureBrandArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureCredentialArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21778,12 +22046,8 @@ export type QueryFindDisclosureCredentialArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21791,12 +22055,8 @@ export type QueryFindDisclosureDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureGroupArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21804,12 +22064,8 @@ export type QueryFindDisclosureGroupArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureHandlerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21817,12 +22073,8 @@ export type QueryFindDisclosureHandlerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureHandlerConfigurationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21830,12 +22082,8 @@ export type QueryFindDisclosureHandlerConfigurationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureHandlerConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21843,12 +22091,17 @@ export type QueryFindDisclosureHandlerConfigurationNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindDisclosureHandlerConfigurationOid4VcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21856,12 +22109,8 @@ export type QueryFindDisclosureLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureMappingArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21869,12 +22118,8 @@ export type QueryFindDisclosureMappingArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindDisclosureSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21882,12 +22127,8 @@ export type QueryFindDisclosureSecretArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindGlobalOAuthMethodsArgs = {
   input: FindGlobalOAuthMethodsInput;
@@ -21895,12 +22136,8 @@ export type QueryFindGlobalOAuthMethodsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21908,12 +22145,8 @@ export type QueryFindHandlerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerAppArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21921,12 +22154,8 @@ export type QueryFindHandlerAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerAppProtocolMdocArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21934,12 +22163,8 @@ export type QueryFindHandlerAppProtocolMdocArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerAppProtocolOid4vcArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21947,12 +22172,8 @@ export type QueryFindHandlerAppProtocolOid4vcArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -21960,12 +22181,8 @@ export type QueryFindHandlerLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindHandlerLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21973,12 +22190,8 @@ export type QueryFindHandlerLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21986,12 +22199,8 @@ export type QueryFindIssuanceArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceActivityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -21999,12 +22208,8 @@ export type QueryFindIssuanceActivityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22012,12 +22217,8 @@ export type QueryFindIssuanceAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22025,12 +22226,8 @@ export type QueryFindIssuanceBrandArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceCredentialArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22038,12 +22235,8 @@ export type QueryFindIssuanceCredentialArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceCredentialMetaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22051,12 +22244,8 @@ export type QueryFindIssuanceCredentialMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceCredentialMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22064,12 +22253,8 @@ export type QueryFindIssuanceCredentialMetaDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceCredentialMetaOid4vcArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22077,12 +22262,8 @@ export type QueryFindIssuanceCredentialMetaOid4vcArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceCredentialMetaYiviArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22090,12 +22271,8 @@ export type QueryFindIssuanceCredentialMetaYiviArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22103,12 +22280,8 @@ export type QueryFindIssuanceDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceHandlerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22116,12 +22289,8 @@ export type QueryFindIssuanceHandlerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceHandlerConfigurationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22129,12 +22298,8 @@ export type QueryFindIssuanceHandlerConfigurationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceHandlerConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22142,12 +22307,17 @@ export type QueryFindIssuanceHandlerConfigurationNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindIssuanceHandlerConfigurationOid4VcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22155,12 +22325,8 @@ export type QueryFindIssuanceLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceMappingArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22168,12 +22334,8 @@ export type QueryFindIssuanceMappingArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceRunArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22181,12 +22343,8 @@ export type QueryFindIssuanceRunArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceRunEventArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22194,12 +22352,8 @@ export type QueryFindIssuanceRunEventArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceRunSnapshotArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22207,12 +22361,8 @@ export type QueryFindIssuanceRunSnapshotArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuanceSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22220,12 +22370,8 @@ export type QueryFindIssuanceSecretArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22233,12 +22379,8 @@ export type QueryFindIssuerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerChangeLogArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22246,12 +22388,8 @@ export type QueryFindIssuerChangeLogArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -22259,12 +22397,8 @@ export type QueryFindIssuerLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22272,12 +22406,8 @@ export type QueryFindIssuerLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerVersionArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22285,12 +22415,8 @@ export type QueryFindIssuerVersionArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindLabelArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22298,12 +22424,8 @@ export type QueryFindLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindLocaleConfigArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22311,12 +22433,8 @@ export type QueryFindLocaleConfigArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMaintenanceArgs = {
   uuid: Scalars['UUID']['input'];
@@ -22324,12 +22442,8 @@ export type QueryFindMaintenanceArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAppLocalesArgs = {
   input?: InputMaybe<FindManyAppLocalesInput>;
@@ -22337,12 +22451,8 @@ export type QueryFindManyAppLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAppsArgs = {
   input?: InputMaybe<FindManyAppsInput>;
@@ -22350,12 +22460,8 @@ export type QueryFindManyAppsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatDatakeepersArgs = {
   input?: InputMaybe<FindManyAttributeFormatDatakeepersInput>;
@@ -22363,12 +22469,8 @@ export type QueryFindManyAttributeFormatDatakeepersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatDigidentitiesArgs = {
   input?: InputMaybe<FindManyAttributeFormatDigidentitiesInput>;
@@ -22376,12 +22478,8 @@ export type QueryFindManyAttributeFormatDigidentitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatMsoMdocsArgs = {
   input?: InputMaybe<FindManyAttributeFormatMsoMdocsInput>;
@@ -22389,12 +22487,8 @@ export type QueryFindManyAttributeFormatMsoMdocsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatNectsArgs = {
   input?: InputMaybe<FindManyAttributeFormatNectsInput>;
@@ -22402,12 +22496,8 @@ export type QueryFindManyAttributeFormatNectsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatNlWalletsArgs = {
   input?: InputMaybe<FindManyAttributeFormatNlWalletsInput>;
@@ -22415,12 +22505,8 @@ export type QueryFindManyAttributeFormatNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatReadidsArgs = {
   input?: InputMaybe<FindManyAttributeFormatReadidsInput>;
@@ -22428,12 +22514,8 @@ export type QueryFindManyAttributeFormatReadidsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatSdJwtsArgs = {
   input?: InputMaybe<FindManyAttributeFormatSdJwtsInput>;
@@ -22441,12 +22523,8 @@ export type QueryFindManyAttributeFormatSdJwtsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatYivisArgs = {
   input?: InputMaybe<FindManyAttributeFormatYivisInput>;
@@ -22454,12 +22532,8 @@ export type QueryFindManyAttributeFormatYivisArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeFormatYotisArgs = {
   input?: InputMaybe<FindManyAttributeFormatYotisInput>;
@@ -22467,12 +22541,8 @@ export type QueryFindManyAttributeFormatYotisArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeLabelsArgs = {
   input?: InputMaybe<FindManyAttributeLabelsInput>;
@@ -22480,12 +22550,8 @@ export type QueryFindManyAttributeLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributeLocalesArgs = {
   input?: InputMaybe<FindManyAttributeLocalesInput>;
@@ -22493,12 +22559,8 @@ export type QueryFindManyAttributeLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAttributesArgs = {
   input?: InputMaybe<FindManyAttributesInput>;
@@ -22506,12 +22568,8 @@ export type QueryFindManyAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationActivitiesArgs = {
   input?: InputMaybe<FindManyAuthenticationActivitiesInput>;
@@ -22519,12 +22577,8 @@ export type QueryFindManyAuthenticationActivitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationBrandsArgs = {
   input?: InputMaybe<FindManyAuthenticationBrandsInput>;
@@ -22532,12 +22586,8 @@ export type QueryFindManyAuthenticationBrandsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationDomainsArgs = {
   input?: InputMaybe<FindManyAuthenticationDomainsInput>;
@@ -22545,12 +22595,8 @@ export type QueryFindManyAuthenticationDomainsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationHandlerConfigurationNlWalletsArgs = {
   input?: InputMaybe<FindManyAuthenticationHandlerConfigurationNlWalletsInput>;
@@ -22558,12 +22604,8 @@ export type QueryFindManyAuthenticationHandlerConfigurationNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationHandlerConfigurationsArgs = {
   input?: InputMaybe<FindManyAuthenticationHandlerConfigurationsInput>;
@@ -22571,12 +22613,8 @@ export type QueryFindManyAuthenticationHandlerConfigurationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationHandlersArgs = {
   input?: InputMaybe<FindManyAuthenticationHandlersInput>;
@@ -22584,12 +22622,8 @@ export type QueryFindManyAuthenticationHandlersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationLabelsArgs = {
   input?: InputMaybe<FindManyAuthenticationLabelsInput>;
@@ -22597,12 +22631,8 @@ export type QueryFindManyAuthenticationLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationScopesArgs = {
   input?: InputMaybe<FindManyAuthenticationScopesInput>;
@@ -22610,12 +22640,8 @@ export type QueryFindManyAuthenticationScopesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationSecretsArgs = {
   input?: InputMaybe<FindManyAuthenticationSecretsInput>;
@@ -22623,12 +22649,8 @@ export type QueryFindManyAuthenticationSecretsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyAuthenticationsArgs = {
   input?: InputMaybe<FindManyAuthenticationsInput>;
@@ -22636,12 +22658,26 @@ export type QueryFindManyAuthenticationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindManyBillingFlowAppCostOverviewsArgs = {
+  input?: InputMaybe<FindManyBillingFlowAppCostOverviewsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindManyBillingFlowCostOverviewsArgs = {
+  input?: InputMaybe<FindManyBillingFlowCostOverviewsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingMethodsArgs = {
   input?: InputMaybe<FindManyBillingMethodsInput>;
@@ -22649,12 +22685,8 @@ export type QueryFindManyBillingMethodsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingPlansArgs = {
   input?: InputMaybe<FindManyBillingPlansInput>;
@@ -22662,12 +22694,8 @@ export type QueryFindManyBillingPlansArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionMetaFlowAttributesArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionMetaFlowAttributesInput>;
@@ -22675,12 +22703,8 @@ export type QueryFindManyBillingWalletTransactionMetaFlowAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionMetaFlowsArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionMetaFlowsInput>;
@@ -22688,12 +22712,8 @@ export type QueryFindManyBillingWalletTransactionMetaFlowsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionMetaPlansArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionMetaPlansInput>;
@@ -22701,12 +22721,8 @@ export type QueryFindManyBillingWalletTransactionMetaPlansArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionMetaWalletsArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionMetaWalletsInput>;
@@ -22714,12 +22730,8 @@ export type QueryFindManyBillingWalletTransactionMetaWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionMetasArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionMetasInput>;
@@ -22727,12 +22739,8 @@ export type QueryFindManyBillingWalletTransactionMetasArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletTransactionsArgs = {
   input?: InputMaybe<FindManyBillingWalletTransactionsInput>;
@@ -22740,12 +22748,8 @@ export type QueryFindManyBillingWalletTransactionsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingWalletsArgs = {
   input?: InputMaybe<FindManyBillingWalletsInput>;
@@ -22753,12 +22757,8 @@ export type QueryFindManyBillingWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyBillingsArgs = {
   input?: InputMaybe<FindManyBillingsInput>;
@@ -22766,12 +22766,8 @@ export type QueryFindManyBillingsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialChangeLogsArgs = {
   input?: InputMaybe<FindManyCredentialChangeLogsInput>;
@@ -22779,12 +22775,8 @@ export type QueryFindManyCredentialChangeLogsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatDatakeepersArgs = {
   input?: InputMaybe<FindManyCredentialFormatDatakeepersInput>;
@@ -22792,12 +22784,8 @@ export type QueryFindManyCredentialFormatDatakeepersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatDigidentitiesArgs = {
   input?: InputMaybe<FindManyCredentialFormatDigidentitiesInput>;
@@ -22805,12 +22793,8 @@ export type QueryFindManyCredentialFormatDigidentitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatMsoMdocsArgs = {
   input?: InputMaybe<FindManyCredentialFormatMsoMdocsInput>;
@@ -22818,12 +22802,8 @@ export type QueryFindManyCredentialFormatMsoMdocsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatNectsArgs = {
   input?: InputMaybe<FindManyCredentialFormatNectsInput>;
@@ -22831,12 +22811,8 @@ export type QueryFindManyCredentialFormatNectsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatNlWalletsArgs = {
   input?: InputMaybe<FindManyCredentialFormatNlWalletsInput>;
@@ -22844,12 +22820,8 @@ export type QueryFindManyCredentialFormatNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatReadidsArgs = {
   input?: InputMaybe<FindManyCredentialFormatReadidsInput>;
@@ -22857,12 +22829,8 @@ export type QueryFindManyCredentialFormatReadidsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatSdJwtsArgs = {
   input?: InputMaybe<FindManyCredentialFormatSdJwtsInput>;
@@ -22870,12 +22838,8 @@ export type QueryFindManyCredentialFormatSdJwtsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatYivisArgs = {
   input?: InputMaybe<FindManyCredentialFormatYivisInput>;
@@ -22883,12 +22847,8 @@ export type QueryFindManyCredentialFormatYivisArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialFormatYotisArgs = {
   input?: InputMaybe<FindManyCredentialFormatYotisInput>;
@@ -22896,12 +22856,8 @@ export type QueryFindManyCredentialFormatYotisArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialLabelsArgs = {
   input?: InputMaybe<FindManyCredentialLabelsInput>;
@@ -22909,12 +22865,8 @@ export type QueryFindManyCredentialLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialLocalesArgs = {
   input?: InputMaybe<FindManyCredentialLocalesInput>;
@@ -22922,12 +22874,8 @@ export type QueryFindManyCredentialLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordEventsArgs = {
   input?: InputMaybe<FindManyCredentialRecordEventsInput>;
@@ -22935,12 +22883,8 @@ export type QueryFindManyCredentialRecordEventsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordMetaArgs = {
   input?: InputMaybe<FindManyCredentialRecordMetaInput>;
@@ -22948,12 +22892,8 @@ export type QueryFindManyCredentialRecordMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordMetaTokenStatusListArgs = {
   input?: InputMaybe<FindManyCredentialRecordMetaTokenStatusListInput>;
@@ -22961,12 +22901,8 @@ export type QueryFindManyCredentialRecordMetaTokenStatusListArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordMetaYiviRevocationArgs = {
   input?: InputMaybe<FindManyCredentialRecordMetaYiviRevocationInput>;
@@ -22974,12 +22910,8 @@ export type QueryFindManyCredentialRecordMetaYiviRevocationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordSnapshotsArgs = {
   input?: InputMaybe<FindManyCredentialRecordSnapshotsInput>;
@@ -22987,12 +22919,8 @@ export type QueryFindManyCredentialRecordSnapshotsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialRecordsArgs = {
   input?: InputMaybe<FindManyCredentialRecordsInput>;
@@ -23000,12 +22928,8 @@ export type QueryFindManyCredentialRecordsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialTrustIssuersArgs = {
   input?: InputMaybe<FindManyCredentialTrustIssuersInput>;
@@ -23013,12 +22937,8 @@ export type QueryFindManyCredentialTrustIssuersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialVersionsArgs = {
   input?: InputMaybe<FindManyCredentialVersionsInput>;
@@ -23026,12 +22946,8 @@ export type QueryFindManyCredentialVersionsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyCredentialsArgs = {
   input?: InputMaybe<FindManyCredentialsInput>;
@@ -23039,12 +22955,8 @@ export type QueryFindManyCredentialsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureActivitiesArgs = {
   input?: InputMaybe<FindManyDisclosureActivitiesInput>;
@@ -23052,12 +22964,8 @@ export type QueryFindManyDisclosureActivitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureAttributesArgs = {
   input?: InputMaybe<FindManyDisclosureAttributesInput>;
@@ -23065,12 +22973,8 @@ export type QueryFindManyDisclosureAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureBrandsArgs = {
   input?: InputMaybe<FindManyDisclosureBrandsInput>;
@@ -23078,12 +22982,8 @@ export type QueryFindManyDisclosureBrandsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureCredentialsArgs = {
   input?: InputMaybe<FindManyDisclosureCredentialsInput>;
@@ -23091,12 +22991,8 @@ export type QueryFindManyDisclosureCredentialsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureDomainsArgs = {
   input?: InputMaybe<FindManyDisclosureDomainsInput>;
@@ -23104,12 +23000,8 @@ export type QueryFindManyDisclosureDomainsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureGroupsArgs = {
   input?: InputMaybe<FindManyDisclosureGroupsInput>;
@@ -23117,12 +23009,8 @@ export type QueryFindManyDisclosureGroupsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureHandlerConfigurationNlWalletsArgs = {
   input?: InputMaybe<FindManyDisclosureHandlerConfigurationNlWalletsInput>;
@@ -23130,12 +23018,17 @@ export type QueryFindManyDisclosureHandlerConfigurationNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindManyDisclosureHandlerConfigurationOid4VCsArgs = {
+  input?: InputMaybe<FindManyDisclosureHandlerConfigurationOid4VCsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureHandlerConfigurationsArgs = {
   input?: InputMaybe<FindManyDisclosureHandlerConfigurationsInput>;
@@ -23143,12 +23036,8 @@ export type QueryFindManyDisclosureHandlerConfigurationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureHandlersArgs = {
   input?: InputMaybe<FindManyDisclosureHandlersInput>;
@@ -23156,12 +23045,8 @@ export type QueryFindManyDisclosureHandlersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureLabelsArgs = {
   input?: InputMaybe<FindManyDisclosureLabelsInput>;
@@ -23169,12 +23054,8 @@ export type QueryFindManyDisclosureLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureMappingsArgs = {
   input?: InputMaybe<FindManyDisclosureMappingsInput>;
@@ -23182,12 +23063,8 @@ export type QueryFindManyDisclosureMappingsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosureSecretsArgs = {
   input?: InputMaybe<FindManyDisclosureSecretsInput>;
@@ -23195,12 +23072,8 @@ export type QueryFindManyDisclosureSecretsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyDisclosuresArgs = {
   input?: InputMaybe<FindManyDisclosuresInput>;
@@ -23208,12 +23081,8 @@ export type QueryFindManyDisclosuresArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlerAppProtocolMdocsArgs = {
   input?: InputMaybe<FindManyHandlerAppProtocolMdocsInput>;
@@ -23221,12 +23090,8 @@ export type QueryFindManyHandlerAppProtocolMdocsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlerAppProtocolOid4vcsArgs = {
   input?: InputMaybe<FindManyHandlerAppProtocolOid4vcsInput>;
@@ -23234,12 +23099,8 @@ export type QueryFindManyHandlerAppProtocolOid4vcsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlerAppsArgs = {
   input?: InputMaybe<FindManyHandlerAppsInput>;
@@ -23247,12 +23108,8 @@ export type QueryFindManyHandlerAppsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlerLabelsArgs = {
   input?: InputMaybe<FindManyHandlerLabelsInput>;
@@ -23260,12 +23117,8 @@ export type QueryFindManyHandlerLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlerLocalesArgs = {
   input?: InputMaybe<FindManyHandlerLocalesInput>;
@@ -23273,12 +23126,8 @@ export type QueryFindManyHandlerLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyHandlersArgs = {
   input?: InputMaybe<FindManyHandlersInput>;
@@ -23286,12 +23135,8 @@ export type QueryFindManyHandlersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceActivitiesArgs = {
   input?: InputMaybe<FindManyIssuanceActivitiesInput>;
@@ -23299,12 +23144,8 @@ export type QueryFindManyIssuanceActivitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceAttributesArgs = {
   input?: InputMaybe<FindManyIssuanceAttributesInput>;
@@ -23312,12 +23153,8 @@ export type QueryFindManyIssuanceAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceBrandsArgs = {
   input?: InputMaybe<FindManyIssuanceBrandsInput>;
@@ -23325,12 +23162,8 @@ export type QueryFindManyIssuanceBrandsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceCredentialMetaArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialMetaInput>;
@@ -23338,12 +23171,8 @@ export type QueryFindManyIssuanceCredentialMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceCredentialMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialMetaDatakeeperInput>;
@@ -23351,12 +23180,8 @@ export type QueryFindManyIssuanceCredentialMetaDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceCredentialMetaOid4vcArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialMetaOid4vcInput>;
@@ -23364,12 +23189,8 @@ export type QueryFindManyIssuanceCredentialMetaOid4vcArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceCredentialMetaYiviArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialMetaYiviInput>;
@@ -23377,12 +23198,8 @@ export type QueryFindManyIssuanceCredentialMetaYiviArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceCredentialsArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialsInput>;
@@ -23390,12 +23207,8 @@ export type QueryFindManyIssuanceCredentialsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceDomainsArgs = {
   input?: InputMaybe<FindManyIssuanceDomainsInput>;
@@ -23403,12 +23216,8 @@ export type QueryFindManyIssuanceDomainsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceHandlerConfigurationNlWalletsArgs = {
   input?: InputMaybe<FindManyIssuanceHandlerConfigurationNlWalletsInput>;
@@ -23416,12 +23225,17 @@ export type QueryFindManyIssuanceHandlerConfigurationNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindManyIssuanceHandlerConfigurationOid4VCsArgs = {
+  input?: InputMaybe<FindManyIssuanceHandlerConfigurationOid4VCsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceHandlerConfigurationsArgs = {
   input?: InputMaybe<FindManyIssuanceHandlerConfigurationsInput>;
@@ -23429,12 +23243,8 @@ export type QueryFindManyIssuanceHandlerConfigurationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceHandlersArgs = {
   input?: InputMaybe<FindManyIssuanceHandlersInput>;
@@ -23442,12 +23252,8 @@ export type QueryFindManyIssuanceHandlersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceLabelsArgs = {
   input?: InputMaybe<FindManyIssuanceLabelsInput>;
@@ -23455,12 +23261,8 @@ export type QueryFindManyIssuanceLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceMappingsArgs = {
   input?: InputMaybe<FindManyIssuanceMappingsInput>;
@@ -23468,12 +23270,8 @@ export type QueryFindManyIssuanceMappingsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceRunEventsArgs = {
   input?: InputMaybe<FindManyIssuanceRunEventsInput>;
@@ -23481,12 +23279,8 @@ export type QueryFindManyIssuanceRunEventsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceRunsArgs = {
   input?: InputMaybe<FindManyIssuanceRunsInput>;
@@ -23494,12 +23288,8 @@ export type QueryFindManyIssuanceRunsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuanceSecretsArgs = {
   input?: InputMaybe<FindManyIssuanceSecretsInput>;
@@ -23507,12 +23297,8 @@ export type QueryFindManyIssuanceSecretsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuancesArgs = {
   input?: InputMaybe<FindManyIssuancesInput>;
@@ -23520,12 +23306,8 @@ export type QueryFindManyIssuancesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuerChangeLogsArgs = {
   input?: InputMaybe<FindManyIssuerChangeLogsInput>;
@@ -23533,12 +23315,8 @@ export type QueryFindManyIssuerChangeLogsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuerLabelsArgs = {
   input?: InputMaybe<FindManyIssuerLabelsInput>;
@@ -23546,12 +23324,8 @@ export type QueryFindManyIssuerLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuerLocalesArgs = {
   input?: InputMaybe<FindManyIssuerLocalesInput>;
@@ -23559,12 +23333,8 @@ export type QueryFindManyIssuerLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuerVersionsArgs = {
   input?: InputMaybe<FindManyIssuerVersionsInput>;
@@ -23572,12 +23342,8 @@ export type QueryFindManyIssuerVersionsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyIssuersArgs = {
   input?: InputMaybe<FindManyIssuersInput>;
@@ -23585,12 +23351,8 @@ export type QueryFindManyIssuersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyLabelsArgs = {
   input?: InputMaybe<FindManyLabelsInput>;
@@ -23598,12 +23360,8 @@ export type QueryFindManyLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyLocaleConfigsArgs = {
   input?: InputMaybe<FindManyLocaleConfigsInput>;
@@ -23611,12 +23369,8 @@ export type QueryFindManyLocaleConfigsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMaintenancesArgs = {
   input?: InputMaybe<FindManyMaintenancesInput>;
@@ -23624,12 +23378,8 @@ export type QueryFindManyMaintenancesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingIssuanceAttributesArgs = {
   input?: InputMaybe<FindManyMappingIssuanceAttributesInput>;
@@ -23637,12 +23387,8 @@ export type QueryFindManyMappingIssuanceAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingIssuanceClaimsArgs = {
   input?: InputMaybe<FindManyMappingIssuanceClaimsInput>;
@@ -23650,12 +23396,8 @@ export type QueryFindManyMappingIssuanceClaimsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingIssuanceLinksArgs = {
   input?: InputMaybe<FindManyMappingIssuanceLinksInput>;
@@ -23663,12 +23405,8 @@ export type QueryFindManyMappingIssuanceLinksArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingIssuancesArgs = {
   input?: InputMaybe<FindManyMappingIssuancesInput>;
@@ -23676,12 +23414,8 @@ export type QueryFindManyMappingIssuancesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingVerificationAttributesArgs = {
   input?: InputMaybe<FindManyMappingVerificationAttributesInput>;
@@ -23689,12 +23423,8 @@ export type QueryFindManyMappingVerificationAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingVerificationClaimsArgs = {
   input?: InputMaybe<FindManyMappingVerificationClaimsInput>;
@@ -23702,12 +23432,8 @@ export type QueryFindManyMappingVerificationClaimsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingVerificationLinksArgs = {
   input?: InputMaybe<FindManyMappingVerificationLinksInput>;
@@ -23715,12 +23441,8 @@ export type QueryFindManyMappingVerificationLinksArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyMappingVerificationsArgs = {
   input?: InputMaybe<FindManyMappingVerificationsInput>;
@@ -23728,12 +23450,8 @@ export type QueryFindManyMappingVerificationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOAuthProvidersArgs = {
   input?: InputMaybe<FindManyOAuthProvidersInput>;
@@ -23741,12 +23459,8 @@ export type QueryFindManyOAuthProvidersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAddressesArgs = {
   input?: InputMaybe<FindManyOrganizationAddressesInput>;
@@ -23754,12 +23468,8 @@ export type QueryFindManyOrganizationAddressesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAlertDeprecationsArgs = {
   input?: InputMaybe<FindManyOrganizationAlertDeprecationsInput>;
@@ -23767,12 +23477,8 @@ export type QueryFindManyOrganizationAlertDeprecationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAlertsArgs = {
   input?: InputMaybe<FindManyOrganizationAlertsInput>;
@@ -23780,12 +23486,8 @@ export type QueryFindManyOrganizationAlertsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppArgs = {
   input?: InputMaybe<FindManyOrganizationAppsInput>;
@@ -23793,12 +23495,8 @@ export type QueryFindManyOrganizationAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppMetaArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaInput>;
@@ -23806,12 +23504,8 @@ export type QueryFindManyOrganizationAppMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppMetaDatakeeperArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaDatakeeperInput>;
@@ -23819,12 +23513,8 @@ export type QueryFindManyOrganizationAppMetaDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppMetaKiwaArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaKiwaInput>;
@@ -23832,12 +23522,8 @@ export type QueryFindManyOrganizationAppMetaKiwaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppMetaOid4vcArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaOid4vcInput>;
@@ -23845,12 +23531,8 @@ export type QueryFindManyOrganizationAppMetaOid4vcArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationAppMetaYotiArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaYotiInput>;
@@ -23858,12 +23540,8 @@ export type QueryFindManyOrganizationAppMetaYotiArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationBrandLabelsArgs = {
   input?: InputMaybe<FindManyOrganizationBrandLabelsInput>;
@@ -23871,12 +23549,8 @@ export type QueryFindManyOrganizationBrandLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationBrandsArgs = {
   input?: InputMaybe<FindManyOrganizationBrandsInput>;
@@ -23884,12 +23558,8 @@ export type QueryFindManyOrganizationBrandsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationClientsArgs = {
   input?: InputMaybe<FindManyOrganizationClientsInput>;
@@ -23897,12 +23567,8 @@ export type QueryFindManyOrganizationClientsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationDomainLabelsArgs = {
   input?: InputMaybe<FindManyOrganizationDomainLabelsInput>;
@@ -23910,12 +23576,8 @@ export type QueryFindManyOrganizationDomainLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationDomainOAuthProvidersArgs = {
   input?: InputMaybe<FindManyOrganizationDomainOAuthProvidersInput>;
@@ -23923,12 +23585,8 @@ export type QueryFindManyOrganizationDomainOAuthProvidersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationDomainValidationsArgs = {
   input?: InputMaybe<FindManyOrganizationDomainValidationsInput>;
@@ -23936,12 +23594,8 @@ export type QueryFindManyOrganizationDomainValidationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationDomainsArgs = {
   input?: InputMaybe<FindManyOrganizationDomainsInput>;
@@ -23949,12 +23603,8 @@ export type QueryFindManyOrganizationDomainsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationNotificationEventsArgs = {
   input?: InputMaybe<FindManyOrganizationNotificationEventsInput>;
@@ -23962,12 +23612,8 @@ export type QueryFindManyOrganizationNotificationEventsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationNotificationsArgs = {
   input?: InputMaybe<FindManyOrganizationNotificationsInput>;
@@ -23975,12 +23621,8 @@ export type QueryFindManyOrganizationNotificationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationQuotasArgs = {
   input?: InputMaybe<FindManyOrganizationQuotasInput>;
@@ -23988,12 +23630,8 @@ export type QueryFindManyOrganizationQuotasArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationSecretsArgs = {
   input?: InputMaybe<FindManyOrganizationSecretsInput>;
@@ -24001,12 +23639,8 @@ export type QueryFindManyOrganizationSecretsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationTrustIssuerKeyArgs = {
   input?: InputMaybe<FindManyOrganizationTrustIssuerKeysInput>;
@@ -24014,12 +23648,8 @@ export type QueryFindManyOrganizationTrustIssuerKeyArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationUsersArgs = {
   input?: InputMaybe<FindManyOrganizationUsersInput>;
@@ -24027,12 +23657,8 @@ export type QueryFindManyOrganizationUsersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationsArgs = {
   input?: InputMaybe<FindManyOrganizationsInput>;
@@ -24040,12 +23666,8 @@ export type QueryFindManyOrganizationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyOrganizationsWithStudioPlanArgs = {
   input?: InputMaybe<FindManyOrganizationsInput>;
@@ -24054,12 +23676,8 @@ export type QueryFindManyOrganizationsWithStudioPlanArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPaymentProviderEventsArgs = {
   input?: InputMaybe<FindManyPaymentProviderEventsInput>;
@@ -24067,12 +23685,8 @@ export type QueryFindManyPaymentProviderEventsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPaymentProviderInvoicesArgs = {
   input?: InputMaybe<FindManyPaymentProviderInvoicesInput>;
@@ -24080,12 +23694,8 @@ export type QueryFindManyPaymentProviderInvoicesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPaymentProviderMethodsArgs = {
   input?: InputMaybe<FindManyPaymentProviderMethodsInput>;
@@ -24093,12 +23703,8 @@ export type QueryFindManyPaymentProviderMethodsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPaymentProviderOrganizationsArgs = {
   input?: InputMaybe<FindManyPaymentProviderOrganizationsInput>;
@@ -24106,12 +23712,8 @@ export type QueryFindManyPaymentProviderOrganizationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPaymentProvidersArgs = {
   input?: InputMaybe<FindManyPaymentProvidersInput>;
@@ -24119,12 +23721,8 @@ export type QueryFindManyPaymentProvidersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingCatalogsArgs = {
   input?: InputMaybe<FindManyPricingCatalogsInput>;
@@ -24132,12 +23730,8 @@ export type QueryFindManyPricingCatalogsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingConfigurationAppsArgs = {
   input?: InputMaybe<FindManyPricingConfigurationAppsInput>;
@@ -24145,12 +23739,8 @@ export type QueryFindManyPricingConfigurationAppsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingConfigurationOrganizationsArgs = {
   input?: InputMaybe<FindManyPricingConfigurationOrganizationsInput>;
@@ -24158,12 +23748,8 @@ export type QueryFindManyPricingConfigurationOrganizationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingConfigurationStudioPlansArgs = {
   input?: InputMaybe<FindManyPricingConfigurationStudioPlansInput>;
@@ -24171,12 +23757,8 @@ export type QueryFindManyPricingConfigurationStudioPlansArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingGroupAssignmentsArgs = {
   input?: InputMaybe<FindManyPricingGroupAssignmentsInput>;
@@ -24184,12 +23766,8 @@ export type QueryFindManyPricingGroupAssignmentsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingGroupsArgs = {
   input?: InputMaybe<FindManyPricingGroupsInput>;
@@ -24197,12 +23775,8 @@ export type QueryFindManyPricingGroupsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingRuleConstraintsArgs = {
   input?: InputMaybe<FindManyPricingRuleConstraintsInput>;
@@ -24210,12 +23784,8 @@ export type QueryFindManyPricingRuleConstraintsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingRuleTargetsArgs = {
   input?: InputMaybe<FindManyPricingRuleTargetsInput>;
@@ -24223,12 +23793,8 @@ export type QueryFindManyPricingRuleTargetsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyPricingRulesArgs = {
   input?: InputMaybe<FindManyPricingRulesInput>;
@@ -24236,12 +23802,8 @@ export type QueryFindManyPricingRulesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyScopeClaimsArgs = {
   input?: InputMaybe<FindManyScopeClaimsInput>;
@@ -24249,12 +23811,8 @@ export type QueryFindManyScopeClaimsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyScopeLocalesArgs = {
   input?: InputMaybe<FindManyScopeLocalesInput>;
@@ -24262,12 +23820,8 @@ export type QueryFindManyScopeLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyScopeResourcesArgs = {
   input?: InputMaybe<FindManyScopeResourcesInput>;
@@ -24275,12 +23829,8 @@ export type QueryFindManyScopeResourcesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyScopesArgs = {
   input?: InputMaybe<FindManyScopesInput>;
@@ -24288,12 +23838,8 @@ export type QueryFindManyScopesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureActivitiesArgs = {
   input?: InputMaybe<FindManySignatureActivitiesInput>;
@@ -24301,12 +23847,8 @@ export type QueryFindManySignatureActivitiesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureAttributesArgs = {
   input?: InputMaybe<FindManySignatureAttributesInput>;
@@ -24314,12 +23856,8 @@ export type QueryFindManySignatureAttributesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureBrandsArgs = {
   input?: InputMaybe<FindManySignatureBrandsInput>;
@@ -24327,12 +23865,8 @@ export type QueryFindManySignatureBrandsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureCredentialsArgs = {
   input?: InputMaybe<FindManySignatureCredentialsInput>;
@@ -24340,12 +23874,8 @@ export type QueryFindManySignatureCredentialsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureDomainsArgs = {
   input?: InputMaybe<FindManySignatureDomainsInput>;
@@ -24353,12 +23883,8 @@ export type QueryFindManySignatureDomainsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureGroupsArgs = {
   input?: InputMaybe<FindManySignatureGroupsInput>;
@@ -24366,12 +23892,8 @@ export type QueryFindManySignatureGroupsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureHandlerConfigurationNlWalletsArgs = {
   input?: InputMaybe<FindManySignatureHandlerConfigurationNlWalletsInput>;
@@ -24379,12 +23901,8 @@ export type QueryFindManySignatureHandlerConfigurationNlWalletsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureHandlerConfigurationsArgs = {
   input?: InputMaybe<FindManySignatureHandlerConfigurationsInput>;
@@ -24392,12 +23910,8 @@ export type QueryFindManySignatureHandlerConfigurationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureHandlersArgs = {
   input?: InputMaybe<FindManySignatureHandlersInput>;
@@ -24405,12 +23919,8 @@ export type QueryFindManySignatureHandlersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureLabelsArgs = {
   input?: InputMaybe<FindManySignatureLabelsInput>;
@@ -24418,12 +23928,8 @@ export type QueryFindManySignatureLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureMappingsArgs = {
   input?: InputMaybe<FindManySignatureMappingsInput>;
@@ -24431,12 +23937,8 @@ export type QueryFindManySignatureMappingsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignatureSecretsArgs = {
   input?: InputMaybe<FindManySignatureSecretsInput>;
@@ -24444,12 +23946,8 @@ export type QueryFindManySignatureSecretsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManySignaturesArgs = {
   input?: InputMaybe<FindManySignaturesInput>;
@@ -24457,12 +23955,8 @@ export type QueryFindManySignaturesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStatusListsArgs = {
   input?: InputMaybe<FindManyStatusListsInput>;
@@ -24470,12 +23964,8 @@ export type QueryFindManyStatusListsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStudioPlanControlOverridesArgs = {
   input?: InputMaybe<FindManyStudioPlanControlOverridesInput>;
@@ -24483,12 +23973,8 @@ export type QueryFindManyStudioPlanControlOverridesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStudioPlanControlsArgs = {
   input?: InputMaybe<FindManyStudioPlanControlsInput>;
@@ -24496,12 +23982,8 @@ export type QueryFindManyStudioPlanControlsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStudioPlanIntervalsArgs = {
   input?: InputMaybe<FindManyStudioPlanIntervalsInput>;
@@ -24509,12 +23991,8 @@ export type QueryFindManyStudioPlanIntervalsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStudioPlanOrganizationsArgs = {
   input?: InputMaybe<FindManyStudioPlanOrganizationsInput>;
@@ -24522,12 +24000,8 @@ export type QueryFindManyStudioPlanOrganizationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyStudioPlansArgs = {
   input?: InputMaybe<FindManyStudioPlansInput>;
@@ -24535,12 +24009,8 @@ export type QueryFindManyStudioPlansArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustAnchorDidsArgs = {
   input?: InputMaybe<FindManyTrustAnchorDidsInput>;
@@ -24548,12 +24018,8 @@ export type QueryFindManyTrustAnchorDidsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustAnchorIdemixesArgs = {
   input?: InputMaybe<FindManyTrustAnchorIdemixesInput>;
@@ -24561,12 +24027,8 @@ export type QueryFindManyTrustAnchorIdemixesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustAnchorX509RootCertificatesArgs = {
   input?: InputMaybe<FindManyTrustAnchorX509RootCertificatesInput>;
@@ -24574,12 +24036,8 @@ export type QueryFindManyTrustAnchorX509RootCertificatesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustAnchorX509sArgs = {
   input?: InputMaybe<FindManyTrustAnchorX509sInput>;
@@ -24587,12 +24045,8 @@ export type QueryFindManyTrustAnchorX509sArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustAppsArgs = {
   input?: InputMaybe<FindManyTrustAppsInput>;
@@ -24600,12 +24054,8 @@ export type QueryFindManyTrustAppsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustChangeLogsArgs = {
   input?: InputMaybe<FindManyTrustChangeLogsInput>;
@@ -24613,12 +24063,8 @@ export type QueryFindManyTrustChangeLogsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustIssuerKeyAlgorithmIdemixesArgs = {
   input?: InputMaybe<FindManyTrustIssuerKeyAlgorithmIdemixesInput>;
@@ -24626,12 +24072,8 @@ export type QueryFindManyTrustIssuerKeyAlgorithmIdemixesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustIssuerKeyDidBindingsArgs = {
   input?: InputMaybe<FindManyTrustIssuerKeyDidBindingsInput>;
@@ -24639,12 +24081,8 @@ export type QueryFindManyTrustIssuerKeyDidBindingsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustIssuerKeyX509CertsArgs = {
   input?: InputMaybe<FindManyTrustIssuerKeyX509CertsInput>;
@@ -24652,12 +24090,8 @@ export type QueryFindManyTrustIssuerKeyX509CertsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustIssuerKeysArgs = {
   input?: InputMaybe<FindManyTrustIssuerKeysInput>;
@@ -24665,12 +24099,8 @@ export type QueryFindManyTrustIssuerKeysArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustIssuersArgs = {
   input?: InputMaybe<FindManyTrustIssuersInput>;
@@ -24678,12 +24108,8 @@ export type QueryFindManyTrustIssuersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustLabelsArgs = {
   input?: InputMaybe<FindManyTrustLabelsInput>;
@@ -24691,12 +24117,8 @@ export type QueryFindManyTrustLabelsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustLocalesArgs = {
   input?: InputMaybe<FindManyTrustLocalesInput>;
@@ -24704,12 +24126,8 @@ export type QueryFindManyTrustLocalesArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustVersionsArgs = {
   input?: InputMaybe<FindManyTrustVersionsInput>;
@@ -24717,12 +24135,8 @@ export type QueryFindManyTrustVersionsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyTrustsArgs = {
   input?: InputMaybe<FindManyTrustsInput>;
@@ -24730,12 +24144,8 @@ export type QueryFindManyTrustsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyUserInvitationsArgs = {
   input?: InputMaybe<FindManyUserInvitationsInput>;
@@ -24743,12 +24153,8 @@ export type QueryFindManyUserInvitationsArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindManyUsersArgs = {
   input?: InputMaybe<FindManyUsersInput>;
@@ -24756,12 +24162,8 @@ export type QueryFindManyUsersArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingIssuanceArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24769,12 +24171,8 @@ export type QueryFindMappingIssuanceArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingIssuanceAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24782,12 +24180,8 @@ export type QueryFindMappingIssuanceAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingIssuanceClaimArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24795,12 +24189,8 @@ export type QueryFindMappingIssuanceClaimArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingIssuanceLinkArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24808,12 +24198,8 @@ export type QueryFindMappingIssuanceLinkArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingVerificationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24821,12 +24207,8 @@ export type QueryFindMappingVerificationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingVerificationAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24834,12 +24216,8 @@ export type QueryFindMappingVerificationAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingVerificationClaimArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24847,12 +24225,8 @@ export type QueryFindMappingVerificationClaimArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindMappingVerificationLinkArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24860,12 +24234,8 @@ export type QueryFindMappingVerificationLinkArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOAuthMethodsByOrganizationDomainArgs = {
   input: FindOAuthMethodsByOrganizationDomainInput;
@@ -24873,12 +24243,8 @@ export type QueryFindOAuthMethodsByOrganizationDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOAuthProviderArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24886,12 +24252,8 @@ export type QueryFindOAuthProviderArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24899,12 +24261,8 @@ export type QueryFindOrganizationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAddressArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24912,12 +24270,8 @@ export type QueryFindOrganizationAddressArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAlertArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24925,12 +24279,8 @@ export type QueryFindOrganizationAlertArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAlertDeprecationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24938,12 +24288,8 @@ export type QueryFindOrganizationAlertDeprecationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24951,12 +24297,8 @@ export type QueryFindOrganizationAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppMetaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24964,12 +24306,8 @@ export type QueryFindOrganizationAppMetaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppMetaDatakeeperArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24977,12 +24315,8 @@ export type QueryFindOrganizationAppMetaDatakeeperArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppMetaKiwaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -24990,12 +24324,8 @@ export type QueryFindOrganizationAppMetaKiwaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppMetaOid4vcArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25003,12 +24333,8 @@ export type QueryFindOrganizationAppMetaOid4vcArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationAppMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25016,12 +24342,8 @@ export type QueryFindOrganizationAppMetaYotiArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25029,12 +24351,8 @@ export type QueryFindOrganizationBrandArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationBrandLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25042,12 +24360,8 @@ export type QueryFindOrganizationBrandLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationClientArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25055,12 +24369,8 @@ export type QueryFindOrganizationClientArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25068,12 +24378,8 @@ export type QueryFindOrganizationDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationDomainLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25081,12 +24387,8 @@ export type QueryFindOrganizationDomainLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationDomainOAuthProviderArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25094,12 +24396,8 @@ export type QueryFindOrganizationDomainOAuthProviderArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationDomainValidationArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25107,12 +24405,8 @@ export type QueryFindOrganizationDomainValidationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationNotificationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25120,12 +24414,8 @@ export type QueryFindOrganizationNotificationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationNotificationEventArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25133,12 +24423,8 @@ export type QueryFindOrganizationNotificationEventArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationQuotaArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25146,12 +24432,8 @@ export type QueryFindOrganizationQuotaArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25159,12 +24441,8 @@ export type QueryFindOrganizationSecretArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationTrustIssuerKeyArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25172,12 +24450,8 @@ export type QueryFindOrganizationTrustIssuerKeyArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindOrganizationUserArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25185,12 +24459,8 @@ export type QueryFindOrganizationUserArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPaymentProviderArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25198,12 +24468,8 @@ export type QueryFindPaymentProviderArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPaymentProviderEventArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25211,12 +24477,8 @@ export type QueryFindPaymentProviderEventArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPaymentProviderInvoiceArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25224,12 +24486,8 @@ export type QueryFindPaymentProviderInvoiceArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPaymentProviderMethodArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25237,12 +24495,8 @@ export type QueryFindPaymentProviderMethodArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPaymentProviderOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25250,12 +24504,8 @@ export type QueryFindPaymentProviderOrganizationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingCatalogArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25263,12 +24513,8 @@ export type QueryFindPricingCatalogArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingConfigurationAppArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25276,12 +24522,8 @@ export type QueryFindPricingConfigurationAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingConfigurationOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25289,12 +24531,8 @@ export type QueryFindPricingConfigurationOrganizationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingConfigurationStudioPlanArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25302,12 +24540,8 @@ export type QueryFindPricingConfigurationStudioPlanArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingGroupArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25315,12 +24549,8 @@ export type QueryFindPricingGroupArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingGroupAssignmentArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25328,12 +24558,8 @@ export type QueryFindPricingGroupAssignmentArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingRuleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25341,12 +24567,8 @@ export type QueryFindPricingRuleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingRuleConstraintArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25354,12 +24576,8 @@ export type QueryFindPricingRuleConstraintArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindPricingRuleTargetArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25367,12 +24585,8 @@ export type QueryFindPricingRuleTargetArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindScopeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25380,12 +24594,8 @@ export type QueryFindScopeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindScopeClaimArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25393,12 +24603,8 @@ export type QueryFindScopeClaimArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindScopeLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25406,12 +24612,8 @@ export type QueryFindScopeLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindScopeResourceArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25419,12 +24621,8 @@ export type QueryFindScopeResourceArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25432,12 +24630,8 @@ export type QueryFindSignatureArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureActivityArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25445,12 +24639,8 @@ export type QueryFindSignatureActivityArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureAttributeArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25458,12 +24648,8 @@ export type QueryFindSignatureAttributeArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureBrandArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25471,12 +24657,8 @@ export type QueryFindSignatureBrandArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureCredentialArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25484,12 +24666,8 @@ export type QueryFindSignatureCredentialArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureDomainArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25497,12 +24675,8 @@ export type QueryFindSignatureDomainArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureGroupArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25510,12 +24684,8 @@ export type QueryFindSignatureGroupArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureHandlerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25523,12 +24693,8 @@ export type QueryFindSignatureHandlerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureHandlerConfigurationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25536,12 +24702,8 @@ export type QueryFindSignatureHandlerConfigurationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureHandlerConfigurationNlWalletArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25549,12 +24711,8 @@ export type QueryFindSignatureHandlerConfigurationNlWalletArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25562,12 +24720,8 @@ export type QueryFindSignatureLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureMappingArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25575,12 +24729,8 @@ export type QueryFindSignatureMappingArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindSignatureSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25588,12 +24738,8 @@ export type QueryFindSignatureSecretArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStatusListArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25601,12 +24747,8 @@ export type QueryFindStatusListArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStudioPlanArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25614,12 +24756,8 @@ export type QueryFindStudioPlanArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStudioPlanControlArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25627,12 +24765,8 @@ export type QueryFindStudioPlanControlArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStudioPlanControlOverrideArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25640,12 +24774,8 @@ export type QueryFindStudioPlanControlOverrideArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStudioPlanIntervalArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25653,12 +24783,8 @@ export type QueryFindStudioPlanIntervalArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindStudioPlanOrganizationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25666,12 +24792,8 @@ export type QueryFindStudioPlanOrganizationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25679,12 +24801,8 @@ export type QueryFindTrustArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustAnchorDidArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25692,12 +24810,8 @@ export type QueryFindTrustAnchorDidArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustAnchorIdemixArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25705,12 +24819,8 @@ export type QueryFindTrustAnchorIdemixArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustAnchorX509Args = {
   uuid: Scalars['UUID']['input'];
@@ -25718,12 +24828,8 @@ export type QueryFindTrustAnchorX509Args = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustAnchorX509RootCertificateArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25731,12 +24837,8 @@ export type QueryFindTrustAnchorX509RootCertificateArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustAppArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25744,12 +24846,8 @@ export type QueryFindTrustAppArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustChangeLogArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25757,12 +24855,8 @@ export type QueryFindTrustChangeLogArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustIssuerArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25770,12 +24864,8 @@ export type QueryFindTrustIssuerArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustIssuerKeyArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25783,12 +24873,8 @@ export type QueryFindTrustIssuerKeyArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustIssuerKeyAlgorithmIdemixArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25796,12 +24882,8 @@ export type QueryFindTrustIssuerKeyAlgorithmIdemixArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustIssuerKeyDidBindingArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25809,12 +24891,8 @@ export type QueryFindTrustIssuerKeyDidBindingArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustIssuerKeyX509CertArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25822,12 +24900,8 @@ export type QueryFindTrustIssuerKeyX509CertArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -25835,12 +24909,8 @@ export type QueryFindTrustLabelArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustLocaleArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25848,12 +24918,8 @@ export type QueryFindTrustLocaleArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustVersionArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25861,12 +24927,8 @@ export type QueryFindTrustVersionArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindUserArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25874,12 +24936,8 @@ export type QueryFindUserArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindUserInvitationArgs = {
   uuid: Scalars['UUID']['input'];
@@ -25887,12 +24945,8 @@ export type QueryFindUserInvitationArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryGetPaymentProviderInvoiceReceiptArgs = {
   invoiceId: Scalars['NonEmpty']['input'];
@@ -25900,14 +24954,10 @@ export type QueryGetPaymentProviderInvoiceReceiptArgs = {
 
 
 /**
- * Introspect a GraphQL input type and return its JSON Schema
- * representation. All fields are included by default; fields decorated
- * with @excludeFromJsonSchema are excluded.
- *
- * Returns a standard JSON Schema object with type, properties, and
- * required keys that the UI can use to render typed form controls.
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryJsonSchemaArgs = {
+export type QueryStudioJsonSchemaArgs = {
   type: Scalars['String']['input'];
 };
 
@@ -27454,6 +26504,20 @@ export enum StudioPlanState {
   Inactive = 'INACTIVE'
 }
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  /**
+   * Subscribe to provisioning task progress updates.
+   * Yields per-child state changes. Stream ends when the parent reaches a terminal state.
+   */
+  provisioningProgressUpdated: ProvisioningProgress;
+};
+
+
+export type SubscriptionProvisioningProgressUpdatedArgs = {
+  taskUuid: Scalars['UUID']['input'];
+};
+
 /** Transition Organization Type Input */
 export type TransitionOrganizationTypeInput = {
   /** The type */
@@ -28568,8 +27632,16 @@ export type UpdateAuthenticationDomainInput = {
 
 /** Update Input */
 export type UpdateAuthenticationHandlerConfigurationNlWalletInput = {
-  /** The usecase */
-  usecase?: InputMaybe<Scalars['String']['input']>;
+  /** Whether the user can request deletion of their retained data. */
+  deletable?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** Purpose statement */
+  purposeStatement?: InputMaybe<Scalars['JSONObject']['input']>;
 };
 
 /** Update Input */
@@ -28762,10 +27834,32 @@ export type UpdateDisclosureGroupInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
+/** Input for updating DisclosureHandlerConfiguration */
+export type UpdateDisclosureHandlerConfigurationInput = {
+  nlWallet?: InputMaybe<UpdateDisclosureHandlerConfigurationNlWalletInput>;
+  oid4vc?: InputMaybe<UpdateDisclosureHandlerConfigurationOid4VcInput>;
+};
+
 /** Update Input */
 export type UpdateDisclosureHandlerConfigurationNlWalletInput = {
-  /** The usecase */
-  usecase?: InputMaybe<Scalars['String']['input']>;
+  /** Whether the user can request deletion of their retained data. */
+  deletable?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
+  /** Purpose statement */
+  purposeStatement?: InputMaybe<Scalars['JSONObject']['input']>;
+};
+
+/** Update Input */
+export type UpdateDisclosureHandlerConfigurationOid4VcInput = {
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
 };
 
 /** Update Input */
@@ -28796,52 +27890,14 @@ export type UpdateDisclosureInput = {
 
 /** Update Input */
 export type UpdateHandlerAppProtocolOid4vcInput = {
-  /** The client identifier prefix. */
-  clientIdentifierPrefix?: InputMaybe<HandlerAppProtocolOid4vcClientIdentifierPrefix>;
-  /** The credential offer delivery method. */
-  credentialOfferDelivery?: InputMaybe<HandlerAppProtocolOid4vcCredentialOfferDelivery>;
-  /** The credential response format for SD-JWT. */
-  credentialResponseFormatSdJwt?: InputMaybe<Scalars['String']['input']>;
-  /** Whether DCQL is enabled. */
-  dcql?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether DCQL claim values should be stripped. */
-  dcqlStripClaimValues?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The deep link base URL. */
-  deepLinkBaseUrl?: InputMaybe<Scalars['String']['input']>;
-  /** The deep link disclosure path. */
-  deepLinkDisclosurePath?: InputMaybe<Scalars['String']['input']>;
-  /** The deep link issuance path. */
-  deepLinkIssuancePath?: InputMaybe<Scalars['String']['input']>;
-  /** Whether disclosure based issuance is enabled. */
-  disclosureBasedIssuance?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether HAIP is enabled. */
-  haip?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether credential previews are included. */
-  includeCredentialPreviews?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether VCT integrity is included. */
-  includeVctIntegrity?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The issuance draft version. */
-  issuanceDraftVersion?: InputMaybe<Scalars['Int']['input']>;
-  /** The issuance spec type. */
-  issuanceSpecType?: InputMaybe<HandlerAppProtocolOid4vcIssuanceSpecType>;
-  /** The JAR header typ. */
-  jarHeaderTyp?: InputMaybe<HandlerAppProtocolOid4vcJarHeaderTyp>;
-  /** Whether encrypted response is required. */
-  requireEncryptedResponse?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Whether redirect URI is required. */
-  requireRedirectUri?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The response encryption enc. */
-  responseEncryptionEnc?: InputMaybe<HandlerAppProtocolOid4vcResponseEncryptionEnc>;
-  /** The SD-JWT client metadata VP format. */
-  sdJwtClientMetadataVpFormat?: InputMaybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** The SD-JWT VP format. */
-  sdJwtVpFormat?: InputMaybe<HandlerAppProtocolOid4vcSdJwtVpFormat>;
-  /** Whether credential sets are supported. */
-  supportsCredentialSets?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The verification draft version. */
-  verificationDraftVersion?: InputMaybe<Scalars['Int']['input']>;
-  /** The verification spec type. */
-  verificationSpecType?: InputMaybe<HandlerAppProtocolOid4vcVerificationSpecType>;
+  /** The supported issuance flows. */
+  supportedIssuanceFlows?: InputMaybe<Array<HandlerAppProtocolOid4vcIssuanceFlow>>;
+  /** The supported issuance profiles. */
+  supportedIssuanceProfiles?: InputMaybe<Array<HandlerAppProtocolOid4vcIssuanceProfile>>;
+  /** The supported verification profiles. */
+  supportedVerificationProfiles?: InputMaybe<Array<HandlerAppProtocolOid4vcVerificationProfile>>;
+  /** The wallet implementation. */
+  walletImplementation?: InputMaybe<HandlerAppProtocolOid4vcWalletImplementation>;
 };
 
 /** Update Input */
@@ -28904,6 +27960,24 @@ export type UpdateIssuanceDomainInput = {
 export type UpdateIssuanceHandlerConfigurationNlWalletInput = {
   /** The attribute UUIDs that must be disclosed before issuance */
   attributeUuids?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  /** Whether the user can request deletion of their retained data. */
+  deletable?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to retain the disclosed data. */
+  intentToRetain?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Whether the organization intends to share the disclosed data with third parties. */
+  intentToShare?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Maximum retention duration in minutes. Leave empty for no maximum. */
+  maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
+  /** Purpose statement */
+  purposeStatement?: InputMaybe<Scalars['JSONObject']['input']>;
+};
+
+/** Update Input */
+export type UpdateIssuanceHandlerConfigurationOid4VcInput = {
+  /** The OID4VC issuance flow */
+  flow?: InputMaybe<Oid4vcIssuanceFlow>;
+  /** The OID4VC issuance profile */
+  profile?: InputMaybe<Oid4vcIssuanceProfile>;
 };
 
 /** Update Input */

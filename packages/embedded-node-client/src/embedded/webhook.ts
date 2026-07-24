@@ -45,11 +45,7 @@ function timingSafeEqualStrings(a: string, b: string): boolean {
   return timingSafeEqual(aBuffer, bBuffer);
 }
 
-/**
- * Verifies a signed embedded webhook: parses the payload against the shared
- * schema and checks the HMAC-SHA256 signature with a timing-safe comparison.
- * Framework-agnostic — pass the raw body and header string in.
- */
+/** Verifies the HMAC-SHA256 signature and parses the webhook payload. */
 export function verifyEmbeddedWebhook(
   params: VerifyEmbeddedWebhookParams,
 ): EmbeddedWebhookVerification {

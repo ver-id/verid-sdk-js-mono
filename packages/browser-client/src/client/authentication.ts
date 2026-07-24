@@ -15,10 +15,7 @@ export type {
   AuthenticationRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Browser Authentication client.
- * `options` is optional — defaults to using SessionStorageCacheManager for caching.
- */
+/** Configuration for the browser authentication client. */
 export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -35,8 +32,8 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
 }
 
 /**
- * Ver.iD Authentication client for OpenID Connect authentication flows.
- * Handles user authentication and retrieves ID tokens with user identity information.
+ * Browser authentication client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
@@ -57,18 +54,10 @@ export class VeridAuthenticationClient extends CoreAuthenticationClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Finalizes the authentication flow and retrieves the authentication response.
-   * Exchanges the authorization code for tokens including the ID token.
-   *
-   * @param params - Parameters for finalizing the authentication flow
-   * @returns The authentication response containing access_token, id_token, and token metadata
-   */
+  /** Finalizes the authentication flow, defaulting to window.location if no params are provided. */
   async finalize(params?: AuthenticationFinalizeParams): Promise<AuthenticationResponse> {
-    // Assign callbackParams from params
     let callbackParams = params?.callbackParams;
 
-    // If not provided, use current window location
     if (!callbackParams) {
       callbackParams = window.location.href;
     }

@@ -93,28 +93,16 @@ export interface FlowBasePkceResult {
 
 /**
  * Base class for all Ver.iD OAuth flow clients.
- * Provides common functionality for authentication, disclosure, and issuance flows.
- * 
+ *
  * @public
  */
 export abstract class VeridFlowBaseClient {
-  /**
-   * Underlying OAuth client for handling authorization flows.
-   * @protected
-   */
+  /** @protected */
   protected oauthClient: VeridOAuthClient;
 
-  /**
-   * Cache manager for storing code verifiers and state values.
-   * @protected
-   */
+  /** @protected */
   protected cacheManager: ICacheManager;
 
-  /**
-   * Creates a new flow client.
-   * 
-   * @param config - The flow client configuration
-   */
   constructor(config: FlowBaseClientConfig) {
     assertUrlString(config.issuerUri, 'issuerUri');
     assertString(config.client_id, 'flowId', InvalidArgumentError);
@@ -128,24 +116,10 @@ export abstract class VeridFlowBaseClient {
     this.cacheManager = config.options.cacheManager;
   }
 
-  /**
-   * How this client binds the authorization code across the authorization and
-   * token requests. Redirect-flow leaf clients return a `redirect` binding
-   * carrying their registered `redirect_uri`; embedded-flow leaf clients return
-   * an `embedded` binding. Read by both `finalizeFlow` and each `generateXUrl`.
-   */
+  /** Returns the redirect binding for this client (redirect or embedded). */
   protected abstract redirectBinding(): FlowRedirectBinding;
 
-  /**
-   * Generates a PKCE code challenge and state for secure OAuth flows.
-   *
-   * @param state - Optional state parameter. If not provided, a random state will be generated
-   * @returns Object containing the code challenge and state
-   * @example
-   * ```typescript
-   * const { codeChallenge, state } = await client.generateCodeChallenge();
-   * ```
-   */
+  /** Generates a PKCE code challenge and stores the verifier in the cache. */
   async generateCodeChallenge(state?: string): Promise<FlowBasePkceResult> {
     assertString(state, 'state', InvalidArgumentError, { allowUndefined: true });
     
@@ -156,15 +130,7 @@ export abstract class VeridFlowBaseClient {
     return { codeChallenge, state: randomState };
   }
 
-  /**
-   * Validates authorization request parameters for consistency.
-   * Ensures that if intentId is provided, codeChallenge is also provided.
-   * Ensures that if codeChallenge is provided, state is also provided.
-   *
-   * @param params - The authorization request parameters to validate
-   * @throws {InvalidArgumentError} When validation fails
-   * @protected
-   */
+  /** Validates PKCE/intent parameter consistency. */
   protected validateAuthorizationRequestParams(params?: FlowBaseAuthorizationRequestParams): void {
     if (!params) return;
 
@@ -177,15 +143,7 @@ export abstract class VeridFlowBaseClient {
     }
   }
 
-  /**
-   * Generate or uses provided PKCE parameters.
-   * If codeChallenge and state are provided, uses them.
-   * Otherwise, generates new ones and stores the code verifier in cache.
-   * 
-   * @param params - Optional PKCE parameters
-   * @returns Object containing code challenge and state
-   * @protected
-   */
+  /** Returns existing PKCE params or generates and caches new ones. */
   protected async getPkceParams(params?: FlowBasePkceParams): Promise<FlowBasePkceResult> {
     if (params?.codeChallenge && params?.state) {
       return {
@@ -201,16 +159,7 @@ export abstract class VeridFlowBaseClient {
     return { codeChallenge, state };
   }
 
-  /**
-   * Parses callback parameters from various input formats.
-   * Accepts string (URL), URL object, or URLSearchParams.
-   * If no params are provided and window is available (browser), uses window.location.search.
-   * 
-   * @param params - The callback parameters or undefined to use window.location
-   * @returns Parsed URLSearchParams
-   * @throws {InvalidArgumentError} When params format is invalid
-   * @protected
-   */
+  /** Normalizes callback params from a URL string, URL, or URLSearchParams. */
   protected parseCallbackParams(params: URL | URLSearchParams | string): URLSearchParams {
     switch (typeof params) {
       case 'string':
@@ -234,18 +183,7 @@ export abstract class VeridFlowBaseClient {
     }
   }
 
-  /**
-   * Finalizes the OAuth flow by exchanging the authorization code for tokens.
-   * Handles callback parameter parsing, state validation, code verifier retrieval,
-   * and token exchange via the OAuth client.
-   * 
-   * @param params - Parameters for finalization including callback params and optional clientAuth
-   * @param assertResponseFunc - Function to assert the response type
-   * @returns The grant response with tokens
-   * @throws {InvalidAssertionError} When state is missing from callback params
-   * @throws {OperationFailedError} When code verifier is missing or expired
-   * @protected
-   */
+  /** Exchanges the authorization code for tokens using cached PKCE state. */
   protected async finalizeFlow(
     params: FlowBaseFinalizeParams,
     assertResponseFunc: (response: unknown, name: string, errorType: typeof Error) => void,

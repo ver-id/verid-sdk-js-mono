@@ -17,10 +17,7 @@ export type {
   AuthenticationRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Node.js Authentication client.
- * `options` is optional — defaults to using FileStorageCacheManager for caching.
- */
+/** Configuration for the Node.js authentication client. */
 export type NodeAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -40,8 +37,8 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
 }
 
 /**
- * Ver.iD Authentication client for OpenID Connect authentication flows.
- * Handles user authentication and retrieves ID tokens with user identity information.
+ * Node.js authentication client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
@@ -62,15 +59,7 @@ export class VeridAuthenticationClient extends CoreAuthenticationClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Creates a new authentication intent.
-   * Client authentication is mandatory for server-side authentication intent creation.
-   * 
-   * @param authenticationIntent - The intent payload
-   * @param codeChallenge - The PKCE code challenge
-   * @param clientAuth - The client authentication credentials (required)
-   * @returns The ID of the created intent
-   */
+  /** Creates an authentication intent; clientAuth is required server-side. */
   override async createAuthenticationIntent(
     authenticationIntent: AuthenticationIntentPayload,
     codeChallenge: string,
@@ -79,13 +68,7 @@ export class VeridAuthenticationClient extends CoreAuthenticationClient {
     return super.createAuthenticationIntent(authenticationIntent, codeChallenge, clientAuth);
   }
 
-  /**
-   * Finalizes the authentication flow and retrieves the authentication response.
-   * Exchanges the authorization code for tokens including the ID token.
-   *
-   * @param params - Parameters for finalizing the authentication flow
-   * @returns The authentication response containing access_token, id_token, and token metadata
-   */
+  /** Finalizes the authentication flow using the provided callback params. */
   async finalize(params: AuthenticationFinalizeParams): Promise<AuthenticationResponse> {
     return this.finalizeAuthentication({ ...params, clientAuth: params.clientAuth });
   }

@@ -15,10 +15,7 @@ export type {
   DisclosureRequestParams,
 } from '@verid-sdk-js-mono/core';
 
-/**
- * Configuration for the Browser Disclosure client.
- * `options` is optional — defaults to using SessionStorageCacheManager for caching.
- */
+/** Configuration for the browser disclosure client. */
 export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -35,8 +32,8 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
 }
 
 /**
- * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles user disclosure and retrieves access tokens with verified credentials.
+ * Browser disclosure client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
@@ -57,18 +54,10 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /**
-   * Finalizes the disclosure flow and retrieves the disclosure response.
-   * Exchanges the authorization code for tokens including the access token.
-   *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token and token metadata
-   */
+  /** Finalizes the disclosure flow, defaulting to window.location if no params are provided. */
   async finalize(params?: DisclosureFinalizeParams): Promise<DisclosureResponse> {
-    // Assign callbackParams from params
     let callbackParams = params?.callbackParams;
 
-    // If not provided, use current window location
     if (!callbackParams) {
       callbackParams = window.location.href;
     }

@@ -51,15 +51,10 @@ export interface IssuanceFinalizeParams extends FlowBaseFinalizeParams {}
 
 /**
  * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles user issuance and retrieves access tokens with verified credentials.
+ *
  * @public
  */
 export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
-  /**
-   * Creates a new issuance client.
-   * 
-   * @param config - The issuance client configuration
-   */
   constructor(config: IssuanceClientConfig) {
     super(
       {
@@ -70,29 +65,12 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     );
   }
 
-  /**
-   * Creates a new issuance intent.
-   * 
-   * @param issuanceIntent - The intent payload
-   * @param codeChallenge - The PKCE code challenge
-   * @param clientAuth - Optional client authentication (required in node-client)
-   * @returns The ID of the created intent
-   * @example
-   * ```typescript
-   * const { codeChallenge } = await client.generateCodeChallenge();
-   * const intentId = await client.createIssuanceIntent({
-   *   challenge: 'your-challenge-string',
-   *   brandUuid: 'your-brand-uuid',
-   *   requireExplicitConsent: true,
-   * }, codeChallenge);
-   * ```
-   */
+  /** Creates an issuance intent and returns it. */
   async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<IntentResponse> {
-    // Check for non-empty data array and non-empty mapping object
     const hasData = Array.isArray(issuanceIntent.payload.data) && issuanceIntent.payload.data.length > 0;
     const hasMapping = issuanceIntent.payload.mapping && Object.keys(issuanceIntent.payload.mapping).length > 0;
 
@@ -115,7 +93,6 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
       assertObject(issuanceIntent.payload.mapping, 'payload.mapping', InvalidArgumentError);
     }
 
-    // Construct IssuanceIntent from IssuanceIntentPayload
     const intent: IssuanceIntent = {
       ...issuanceIntent,
       scope: 'issuance',
@@ -127,31 +104,16 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
       },
     };
 
-    // Create intent with optional clientAuth
     return this.oauthClient.createIntent(intent, clientAuth);
   }
 
-  /**
-   * Generates a issuance URL for initiating the OpenID Connect flow.
-   *
-   * @param params - Parameters for the issuance request including optional PKCE options
-   * @param additionalParams - Additional query parameters to append to the issuance URL
-   * @returns Object containing the issuance URL and state
-   * @example
-   * ```typescript
-   * const { issuanceUrl, state } = await client.generateIssuanceUrl();
-   * // Browser: window.location.href = issuanceUrl;
-   * // Node: res.redirect(issuanceUrl);
-   * ```
-   */
+  /** Generates the authorization URL for the issuance flow. */
   async generateIssuanceUrl(
     params: IssuanceRequestParams,
     additionalParams?: Record<string, string>,
   ): Promise<{ issuanceUrl: string; state: string }> {
-    // Validate PKCE params using base class method
     this.validateAuthorizationRequestParams(params);
 
-    // Generate or use provided PKCE params
     const { codeChallenge, state } = await this.getPkceParams(params);
 
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
@@ -174,19 +136,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     };
   }
 
-  /**
-   * Finalizes the issuance flow and retrieves the issuance response.
-   * Exchanges the authorization code for tokens including the access token.
-   * 
-   * This method should be overridden by package-specific implementations to handle
-   * clientAuth requirements (optional in browser, required in node).
-   *
-   * @param params - Parameters for finalizing the issuance flow
-   * @returns The issuance response containing access_token and token metadata
-   * @throws {InvalidResponseError} When the response is not a valid issuance response
-   * @throws {OperationFailedError} When code verifier is missing or token exchange fails
-   * @protected
-   */
+  /** Finalizes the issuance flow and returns the token response. */
   protected async finalizeIssuance(
     params: IssuanceFinalizeParams,
   ): Promise<IssuanceResponse> {
@@ -194,17 +144,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     return response as IssuanceResponse;
   }
 
-  /**
-   * Verifies and decodes the access token from the issuance response.
-   * Also, validates and typecasts the decoded token to a specific payload type.
-   * Ensures the token payload conforms to desired structure.
-   *
-   * @param issuanceResponse - The issuance response containing the access token
-   * @param typeAssertFunc - The function to assert the token payload type
-   * @returns Typed JWT with typed payload
-   * @throws {OperationFailedError} When JWT verification fails
-   * @throws {InvalidAssertionError} When token payload doesn't match expected structure
-   */
+  /** Verifies and decodes the access token from an issuance response. */
   async decode<T extends JWTPayload>(
     issuanceResponse: IssuanceResponse,
     typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,

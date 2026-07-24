@@ -1,6 +1,5 @@
 /**
- * Error surfaced by an embedded session — either a `ronan:error` from the
- * pinned Ronan origin or a malformed message from that origin.
+ * Error detail for embedded session error events.
  *
  * @public
  */
@@ -10,25 +9,23 @@ export interface VeridEmbeddedError {
 }
 
 /**
- * Maps each embedded event name to the concrete `CustomEvent` it dispatches.
- * The event name narrows `event.detail` at compile time.
+ * Maps embedded event names to their typed `CustomEvent` shapes.
  *
  * @public
  */
 export interface VeridEmbeddedEventMap {
   /** Ronan is ready (ronan:ready). */
   ready: CustomEvent<void>;
-  /** Ronan finished (ronan:complete) — lifecycle only; the result comes from the backend. */
+  /** Ronan finished (ronan:complete). */
   complete: CustomEvent<void>;
-  /** An error occurred, or a malformed message arrived from the pinned origin. */
+  /** An error occurred inside the session. */
   error: CustomEvent<VeridEmbeddedError>;
   /** The user cancelled (ronan:cancel). */
   cancel: CustomEvent<void>;
 }
 
 /**
- * A strongly typed embedded session over `EventTarget`. The event name
- * constrains the listener's `event.detail` shape with no casts.
+ * Strongly typed embedded session interface.
  *
  * @public
  */
@@ -55,7 +52,7 @@ export interface VeridEmbeddedSession extends EventTarget {
     options?: boolean | EventListenerOptions,
   ): void;
 
-  /** The iframe element the session drives (created or adopted). */
+  /** The iframe element the session drives. */
   readonly iframe: HTMLIFrameElement;
   /** Detach the message listener and remove the iframe if the SDK created it. */
   destroy(): void;

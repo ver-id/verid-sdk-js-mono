@@ -5,9 +5,7 @@ import type {
 } from './typed-event-target.js';
 
 /**
- * Optional presentation attributes for the embedded iframe. Defaults mirror the
- * Merle reference: camera/microphone access and a scripts + same-origin sandbox
- * (Ronan runs its own SPA and needs same-origin for its session/camera flow).
+ * Optional iframe presentation attributes.
  *
  * @public
  */
@@ -20,8 +18,7 @@ export interface EmbeddedIframeOptions {
 }
 
 /**
- * Parameters for {@link createEmbeddedSession}. Every value except `container`
- * and `iframe` comes from the backend's embedded-session bootstrap.
+ * Parameters for {@link createEmbeddedSession}.
  *
  * @public
  */
@@ -50,12 +47,7 @@ const DEFAULT_IFRAME_ALLOW = 'camera; microphone';
 const DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin';
 const DEFAULT_IFRAME_TITLE = 'Ver.iD embedded flow';
 
-/**
- * Thin, strongly typed wrapper over `EventTarget` that mounts the Ronan iframe,
- * performs the origin-pinned `postMessage` handshake, and re-dispatches inbound
- * `ronan:*` messages as typed `CustomEvent`s. Holds no secrets, no PKCE verifier,
- * and never sees the authorization code.
- */
+/** Mounts the Ronan iframe and re-dispatches inbound `ronan:*` messages as typed `CustomEvent`s. */
 export class VeridEmbeddedSessionImpl extends EventTarget implements VeridEmbeddedSession {
   readonly iframe: HTMLIFrameElement;
 

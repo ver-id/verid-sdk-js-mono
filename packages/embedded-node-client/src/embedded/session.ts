@@ -32,10 +32,7 @@ export interface EmbeddedBootstrapContext {
   generateCodeChallenge(state?: string): Promise<FlowBasePkceResult>;
 }
 
-/**
- * Runs generateCodeChallenge (which persists the code_verifier against the
- * state in the cache manager) and returns only the public bootstrap values.
- */
+/** Generates PKCE credentials and returns the public bootstrap values for the browser. */
 export async function buildEmbeddedSessionBootstrap(
   context: EmbeddedBootstrapContext,
   params: EmbeddedSessionParams,

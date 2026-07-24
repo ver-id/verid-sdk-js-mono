@@ -18,8 +18,7 @@ import {
 import type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './types.js';
 
 /**
- * Embedded-flow disclosure client. Owns PKCE + webhook verification; the browser
- * half (`@ver-id/embedded-browser-client`) holds no secrets and never sees the code.
+ * Embedded disclosure client that owns PKCE and webhook verification.
  *
  * @public
  */

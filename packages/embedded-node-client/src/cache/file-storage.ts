@@ -7,14 +7,7 @@ import { homedir, tmpdir } from 'os';
 type KV = Record<string, string>;
 
 /**
- * Tiny file cache for SDKs (single-process, tiny data).
- * - JSON file on disk
- * - Atomic writes (temp -> rename)
- * - Restrictive perms
- * Perfect for PKCE verifier/state across sessions.
- *
- * Save and remove operations are async to avoid blocking the event loop.
- * The constructor performs a synchronous initial load so the cache is ready immediately.
+ * File-backed cache manager using atomic writes.
  *
  * @public
  */
@@ -23,11 +16,8 @@ export class FileStorageCacheManager implements ICacheManager {
   private cacheFile: string;
   private kv: KV = {};
 
-  /**
-   * @param cacheDir Optional directory. Defaults to a user-scoped path so it survives reboots.
-   */
+  /** @param cacheDir Optional directory; defaults to `~/.verid-cache`. */
   constructor(cacheDir?: string) {
-    // choose a stable default over os.tmpdir() (which may be cleaned)
     const base = cacheDir || join(homedir() || tmpdir(), '.verid-cache');
     this.cacheDir = base;
     this.cacheFile = join(this.cacheDir, 'cache.json');
@@ -70,7 +60,6 @@ export class FileStorageCacheManager implements ICacheManager {
       throw new Error(`Failed to write cache temp file: ${err instanceof Error ? err.message : String(err)}`);
     }
 
-    // atomic replace
     try {
       await rename(temp, this.cacheFile);
     } catch {
@@ -80,8 +69,6 @@ export class FileStorageCacheManager implements ICacheManager {
       throw new Error('Failed to persist cache');
     }
   }
-
-  // ICacheManager methods
 
   async save(key: string, value: string): Promise<void> {
     this.kv[key] = value;
