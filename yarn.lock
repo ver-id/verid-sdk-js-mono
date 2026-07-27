@@ -4989,6 +4989,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ver-id/embedded-node-client@workspace:packages/embedded-node-client":
+  version: 0.0.0-use.local
+  resolution: "@ver-id/embedded-node-client@workspace:packages/embedded-node-client"
+  languageName: unknown
+  linkType: soft
+
 "@ver-id/graphql-client@workspace:packages/graphql-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/graphql-client@workspace:packages/graphql-client"
