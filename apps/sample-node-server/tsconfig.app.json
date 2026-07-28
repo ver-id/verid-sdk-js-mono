@@ -20,6 +20,9 @@
   "references": [
     {
       "path": "../../packages/node-client/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/embedded-node-client/tsconfig.lib.json"
     }
   ]
 }

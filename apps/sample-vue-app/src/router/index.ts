@@ -60,6 +60,11 @@ const router = createRouter({
       component: () => import('../views/disclosure/server/NodeCallbackView.vue'),
     },
     {
+      path: '/disclosure/embedded',
+      name: 'disclosure-embedded',
+      component: () => import('../views/disclosure/embedded/EmbeddedDisclosureView.vue'),
+    },
+    {
       path: '/issuance',
       name: 'issuance',
       component: () => import('../views/issuance/IssuanceSelectionView.vue'),

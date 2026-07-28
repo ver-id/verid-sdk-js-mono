@@ -4983,7 +4983,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ver-id/embedded-browser-client@workspace:packages/embedded-browser-client":
+"@ver-id/embedded-browser-client@workspace:*, @ver-id/embedded-browser-client@workspace:packages/embedded-browser-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/embedded-browser-client@workspace:packages/embedded-browser-client"
   languageName: unknown
@@ -5056,6 +5056,7 @@ __metadata:
   resolution: "@verid-sdk-js-mono/sample-vue-app@workspace:apps/sample-vue-app"
   dependencies:
     "@monaco-editor/loader": "npm:^1.7.0"
+    "@ver-id/embedded-browser-client": "workspace:*"
     monaco-editor: "npm:^0.55.1"
     rxjs: "npm:^7.8.2"
     vue: "npm:^3.5.30"
