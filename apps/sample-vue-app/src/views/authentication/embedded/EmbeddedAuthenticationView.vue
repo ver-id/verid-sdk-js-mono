@@ -257,16 +257,6 @@
         </template>
       </div>
 
-      <div
-        v-if="frameRetained"
-        class="lifecycle-note"
-      >
-        <strong>The flow failed, and the iframe above is left mounted on purpose.</strong>
-        <code>session.destroy()</code> removes the iframe it created, so calling it here would
-        delete the error screen Ronan just rendered. Read the message above, then use
-        “Try Again” to tear the frame down.
-      </div>
-
       <div class="code-example">
         <h3>Browser-Side Code:</h3>
         <pre><code>{{ snippets.mount }}</code></pre>
@@ -446,7 +436,6 @@ const {
   bootstrap,
   result,
   cancelled,
-  frameRetained,
   initCode,
   startCode,
   webhookCode,
