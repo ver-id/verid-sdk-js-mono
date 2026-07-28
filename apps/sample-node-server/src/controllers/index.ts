@@ -28,3 +28,10 @@ export {
   handleIssuanceCallback,
   finalizeIssuance,
 } from './issuance.controller.js';
+
+export {
+  initializeEmbeddedDisclosureClient,
+  startEmbeddedDisclosureSession,
+  handleEmbeddedDisclosureWebhook,
+  getEmbeddedDisclosureResult,
+} from './embedded-disclosure.controller.js';

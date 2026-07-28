@@ -53,7 +53,32 @@ export const EMBEDDED_CONFIG = {
   resultTtlMs: process.env.VERID_EMBEDDED_RESULT_TTL_MS
     ? Number(process.env.VERID_EMBEDDED_RESULT_TTL_MS)
     : 10 * 60 * 1000,
+
+  /**
+   * OAuth scope string sent with each embedded flow.
+   *
+   * Unlike redirect mode, embedded mode has no scope baked into the SDK call:
+   * `createEmbeddedSession()` takes the scope verbatim and Ronan forwards it
+   * straight to the authorize request. So these must be correct.
+   *
+   * - `authentication` — **a single scope never works here.** The OAuth server
+   *   asserts "should at least contain an other scope next to the openid
+   *   scope", so `openid` alone is rejected. Hence `openid profile`.
+   * - `disclosure` / `issuance` — these are top-level scopes in their own right
+   *   (`AppAuthorizationScopeDisclosureNode.Scope = 'disclosure'`), and are what
+   *   redirect mode sends today. Override via env if your flow needs more.
+   */
+  scopes: {
+    authentication: process.env.VERID_EMBEDDED_AUTHENTICATION_SCOPES ?? 'openid profile',
+    disclosure: process.env.VERID_EMBEDDED_DISCLOSURE_SCOPES ?? 'disclosure',
+    issuance: process.env.VERID_EMBEDDED_ISSUANCE_SCOPES ?? 'issuance',
+  } satisfies Record<EmbeddedScope, string>,
 };
+
+/** The configured scope string for an embedded flow. */
+export function embeddedScopeFor(scope: EmbeddedScope): string {
+  return EMBEDDED_CONFIG.scopes[scope];
+}
 
 /**
  * Hosts that the Ver.iD platform can never reach over the network.

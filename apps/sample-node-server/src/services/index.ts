@@ -24,3 +24,10 @@ export {
   generateCreateIntentSnippet as generateIssuanceCreateIntentSnippet,
   generateIssuanceUrlWithIntentSnippet,
 } from './issuance.service.js';
+export {
+  generateInitCodeSnippet as generateEmbeddedDisclosureInitSnippet,
+  generateStartSnippet as generateEmbeddedDisclosureStartSnippet,
+  generateStartWithIntentSnippet as generateEmbeddedDisclosureStartWithIntentSnippet,
+  generateWebhookSnippet as generateEmbeddedDisclosureWebhookSnippet,
+  generateResultSnippet as generateEmbeddedDisclosureResultSnippet,
+} from './embedded-disclosure.service.js';

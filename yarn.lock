@@ -4989,7 +4989,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ver-id/embedded-node-client@workspace:packages/embedded-node-client":
+"@ver-id/embedded-node-client@workspace:*, @ver-id/embedded-node-client@workspace:packages/embedded-node-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/embedded-node-client@workspace:packages/embedded-node-client"
   languageName: unknown
@@ -5044,7 +5044,9 @@ __metadata:
   dependencies:
     "@types/cors": "npm:^2.8.19"
     "@types/express": "npm:^5.0.6"
+    "@ver-id/embedded-node-client": "workspace:*"
     cors: "npm:^2.8.6"
+    dotenv: "npm:^16.4.7"
     express: "npm:^5.2.1"
   languageName: unknown
   linkType: soft
@@ -7024,7 +7026,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^16.4.5":
+"dotenv@npm:^16.4.5, dotenv@npm:^16.4.7":
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: 10c0/15ce56608326ea0d1d9414a5c8ee6dcf0fffc79d2c16422b4ac2268e7e2d76ff5a572d37ffe747c377de12005f14b3cc22361e79fc7f1061cce81f77d2c973dc
