@@ -11,7 +11,9 @@ export interface GenerateUrlRequest {
 /**
  * Initialize request for an embedded client.
  *
- * Deliberately has no `redirectUri`: embedded flows are registered without one.
+ * Deliberately has no `redirectUri`: embedded mode never sends one, on either
+ * the authorize request or the token exchange. The flow itself may still have a
+ * redirect URI registered for redirect mode — a flow supports both.
  */
 export interface EmbeddedInitializeRequest {
   issuerUri?: string;

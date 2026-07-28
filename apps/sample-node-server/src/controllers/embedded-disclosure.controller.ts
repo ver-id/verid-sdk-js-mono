@@ -205,7 +205,7 @@ export async function handleEmbeddedDisclosureWebhook(
 
     // finalizeEmbedded() re-verifies the signature (a cheap, pure check) and
     // then exchanges the code using the verifier cached under `state`.
-    // No redirect_uri is sent — embedded flows are registered without one.
+    // No redirect_uri is sent at all in embedded mode.
     const result = await disclosureClient.finalizeEmbedded({
       rawBody,
       signature,

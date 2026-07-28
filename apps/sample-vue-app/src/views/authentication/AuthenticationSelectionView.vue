@@ -55,7 +55,7 @@
         <p>Run the authentication flow inside an iframe on your own page using @ver-id/embedded-browser-client + @ver-id/embedded-node-client</p>
         <ul>
           <li>User never leaves your page</li>
-          <li>No redirect URI, no callback route</li>
+          <li>No callback route in your app</li>
           <li>PKCE verifier and auth code stay on your server</li>
           <li>Requires a publicly reachable webhook</li>
         </ul>

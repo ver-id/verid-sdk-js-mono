@@ -48,15 +48,18 @@
             :placeholder="defaultFlowId || 'flow uuid'"
           >
           <small>
-            Must be a flow registered <strong>without</strong> a redirect URI. Leave blank to use
-            the server's VERID_EMBEDDED_AUTHENTICATION_FLOW_ID.
+            The same flow can serve <strong>both</strong> redirect and embedded mode — a flow
+            carries both delivery configs. For embedded it additionally needs an allowed embed
+            origin and a registered webhook URI. Leave blank to use the server's
+            VERID_EMBEDDED_AUTHENTICATION_FLOW_ID.
           </small>
         </div>
       </div>
 
       <p v-if="!clientInitialized && !showConfigForm">
-        Embedded clients take <strong>no redirect URI</strong> — the flow is registered without one
-        and the authorization code is bound to the client purely through PKCE.
+        The embedded client sends <strong>no redirect URI</strong> — not on the authorize request
+        and not on the token exchange. The authorization code is bound to the client purely
+        through PKCE.
       </p>
 
       <button
@@ -366,8 +369,8 @@
       <h2>How it Works</h2>
       <ol>
         <li>
-          <strong>[Server]</strong> Create an <code>EmbeddedAuthenticationClient</code> — no redirect
-          URI
+          <strong>[Server]</strong> Create an <code>EmbeddedAuthenticationClient</code> — it sends
+          no redirect URI
         </li>
         <li>
           <strong>[Server]</strong> <code>createEmbeddedSession()</code> generates PKCE and returns

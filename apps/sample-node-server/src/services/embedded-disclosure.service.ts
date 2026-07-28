@@ -9,7 +9,7 @@ export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
 const disclosureClient = new EmbeddedDisclosureClient({
   issuerUri: '${config.issuerUri}',
   client_id: '${config.client_id}',
-  // NOTE: no redirectUri. Embedded flows are registered without one — the
+  // NOTE: no redirectUri is sent in embedded mode (authorize or token). The
   // authorization code is bound to the client purely through PKCE.
 });`;
 }

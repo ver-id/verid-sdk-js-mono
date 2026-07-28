@@ -66,7 +66,8 @@ export interface EmbeddedIntentOptions {
 export function useEmbeddedSession(scope: EmbeddedScope) {
   const base = `${API_URL}/${scope}/embedded`;
 
-  // Embedded clients take no redirectUri — the flow is registered without one.
+  // Embedded clients send no redirectUri — not on authorize, not on token
+  // exchange. The flow may still have one registered for redirect mode.
   const clientConfig = ref({
     issuerUri: '',
     client_id: '',
