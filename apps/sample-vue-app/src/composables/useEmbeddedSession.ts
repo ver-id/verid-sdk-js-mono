@@ -88,6 +88,18 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   const result = ref<unknown>(null);
   const cancelled = ref(false);
 
+  /**
+   * Whether the iframe is being kept on screen after a terminal event.
+   *
+   * `session.destroy()` removes the iframe it created, which would wipe out the
+   * error screen Ronan just rendered. On failure we keep the frame mounted so
+   * the user can actually read it, and only tear it down on `startOver()` or
+   * unmount. `terminated` stops us reacting to any further iframe messages in
+   * the meantime.
+   */
+  const frameRetained = ref(false);
+  let terminated = false;
+
   // Server-side snippets returned by the backend for each step.
   const initCode = ref('');
   const startCode = ref('');
@@ -191,6 +203,10 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     }
 
     try {
+      // A fresh mount is a fresh lifecycle: clear any retained failure state.
+      terminated = false;
+      frameRetained.value = false;
+
       const embedded = createEmbeddedSession({
         container,
         ...bootstrap.value,
@@ -200,10 +216,12 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
       });
 
       embedded.addEventListener('ready', () => {
+        if (terminated) return;
         status.value = 'ready';
       });
 
       embedded.addEventListener('complete', () => {
+        if (terminated) return;
         // Lifecycle signal only — there is no result and no authorization code
         // in this event. The backend is finalizing from the webhook right now,
         // so the only correct move is to go and ask it.
@@ -211,12 +229,19 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
       });
 
       embedded.addEventListener('error', (event) => {
+        if (terminated) return;
+        terminated = true;
         error.value = event.detail.error_description ?? event.detail.error;
         status.value = 'failed';
-        destroySession();
+        // Deliberately NOT destroying the session here: Ronan has rendered its
+        // own error screen inside the iframe, and destroy() would remove the
+        // iframe along with it. Keep it up until the user starts over.
+        frameRetained.value = true;
       });
 
       embedded.addEventListener('cancel', () => {
+        if (terminated) return;
+        terminated = true;
         cancelled.value = true;
         status.value = 'cancelled';
         destroySession();
@@ -276,9 +301,11 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   const destroySession = () => {
     session.value?.destroy();
     session.value = null;
+    frameRetained.value = false;
   };
 
   const startOver = () => {
+    terminated = false;
     destroySession();
     clientInitialized.value = false;
     showConfigForm.value = false;
@@ -312,6 +339,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     bootstrap,
     result,
     cancelled,
+    frameRetained,
 
     // Code examples
     initCode,
@@ -372,7 +400,11 @@ session.addEventListener('complete', () => {
 
 session.addEventListener('error', (event) => {
   error.value = event.detail.error_description ?? event.detail.error;
-  session.destroy();
+
+  // NOTE: do NOT call session.destroy() here. destroy() removes the iframe it
+  // created, which would wipe out the error screen Ronan just rendered — the
+  // frame would vanish the instant something goes wrong. Leave it mounted so
+  // the user can read it, and tear it down when they retry instead.
 });
 
 session.addEventListener('cancel', () => {
@@ -380,7 +412,8 @@ session.addEventListener('cancel', () => {
   session.destroy();
 });
 
-// Always destroy on unmount so the window message listener is detached.
+// Always destroy on unmount so the window message listener is detached and the
+// retained iframe does not leak.
 onBeforeUnmount(() => session.destroy());`,
 
   poll: (scope: EmbeddedScope) => `// BROWSER — poll your backend for the finalized result
