@@ -42,3 +42,10 @@ export {
   handleEmbeddedDisclosureWebhook,
   getEmbeddedDisclosureResult,
 } from './embedded-disclosure.controller.js';
+
+export {
+  initializeEmbeddedIssuanceClient,
+  startEmbeddedIssuanceSession,
+  handleEmbeddedIssuanceWebhook,
+  getEmbeddedIssuanceResult,
+} from './embedded-issuance.controller.js';

@@ -38,3 +38,9 @@ export {
   generateWebhookSnippet as generateEmbeddedDisclosureWebhookSnippet,
   generateResultSnippet as generateEmbeddedDisclosureResultSnippet,
 } from './embedded-disclosure.service.js';
+export {
+  generateInitCodeSnippet as generateEmbeddedIssuanceInitSnippet,
+  generateStartSnippet as generateEmbeddedIssuanceStartSnippet,
+  generateWebhookSnippet as generateEmbeddedIssuanceWebhookSnippet,
+  generateResultSnippet as generateEmbeddedIssuanceResultSnippet,
+} from './embedded-issuance.service.js';

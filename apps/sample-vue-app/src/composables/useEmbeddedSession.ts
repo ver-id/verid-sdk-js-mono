@@ -40,13 +40,19 @@ export type EmbeddedStatus =
   | 'cancelled'
   | 'failed';
 
-/** Options for the optional (disclosure) / mandatory (issuance) intent. */
+/** Options for the optional (authentication, disclosure) / mandatory (issuance) intent. */
 export interface EmbeddedIntentOptions {
   useIntent: boolean;
   challenge: string;
   brandUuid: string;
   requireExplicitConsent: boolean | undefined;
-  payload: string;
+  /**
+   * Issuance only: what is being issued. Exactly one of `mapping` or `data`.
+   */
+  payload: {
+    mapping?: Record<string, unknown>;
+    data?: { attributeUuid: string; value: unknown }[];
+  };
 }
 
 /**
@@ -131,7 +137,8 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
    * Step 2 (SERVER) — create the embedded session and get the public bootstrap.
    *
    * When an intent is requested it is created in this same call, so it can be
-   * bound to the code challenge the session just generated.
+   * bound to the code challenge the session just generated. Issuance always
+   * passes `useIntent: true` — its intent is mandatory.
    */
   const startSession = async (intent?: Partial<EmbeddedIntentOptions>) => {
     loading.value = true;

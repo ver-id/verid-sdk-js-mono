@@ -45,6 +45,26 @@
           Start Node Flow →
         </button>
       </div>
+
+      <div
+        class="option-card"
+        @click="navigateTo('embedded')"
+      >
+        <div class="icon">
+          🖼️
+        </div>
+        <h2>Embedded Execution</h2>
+        <p>Run the issuance flow inside an iframe on your own page using @ver-id/embedded-browser-client + @ver-id/embedded-node-client</p>
+        <ul>
+          <li>User never leaves your page</li>
+          <li>Intent creation is MANDATORY</li>
+          <li>PKCE verifier and auth code stay on your server</li>
+          <li>Requires a publicly reachable webhook</li>
+        </ul>
+        <button class="btn-primary">
+          Start Embedded Flow →
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -55,7 +75,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const navigateTo = (type: 'browser' | 'server') => {
+const navigateTo = (type: 'browser' | 'server' | 'embedded') => {
   router.push(`/issuance/${type}`);
 };
 </script>

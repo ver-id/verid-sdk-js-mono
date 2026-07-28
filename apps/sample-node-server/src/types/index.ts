@@ -29,4 +29,13 @@ export interface EmbeddedStartRequest {
   challenge?: string;
   brandUuid?: string;
   requireExplicitConsent?: boolean;
+  /**
+   * Issuance only, and mandatory there: what is being issued.
+   *
+   * Exactly one of `mapping` or `data` must be provided.
+   */
+  payload?: {
+    mapping?: Record<string, unknown>;
+    data?: { attributeUuid: string; value: unknown }[];
+  };
 }

@@ -95,6 +95,11 @@ const router = createRouter({
       component: () => import('../views/issuance/server/NodeCallbackView.vue'),
     },
     {
+      path: '/issuance/embedded',
+      name: 'issuance-embedded',
+      component: () => import('../views/issuance/embedded/EmbeddedIssuanceView.vue'),
+    },
+    {
       path: '/graphql',
       name: 'graphql',
       component: () => import('../views/graphql/GraphQLView.vue'),

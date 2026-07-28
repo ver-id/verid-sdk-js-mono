@@ -1,9 +1,9 @@
 <template>
   <div class="auth-container">
-    <h1>Embedded Disclosure</h1>
+    <h1>Embedded Issuance</h1>
     <p class="description">
-      This page demonstrates how to run a Ver.iD disclosure flow <strong>inside an iframe on your
-        own page</strong>, using @ver-id/embedded-browser-client in the browser and
+      This page demonstrates how to run a Ver.iD issuance flow <strong>inside an iframe on your own
+        page</strong>, using @ver-id/embedded-browser-client in the browser and
       @ver-id/embedded-node-client on your server.
     </p>
 
@@ -22,7 +22,7 @@
         v-if="clientInitialized"
         class="completed"
       >
-        <p>✓ Embedded disclosure client initialized on the server</p>
+        <p>✓ Embedded issuance client initialized on the server</p>
       </div>
 
       <div
@@ -40,7 +40,7 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Embedded Disclosure Flow ID:</label>
+          <label for="client_id">Embedded Issuance Flow ID:</label>
           <input
             id="client_id"
             v-model="clientConfig.client_id"
@@ -49,7 +49,7 @@
           >
           <small>
             Must be a flow registered <strong>without</strong> a redirect URI. Leave blank to use
-            the server's VERID_EMBEDDED_DISCLOSURE_FLOW_ID.
+            the server's VERID_EMBEDDED_ISSUANCE_FLOW_ID.
           </small>
         </div>
       </div>
@@ -117,88 +117,133 @@
       v-if="clientInitialized"
       class="section step-server"
     >
-      <h2><span class="step-badge server">Server</span>2. Create the embedded session</h2>
+      <h2>
+        <span class="step-badge server">Server</span>2. Create the session and its intent
+      </h2>
 
       <div
         v-if="bootstrap"
         class="completed"
       >
-        <p>✓ Session created — the browser received the public bootstrap</p>
+        <p>✓ Session and issuance intent created — the browser received the public bootstrap</p>
       </div>
 
-      <p v-if="!bootstrap">
-        The server generates PKCE and returns only the <em>public</em> half. The
-        <code>code_verifier</code> stays server-side, cached against the <code>state</code>.
-      </p>
+      <div
+        v-if="!bootstrap"
+        class="lifecycle-note"
+      >
+        <strong>Issuance always needs an intent.</strong> It carries what is being issued, so
+        unlike authentication and disclosure there is no intent-less variant. The intent is created
+        <em>after</em> the session so it can be bound to that session's code challenge.
+      </div>
 
       <div
         v-if="!bootstrap"
         class="config-form"
       >
-        <h3>Optional: Intent-based flow</h3>
         <div class="form-group">
-          <label>
-            <input
-              v-model="intentOptions.useIntent"
-              type="checkbox"
-            >
-            Create a disclosure intent
-          </label>
+          <label>Payload Type:</label>
+          <div>
+            <label style="margin-right: 15px; font-weight: normal;">
+              <input
+                v-model="payloadType"
+                type="radio"
+                value="mapping"
+                name="payloadType"
+              > Mapping
+            </label>
+            <label style="font-weight: normal;">
+              <input
+                v-model="payloadType"
+                type="radio"
+                value="data"
+                name="payloadType"
+              > Data
+            </label>
+          </div>
           <small>
-            Intents allow a custom challenge, brand, and explicit consent. The intent is created on
-            the server <strong>after</strong> the session, so it can be bound to that session's code
-            challenge.
+            Provide exactly one. <code>mapping</code> is a key/value object;
+            <code>data</code> is an array of <code>{ attributeUuid, value }</code>.
           </small>
         </div>
 
-        <template v-if="intentOptions.useIntent">
-          <div class="form-group">
-            <label for="challenge">Challenge (optional):</label>
-            <input
-              id="challenge"
-              v-model="intentOptions.challenge"
-              type="text"
-              placeholder="custom-challenge-string"
-            >
+        <div
+          v-if="payloadType === 'mapping'"
+          class="form-group"
+        >
+          <label>Payload Mapping (JSON Object):</label>
+          <JsonEditor
+            v-model="payloadMappingJson"
+            height="150px"
+            placeholder="{}"
+          />
+        </div>
+
+        <div
+          v-if="payloadType === 'data'"
+          class="form-group"
+        >
+          <label>Payload Data (JSON Array):</label>
+          <JsonEditor
+            v-model="payloadDataJson"
+            height="200px"
+            placeholder="[]"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="challenge">Challenge (optional):</label>
+          <input
+            id="challenge"
+            v-model="intentOptions.challenge"
+            type="text"
+            placeholder="custom-challenge-string"
+          >
+        </div>
+        <div class="form-group">
+          <label for="brandUuid">Brand UUID (optional):</label>
+          <input
+            id="brandUuid"
+            v-model="intentOptions.brandUuid"
+            type="text"
+            placeholder="brand-uuid-123"
+          >
+        </div>
+        <div class="form-group">
+          <label>Require explicit consent (optional):</label>
+          <div>
+            <label style="margin-right: 15px; font-weight: normal;">
+              <input
+                v-model="intentOptions.requireExplicitConsent"
+                type="radio"
+                :value="true"
+              > True
+            </label>
+            <label style="font-weight: normal;">
+              <input
+                v-model="intentOptions.requireExplicitConsent"
+                type="radio"
+                :value="false"
+              > False
+            </label>
           </div>
-          <div class="form-group">
-            <label for="brandUuid">Brand UUID (optional):</label>
-            <input
-              id="brandUuid"
-              v-model="intentOptions.brandUuid"
-              type="text"
-              placeholder="brand-uuid-123"
-            >
-          </div>
-          <div class="form-group">
-            <label>Require explicit consent (optional):</label>
-            <div>
-              <label style="margin-right: 15px; font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="true"
-                > True
-              </label>
-              <label style="font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="false"
-                > False
-              </label>
-            </div>
-          </div>
-        </template>
+        </div>
+      </div>
+
+      <div
+        v-if="!bootstrap && payloadError"
+        class="error"
+      >
+        <pre>{{ payloadError }}</pre>
       </div>
 
       <button
         v-if="!bootstrap"
         class="btn-primary"
         :disabled="loading || !webhookReachable"
-        @click="startSession(intentOptions)"
+        @click="start"
       >
-        {{ loading ? 'Creating session...' : 'Create Embedded Session' }}
+        {{ loading ? 'Creating session...' : 'Create Embedded Session + Intent' }}
       </button>
 
       <div
@@ -208,8 +253,8 @@
         <h3>Bootstrap handed to the browser:</h3>
         <pre>{{ JSON.stringify(bootstrap, null, 2) }}</pre>
         <p class="note">
-          <strong>Note:</strong> no <code>code_verifier</code> and no authorization code. Neither
-          ever reaches the browser.
+          <strong>Note:</strong> the <code>intentId</code> is public, but there is no
+          <code>code_verifier</code> and no authorization code. Neither ever reaches the browser.
         </p>
       </div>
 
@@ -231,7 +276,7 @@
       <p>The page asks its own backend to start a session. This already happened in step 2.</p>
       <div class="code-example">
         <h3>Browser-Side Code:</h3>
-        <pre><code>{{ snippets.fetchBootstrap('disclosure') }}</code></pre>
+        <pre><code>{{ snippets.fetchBootstrap('issuance') }}</code></pre>
       </div>
     </div>
 
@@ -244,7 +289,8 @@
 
       <p v-if="status === 'starting'">
         Mount the session to render the flow inline. The iframe origin is pinned as the trust
-        anchor for all postMessage traffic.
+        anchor for all postMessage traffic. The <code>intentId</code> travels along in the
+        <code>ronan:init</code> message.
       </p>
 
       <button
@@ -330,7 +376,7 @@
         v-if="status === 'done'"
         class="completed"
       >
-        <p>✓ Disclosure completed and the token was decoded on the server</p>
+        <p>✓ Issuance completed and the token was decoded on the server</p>
       </div>
 
       <div
@@ -351,7 +397,7 @@
 
       <div class="code-example">
         <h3>Browser-Side Code:</h3>
-        <pre><code>{{ snippets.poll('disclosure') }}</code></pre>
+        <pre><code>{{ snippets.poll('issuance') }}</code></pre>
       </div>
     </div>
 
@@ -385,14 +431,15 @@
       <h2>How it Works</h2>
       <ol>
         <li>
-          <strong>[Server]</strong> Create an <code>EmbeddedDisclosureClient</code> — no redirect URI
+          <strong>[Server]</strong> Create an <code>EmbeddedIssuanceClient</code> — no redirect URI
         </li>
         <li>
-          <strong>[Server]</strong> <code>createEmbeddedSession()</code> generates PKCE and returns
-          the public bootstrap; the verifier stays cached against the state
+          <strong>[Server]</strong> <code>createEmbeddedSession()</code> generates PKCE, then
+          <code>createIssuanceIntent()</code> binds the mandatory intent to that code challenge
         </li>
         <li>
-          <strong>[Browser]</strong> Fetch that bootstrap from your own backend
+          <strong>[Browser]</strong> Fetch the bootstrap (plus <code>intentId</code>) from your own
+          backend
         </li>
         <li>
           <strong>[Browser]</strong> <code>createEmbeddedSession()</code> mounts the Ronan iframe and
@@ -419,7 +466,7 @@
     >
       <button
         class="start-over-btn"
-        @click="startOver"
+        @click="reset"
       >
         🔄 Start Over
       </button>
@@ -431,12 +478,13 @@
 import { computed, reactive, ref } from 'vue';
 import '../../../assets/init-styles.css';
 import '../../../assets/embedded-styles.css';
+import JsonEditor from '../../../components/JsonEditor.vue';
 import {
   useEmbeddedSession,
   EMBEDDED_BROWSER_SNIPPETS as snippets,
 } from '../../../composables/useEmbeddedSession.js';
 
-const defaultFlowId = import.meta.env.VITE_VERID_EMBEDDED_DISCLOSURE_FLOW_ID || '';
+const defaultFlowId = import.meta.env.VITE_VERID_EMBEDDED_ISSUANCE_FLOW_ID || '';
 
 const {
   clientConfig,
@@ -458,21 +506,64 @@ const {
   startSession,
   mountSession,
   startOver,
-} = useEmbeddedSession('disclosure');
+} = useEmbeddedSession('issuance');
 
 const embedContainer = ref<HTMLElement | null>(null);
 
 const intentOptions = reactive({
-  useIntent: false,
   challenge: '',
   brandUuid: '',
   requireExplicitConsent: undefined as boolean | undefined,
 });
 
+const payloadType = ref<'mapping' | 'data'>('mapping');
+const payloadMappingJson = ref('{}');
+const payloadDataJson = ref('[]');
+const payloadError = ref('');
+
+/**
+ * Step 2 (SERVER) — parse the editor contents, then ask the backend to create
+ * the session and its intent in one call.
+ */
+const start = async () => {
+  payloadError.value = '';
+
+  let payload: {
+    mapping?: Record<string, unknown>;
+    data?: { attributeUuid: string; value: unknown }[];
+  };
+
+  try {
+    payload =
+      payloadType.value === 'mapping'
+        ? { mapping: JSON.parse(payloadMappingJson.value) }
+        : { data: JSON.parse(payloadDataJson.value) };
+  } catch (err) {
+    payloadError.value = `The intent payload is not valid JSON: ${
+      err instanceof Error ? err.message : String(err)
+    }`;
+    return;
+  }
+
+  // Issuance has no intent-less variant, so the intent is always requested.
+  await startSession({ useIntent: true, ...intentOptions, payload });
+};
+
 const mount = () => {
   if (embedContainer.value) {
     mountSession(embedContainer.value);
   }
+};
+
+const reset = () => {
+  startOver();
+  payloadError.value = '';
+  payloadType.value = 'mapping';
+  payloadMappingJson.value = '{}';
+  payloadDataJson.value = '[]';
+  intentOptions.challenge = '';
+  intentOptions.brandUuid = '';
+  intentOptions.requireExplicitConsent = undefined;
 };
 
 const statusLabel = computed(() => {
@@ -505,20 +596,20 @@ const statusDotClass = computed(() => {
 
 // The real webhook snippet is returned by the server alongside the result, so it
 // reflects what actually ran. Until then, show the shape it will take.
-const fallbackWebhookNote = `// SERVER — POST /api/disclosure/embedded/webhook
+const fallbackWebhookNote = `// SERVER — POST /api/issuance/embedded/webhook
 //
 // The exact snippet that ran is returned alongside the result in step 7.
 // Mounted with a RAW body parser, because the HMAC covers the exact bytes:
-//   app.use('/api/disclosure/embedded/webhook', express.text({ type: '*/*' }));
+//   app.use('/api/issuance/embedded/webhook', express.text({ type: '*/*' }));
 //   app.use(express.json());
 
-const result = await disclosureClient.finalizeEmbedded({
+const result = await issuanceClient.finalizeEmbedded({
   rawBody: req.body,
   signature: req.header('x-signature-256'),
-  secret: process.env.VERID_EMBEDDED_DISCLOSURE_WEBHOOK_SECRET,
+  secret: process.env.VERID_EMBEDDED_ISSUANCE_WEBHOOK_SECRET,
   clientAuth: { client_secret: '*****' },
 });
 
-const token = await disclosureClient.decode(result, assertDisclosureV1JwtPayload);
+const token = await issuanceClient.decode(result, assertIssuanceV1JwtPayload);
 embeddedResultStore.resolve(result.state, token);`;
 </script>
