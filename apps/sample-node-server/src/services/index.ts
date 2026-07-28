@@ -25,6 +25,13 @@ export {
   generateIssuanceUrlWithIntentSnippet,
 } from './issuance.service.js';
 export {
+  generateInitCodeSnippet as generateEmbeddedAuthInitSnippet,
+  generateStartSnippet as generateEmbeddedAuthStartSnippet,
+  generateStartWithIntentSnippet as generateEmbeddedAuthStartWithIntentSnippet,
+  generateWebhookSnippet as generateEmbeddedAuthWebhookSnippet,
+  generateResultSnippet as generateEmbeddedAuthResultSnippet,
+} from './embedded-authentication.service.js';
+export {
   generateInitCodeSnippet as generateEmbeddedDisclosureInitSnippet,
   generateStartSnippet as generateEmbeddedDisclosureStartSnippet,
   generateStartWithIntentSnippet as generateEmbeddedDisclosureStartWithIntentSnippet,

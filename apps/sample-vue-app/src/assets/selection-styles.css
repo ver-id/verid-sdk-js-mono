@@ -3,36 +3,45 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem 1rem;
 }
 
 h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
   color: #2c3e50;
 }
 
 .description {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #666;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .options-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
 .option-card {
   background: white;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.25rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.3s;
   border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
 }
 
 .option-card:hover {
@@ -42,33 +51,39 @@ h1 {
 }
 
 .icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .option-card h2 {
   color: #2c3e50;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
 }
 
 .option-card p {
   color: #666;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  font-size: 0.875rem;
 }
 
 .option-card ul {
   list-style: none;
   padding: 0;
-  margin: 1.5rem 0;
+  margin: 0 0 1rem 0;
+  /* Push the button to the bottom so cards of unequal length stay aligned */
+  flex: 1;
 }
 
 .option-card ul li {
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   color: #555;
   position: relative;
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 0;
 }
 
 .option-card ul li::before {
@@ -81,12 +96,12 @@ h1 {
 
 .btn-primary {
   width: 100%;
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1rem;
   background: #42b983;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.3s;
 }

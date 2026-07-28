@@ -35,6 +35,11 @@ const router = createRouter({
       component: () => import('../views/authentication/server/NodeCallbackView.vue'),
     },
     {
+      path: '/authentication/embedded',
+      name: 'authentication-embedded',
+      component: () => import('../views/authentication/embedded/EmbeddedAuthenticationView.vue'),
+    },
+    {
       path: '/disclosure',
       name: 'disclosure',
       component: () => import('../views/disclosure/DisclosureSelectionView.vue'),

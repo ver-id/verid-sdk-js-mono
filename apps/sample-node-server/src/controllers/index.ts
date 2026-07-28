@@ -30,6 +30,13 @@ export {
 } from './issuance.controller.js';
 
 export {
+  initializeEmbeddedAuthClient,
+  startEmbeddedAuthSession,
+  handleEmbeddedAuthWebhook,
+  getEmbeddedAuthResult,
+} from './embedded-authentication.controller.js';
+
+export {
   initializeEmbeddedDisclosureClient,
   startEmbeddedDisclosureSession,
   handleEmbeddedDisclosureWebhook,

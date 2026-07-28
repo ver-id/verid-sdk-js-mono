@@ -60,26 +60,6 @@
           <li>Requires a publicly reachable webhook</li>
         </ul>
         <button class="btn-primary">
-          Start Node Flow →
-        </button>
-      </div>
-
-      <div
-        class="option-card"
-        @click="navigateTo('embedded')"
-      >
-        <div class="icon">
-          🖼️
-        </div>
-        <h2>Embedded Execution</h2>
-        <p>Run the disclosure flow inside an iframe on your own page using @ver-id/embedded-browser-client + @ver-id/embedded-node-client</p>
-        <ul>
-          <li>User never leaves your page</li>
-          <li>No redirect URI, no callback route</li>
-          <li>PKCE verifier and auth code stay on your server</li>
-          <li>Requires a publicly reachable webhook</li>
-        </ul>
-        <button class="btn-primary">
           Start Embedded Flow →
         </button>
       </div>
