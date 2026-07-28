@@ -1,4 +1,6 @@
 export { clientService } from './client.service.js';
+export { embeddedResultStore } from './embedded-result.store.js';
+export type { EmbeddedResultEntry } from './embedded-result.store.js';
 export { 
   generateInitCodeSnippet as generateAuthInitCodeSnippet, 
   generateFinalizeCodeSnippet as generateAuthFinalizeCodeSnippet,
