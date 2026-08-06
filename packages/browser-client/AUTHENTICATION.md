@@ -43,6 +43,13 @@ const authenticationClient = new VeridAuthenticationClient({
 
 Choosing between them depends on your use case: use session storage for same browser session/ tab, and local storage for data that should persist across sessions.
 
+**Cache options:** both stores take the same `options` as every other Ver.iD cache manager: `prefix` (default `'verid:'`) namespaces the keys, and `ttlSeconds` (default `3600`) expires them. Pass `0` to disable expiry.
+
+```ts
+new LocalStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 });
+```
+
+
 **Custom cache implementation:**  
 You might want to use a custom cache if you need more control over how and where data is stored (e.g., integrating with server-side storage). Custom caches are useful for advanced security requirements or to meet specific application needs.
 

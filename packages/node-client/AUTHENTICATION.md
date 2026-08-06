@@ -16,7 +16,7 @@ const authenticationClient = new VeridAuthenticationClient({
 
 #### Caching options
 
-The authentication client can be configured to cache flow context (state and code verifiers) using file storage. The default is `FileStorageCacheManager` which persists data in a JSON file at `~/.verid-cache/cache.json`. This setting can be controlled using the `cacheManager` option when creating the authentication client.
+The authentication client can be configured to cache flow context (state and code verifiers) using file storage. The default is `FileStorageCacheManager`, which writes one JSON file per entry under `~/.verid-cache/`. Every read and write goes to disk, so all processes on the same host share the cache. This setting can be controlled using the `cacheManager` option when creating the authentication client.
 
 To use the default file storage, no additional options are required. To configure the client to use a custom cache directory:
 
@@ -33,16 +33,26 @@ const authenticationClient = new VeridAuthenticationClient({
 });
 ```
 
+`FileStorageCacheManager` takes the same `options` as every other Ver.iD cache manager: `prefix` (default `'verid:'`) namespaces the keys, and `ttlSeconds` (default `3600`) expires them. Pass `0` to disable expiry.
+
+```ts
+new FileStorageCacheManager('/path/to/custom/cache', { prefix: 'myapp:', ttlSeconds: 600 });
+```
+
 **Important:** This feature allows the caching of flow context **such as state and code verifier** to be stored in the specified cache store.
 
 **File Storage Benefits:**
 
 - **Persistence**: Data survives server restarts and process terminations
 - **Security**: Files are created with restrictive permissions (0o600)
-- **Atomicity**: Atomic file writes prevent corruption during concurrent access
+- **Atomicity**: Each entry is written atomically to its own file, so concurrent writers never corrupt or overwrite each other's entries
+- **Multi-process**: A flow started by one worker can be finalized by another worker on the same host
+- **Expiry**: Entries expire after `ttlSeconds` (default: 1 hour), so abandoned flows do not accumulate
 - **Cross-session**: Enables authentication flows that span multiple HTTP requests
 
 Choosing file storage is ideal for server-side applications where data needs to persist across requests and server restarts.
+
+Processes spread over multiple hosts or containers do not share a filesystem. Use `RedisCacheManager` or `DynamoDBCacheManager` for those deployments.
 
 #### Creating a custom cache
 

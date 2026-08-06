@@ -5,6 +5,9 @@
 // Interface exports
 export type { ICacheManager } from './interface/ICacheManager.js';
 
+// Cache exports
+export * from './cache/index.js';
+
 // Flow client exports
 export * from './flow/index.js';
 
