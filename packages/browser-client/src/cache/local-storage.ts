@@ -1,4 +1,5 @@
-import { ICacheManager } from '@verid-sdk-js-mono/core';
+import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
+import { WebStorageCacheManager } from './web-storage.js';
 
 /**
  * Cache manager implementation using browser localStorage.
@@ -7,33 +8,16 @@ import { ICacheManager } from '@verid-sdk-js-mono/core';
  *
  * @public
  */
-export class LocalStorageCacheManager implements ICacheManager {
+export class LocalStorageCacheManager extends WebStorageCacheManager {
   /**
-   * Saves a key-value pair to localStorage.
-   *
-   * @param key - The cache key identifier
-   * @param value - The value to store
+   * @param options - Cache behaviour, see {@link CacheManagerOptions}
+   * @throws {InvalidArgumentError} If options contain invalid values
    */
-  save(key: string, value: string): void {
-    localStorage.setItem(key, value);
+  constructor(options?: CacheManagerOptions) {
+    super(options);
   }
 
-  /**
-   * Retrieves a value from localStorage by key.
-   *
-   * @param key - The cache key identifier
-   * @returns The cached value if found, null otherwise
-   */
-  get(key: string): string | null {
-    return localStorage.getItem(key);
-  }
-
-  /**
-   * Removes a value from localStorage by key.
-   *
-   * @param key - The cache key identifier
-   */
-  remove(key: string): void {
-    localStorage.removeItem(key);
+  protected get storage(): Storage {
+    return localStorage;
   }
 }

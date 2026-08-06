@@ -184,28 +184,45 @@ See the [apps/sample-node-server](../../apps/sample-node-server) directory for a
 
 All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `FileStorageCacheManager` is used. You can swap it for any built-in store — or provide your own `ICacheManager` implementation.
 
+### Shared options
+
+Every store takes the same `options`, so swapping one for another does not change how the cache behaves:
+
+| Option       | Default    | Meaning                                                                                                               |
+| ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `prefix`     | `'verid:'` | Namespaces every key. Pass an empty string to store keys unprefixed.                                                  |
+| `ttlSeconds` | `3600`     | Entry lifetime in seconds. Expired entries read as a miss and are dropped from the store. Pass `0` to disable expiry. |
+
+Every store implements `save`, `get`, `remove` and `clear`. `clear` only removes entries carrying the configured prefix, so keys owned by the rest of your application survive.
+
 ### File Storage (default)
 
-Persists cache to a JSON file on disk. Suitable for single-process servers and local development.
+Persists each entry as its own JSON file on disk. Every read and write goes to disk, so all processes on the same host share the cache: a flow started by one worker can be finalized by another. Processes spread over multiple hosts or containers do not share a filesystem, so use Redis or DynamoDB there.
 
 ```ts
 import { FileStorageCacheManager } from '@ver-id/node-client';
 
-// Uses default directory: ~/.verid-cache/cache.json
+// Uses default directory: ~/.verid-cache/
 const cacheManager = new FileStorageCacheManager();
 
 // Or specify a custom directory
 const cacheManager = new FileStorageCacheManager('/tmp/my-app-cache');
+
+// Entries expire after 1 hour by default; pass 0 to disable expiry
+const cacheManager = new FileStorageCacheManager('/tmp/my-app-cache', { ttlSeconds: 600 });
 ```
 
 ### Memory Storage
 
-In-memory `Map`-based store. Fastest option but data is lost on process restart and not shared across instances.
+In-memory `Map`-based store. Fastest option but data is lost on process restart and not shared across instances. A multi-worker server will fail to finalize flows with it, because the callback usually lands on a different worker than the one that started the flow.
 
 ```ts
 import { MemoryStorageCacheManager } from '@ver-id/node-client';
 
 const cacheManager = new MemoryStorageCacheManager();
+
+// Same options as every other store
+const cacheManager = new MemoryStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 });
 ```
 
 ### Redis
@@ -233,7 +250,7 @@ const cacheManager = new RedisCacheManager({
   client: redisClient,
   options: {
     prefix: 'myapp:', // optional, default: 'verid:'
-    ttlSeconds: 600, // optional, auto-expire after 10 minutes
+    ttlSeconds: 600, // optional, default: 3600 (Redis expires the key itself)
   },
 });
 ```
@@ -302,13 +319,14 @@ This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
 
 ## Troubleshooting
 
-| Problem                                                   | Fix                                                                                                                                                   |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENOENT: no such file or directory, open '...cache.json'` | The default `FileStorageCacheManager` writes to `~/.verid-cache/`. Ensure the process has write permission, or switch to `MemoryStorageCacheManager`. |
-| State mismatch on finalize                                | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL.                  |
-| `OperationFailedError: Failed to discover issuer`         | Verify `issuerUri` is correct and reachable from the server.                                                                                          |
-| `TokenGrantError` during finalize                         | Double-check `client_secret` and ensure the redirect URI matches exactly.                                                                             |
-| Redis / DynamoDB connection errors                        | Ensure the cache client is connected before passing it to the cache manager constructor.                                                              |
+| Problem                                                        | Fix                                                                                                                                                                                                                                                             |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENOENT: no such file or directory, open '...verid-cache/...'` | The default `FileStorageCacheManager` writes to `~/.verid-cache/`. Ensure the process has write permission, or point it at a writable directory.                                                                                                                |
+| `Invalid code verifier: no code verifier found for state ...`  | The flow was started against a different cache store than the one that finalized it, or the entry expired. Across multiple hosts or containers use `RedisCacheManager` or `DynamoDBCacheManager`; with `MemoryStorageCacheManager` any second worker hits this. |
+| State mismatch on finalize                                     | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL.                                                                                                                            |
+| `OperationFailedError: Failed to discover issuer`              | Verify `issuerUri` is correct and reachable from the server.                                                                                                                                                                                                    |
+| `TokenGrantError` during finalize                              | Double-check `client_secret` and ensure the redirect URI matches exactly.                                                                                                                                                                                       |
+| Redis / DynamoDB connection errors                             | Ensure the cache client is connected before passing it to the cache manager constructor.                                                                                                                                                                        |
 
 ## Acknowledgments
 
