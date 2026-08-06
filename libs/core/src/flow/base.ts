@@ -247,7 +247,7 @@ export class VeridFlowBaseClient {
    * @param assertResponseFunc - Function to assert the response type
    * @returns The grant response with tokens
    * @throws {InvalidAssertionError} When state is missing from callback params
-   * @throws {OperationFailedError} When code verifier is missing or expired
+   * @throws {OperationFailedError} When the cache holds no code verifier for the returned state
    * @protected
    */
   protected async finalizeFlow(
@@ -261,8 +261,11 @@ export class VeridFlowBaseClient {
 
     const codeVerifier = await this.cacheManager.get(state);
     if (!codeVerifier) {
+      const store = this.cacheManager?.constructor?.name ?? 'the configured cache manager';
       throw new OperationFailedError(
-        `Invalid code verifier: missing or expired code verifier for state ${state}`,
+        `Invalid code verifier: no code verifier found for state ${state} in ${store}. ` +
+          'The flow was either started against a different cache store, or the entry expired. ' +
+          'Deployments that span multiple hosts need a shared store such as RedisCacheManager or DynamoDBCacheManager.',
       );
     }
 

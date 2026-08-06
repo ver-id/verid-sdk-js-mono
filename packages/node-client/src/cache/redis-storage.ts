@@ -1,5 +1,7 @@
-import type { ICacheManager } from '@verid-sdk-js-mono/core';
-import { assertObject, assertFunction, assertString, assertNumber, InvalidArgumentError } from '@verid-sdk-js-mono/core';
+import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
+import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
+import { assertObject, assertFunction } from '@verid-sdk-js-mono/core/utils';
+import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
 
 /**
  * Configuration options for the Redis cache manager.
@@ -25,24 +27,9 @@ export interface RedisCacheManagerConfig {
   client: RedisCompatibleClient;
 
   /**
-   * Optional settings for cache behavior.
+   * Optional settings for cache behavior, see {@link CacheManagerOptions}.
    */
-  options?: {
-    /**
-     * Optional key prefix to namespace cache entries.
-     * Useful when sharing a Redis instance across multiple applications.
-     * @default 'verid:'
-     */
-    prefix?: string;
-
-    /**
-     * Optional TTL (time-to-live) in seconds for cache entries.
-     * Entries will be automatically removed after this duration.
-     * If not set, entries persist until explicitly removed.
-     * @default undefined (no expiry)
-     */
-    ttlSeconds?: number;
-  };
+  options?: CacheManagerOptions;
 }
 
 /**
@@ -53,12 +40,19 @@ export interface RedisCompatibleClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, ...args: unknown[]): Promise<unknown>;
   del(key: string | string[]): Promise<unknown>;
+  /** Expiring write in node-redis. Preferred when present, since node-redis rejects the variadic `set` form. */
+  setEx?(key: string, seconds: number, value: string): Promise<unknown>;
+  /** Expiring write in ioredis. */
+  setex?(key: string, seconds: number, value: string): Promise<unknown>;
   /** Required for {@link RedisCacheManager.clear}. Both `redis` and `ioredis` support this. */
   keys?(pattern: string): Promise<string[]>;
 }
 
 /**
  * Redis-backed cache manager for distributed server environments.
+ *
+ * Expiry is handled by Redis itself, so entries disappear from the store when their
+ * TTL elapses rather than on the next read.
  *
  * @example
  * ```ts
@@ -78,54 +72,58 @@ export interface RedisCompatibleClient {
  * });
  * ```
  */
-export class RedisCacheManager implements ICacheManager {
+export class RedisCacheManager extends BaseCacheManager {
   private client: RedisCompatibleClient;
-  private prefix: string;
-  private ttlSeconds?: number;
 
   /**
    * @param config - Redis cache manager configuration
    * @throws {InvalidArgumentError} If client is missing or invalid, or if options contain invalid values
    */
   constructor(config: RedisCacheManagerConfig) {
+    super(config?.options);
+
     assertObject(config?.client, 'config.client', InvalidArgumentError);
     assertFunction(config.client.get, 'config.client.get', InvalidArgumentError);
     assertFunction(config.client.set, 'config.client.set', InvalidArgumentError);
     assertFunction(config.client.del, 'config.client.del', InvalidArgumentError);
 
-    if (config.options?.prefix !== undefined) {
-      assertString(config.options.prefix, 'config.options.prefix', InvalidArgumentError);
-    }
-
-    if (config.options?.ttlSeconds !== undefined) {
-      assertNumber(config.options.ttlSeconds, 'config.options.ttlSeconds', InvalidArgumentError);
-      if (!Number.isInteger(config.options.ttlSeconds)) {
-        throw new InvalidArgumentError('Invalid config.options.ttlSeconds: must be a whole number of seconds');
-      }
-    }
-
     this.client = config.client;
-    this.prefix = config.options?.prefix ?? 'verid:';
-    this.ttlSeconds = config.options?.ttlSeconds;
   }
 
-  private prefixedKey(key: string): string {
-    return `${this.prefix}${key}`;
+  /**
+   * node-redis takes options as an object and ioredis as trailing arguments, so the
+   * dedicated expiring-write command is used whenever the client exposes one.
+   */
+  private async setWithExpiry(prefixedKey: string, value: string): Promise<void> {
+    if (typeof this.client.setEx === 'function') {
+      await this.client.setEx(prefixedKey, this.ttlSeconds, value);
+      return;
+    }
+
+    if (typeof this.client.setex === 'function') {
+      await this.client.setex(prefixedKey, this.ttlSeconds, value);
+      return;
+    }
+
+    await this.client.set(prefixedKey, value, 'EX', this.ttlSeconds);
   }
 
   // ICacheManager methods
 
   async save(key: string, value: string): Promise<void> {
-    const prefixed = this.prefixedKey(key);
-    if (this.ttlSeconds) {
-      await this.client.set(prefixed, value, 'EX', this.ttlSeconds);
-    } else {
-      await this.client.set(prefixed, value);
+    const prefixedKey = this.prefixedKey(key);
+    this.assertValue(value);
+
+    if (this.ttlSeconds > 0) {
+      await this.setWithExpiry(prefixedKey, value);
+      return;
     }
+
+    await this.client.set(prefixedKey, value);
   }
 
   async get(key: string): Promise<string | null> {
-    return this.client.get(this.prefixedKey(key));
+    return (await this.client.get(this.prefixedKey(key))) ?? null;
   }
 
   async remove(key: string): Promise<void> {
