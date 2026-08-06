@@ -2,6 +2,10 @@
 
 Execute an authentication flow to use decentralized identity apps for shifting from traditional, password-based methods to a secure, password-less system utilizing QR codes. This modern approach enhances security, simplifies the login process, and significantly improves user experience by leveraging user-controlled, decentralized authentication.
 
+### Prerequisites
+
+> **Important:** If you intend to use a `client_secret` with your authentication flow, it **must be configured** in Ver.iD Studio first. Only a secret that has been configured in Studio can be used for intent creation and token exchange. When a client secret is configured, the [intent-based flow](#option-2-intent-based-flow-required-when-client-secret-is-configured) and passing the secret during [finalization](#finalize-with-client-secret) are both mandatory.
+
 ### Create a Authentication client
 
 ```ts
@@ -96,33 +100,37 @@ const authenticationClient = new VeridAuthenticationClient({
 
 There are two ways to initiate an authentication flow:
 
-1. **Direct URL Generation** - Generate authentication URL directly (simpler approach)
-2. **Intent-based Flow** - Create an intent first, then generate URL (more control)
+1. **Direct URL Generation** - Generate authentication URL directly (simpler approach, for flows without a client secret)
+2. **Intent-based Flow** - Create an intent first, then generate URL (required when client secret is configured)
 
-#### Option 1: Direct URL Generation (Recommended)
+**Important:** If your authentication flow has a `client_secret` configured in Ver.iD Studio, the **intent-based flow is mandatory**. You must create an authentication intent before generating the authentication URL, and you must also pass the `client_secret` when calling `finalize`. See [Option 2](#option-2-intent-based-flow-required-when-client-secret-is-configured) and [Finalize Authentication](#finalize-authentication) for details.
 
-To start the authentication flow, you need to first generate an authentication URL. This URL is used to redirect the user to the Ver.iD authentication experience.
+#### Option 1: Direct URL Generation
+
+For flows **without** a client secret configured, you can generate an authentication URL directly. This URL is used to redirect the user to the Ver.iD authentication experience.
 
 You can provide multiple scopes separated by spaces (e.g., `'profile email'`). Each scope defines the permissions and information your application is requesting from the user during authentication. Requested scopes should be registered in the authentication flow.
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+  });
 ```
 
-**Note:** The `generateAuthenticationUrl` method returns a Promise that resolves to the authentication URL and state.
+**Note:** The `generateAuthenticationUrl` method returns a Promise that resolves to the authentication URL and state. This option is only available for flows that do not have a client secret configured in Ver.iD Studio.
 
-#### Option 2: Intent-based Flow (Advanced)
+#### Option 2: Intent-based Flow (Required when client secret is configured)
 
-For more control over the authentication flow, you can create an intent first and then generate the authentication URL. This is useful when you need to customize the authentication experience with challenges or brand-specific settings.
+For flows with a `client_secret` configured in Ver.iD Studio, you **must** create an intent first and then generate the authentication URL. This flow is also useful when you need to customize the authentication experience with challenges or brand-specific settings.
 
 ##### Step 1: Generate Code Challenge
 
 First, generate a PKCE code challenge:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge();
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge();
 ```
 
 ##### Step 2: Create Authentication Intent
@@ -136,22 +144,24 @@ const intentId = await authenticationClient.createAuthenticationIntent(
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
   },
   codeChallenge,
+  { client_secret: '<YOUR_CLIENT_SECRET>' } // Required when flow has a client secret configured
 );
 ```
 
-**Note:** Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used.
+**Important:** If your flow has a `client_secret` configured in Ver.iD Studio, you **must** pass it as the third argument when creating an authentication intent. The same `client_secret` must also be provided when calling `finalize`. Both `challenge` and `brandUuid` are optional parameters. If not provided, the default authentication experience will be used.
 
 ##### Step 3: Generate Authentication URL with Intent
 
 Generate the authentication URL using the created intent:
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: state, // Use the state from Step 1
-  codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  intent_id: intentId, // Pass the intent ID from Step 2
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: state, // Use the state from Step 1
+    codeChallenge: codeChallenge, // Use the code challenge from Step 1
+    intent_id: intentId, // Pass the intent ID from Step 2
+  });
 ```
 
 #### Advanced PKCE Configuration
@@ -163,10 +173,11 @@ Authentication flows are compliant with OAuth 2.1 and use PKCE (Proof Key for Co
 You can provide your own unique state identifier:
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: '<UNIQUE_STATE>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: '<UNIQUE_STATE>',
+  });
 ```
 
 **Important:** State is mandatory if code challenge is being provided.
@@ -176,11 +187,12 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
 You can provide an externally generated code challenge. This is useful when the code challenge is generated elsewhere (e.g., via a backend service):
 
 ```ts
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-  state: '<UNIQUE_STATE>',
-  codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-});
+const { authenticationUrl, state } =
+  await authenticationClient.generateAuthenticationUrl({
+    scope: '<SCOPES_TO_REQUEST>',
+    state: '<UNIQUE_STATE>',
+    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
+  });
 ```
 
 ##### Generating Code Challenge Separately
@@ -188,14 +200,16 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
 You can generate a code challenge independently for use in other contexts:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge();
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge();
 // Use codeChallenge and state for intent creation or other purposes
 ```
 
 You can also provide a custom state when generating the code challenge:
 
 ```ts
-const { codeChallenge, state } = await authenticationClient.generateCodeChallenge('<CUSTOM_STATE>');
+const { codeChallenge, state } =
+  await authenticationClient.generateCodeChallenge('<CUSTOM_STATE>');
 ```
 
 **Security Note:** As per PKCE standards ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)), a code verifier is created when generating a code challenge. The code verifier is stored in the cache manager against the state and is used to complete the OAuth flow. **Never expose the code verifier or transmit it over the network**, as this could compromise security.
@@ -216,11 +230,29 @@ window.open(authenticationUrl, '_blank'); // Opens the authentication flow in a 
 
 ### Finalize Authentication
 
-After the user completes the authentication flow, Ver.iD will redirect back to your registered `redirectUri` with query parameters such as `code`, `state` and any additional parameters you attached to the original authentication url. You need to finalize the authentication to get the authentication response:
+After the user completes the authentication flow, Ver.iD will redirect back to your registered `redirectUri` with query parameters such as `code`, `state` and any additional parameters you attached to the original authentication url. You need to finalize the authentication to get the authentication response.
+
+#### Finalize without client secret
+
+For flows without a client secret configured:
 
 ```ts
 const authenticationResponse = await authenticationClient.finalize();
 ```
+
+#### Finalize with client secret
+
+If your flow has a `client_secret` configured in Ver.iD Studio, you **must** pass it when calling `finalize`:
+
+```ts
+const authenticationResponse = await authenticationClient.finalize({
+  clientAuth: {
+    client_secret: '<YOUR_CLIENT_SECRET>', // Required when flow has a client secret configured
+  },
+});
+```
+
+**Important:** When your flow has a client secret configured in Ver.iD Studio, the `client_secret` is required for both intent creation and finalization. Omitting it will result in an authentication error.
 
 The `finalize` method returns a Promise that resolves to the authentication response. Response includes output JWT token as `access_token` of type depending on your settings in the authentication. By default it is configured as an `attested` token.
 
@@ -239,10 +271,25 @@ const authenticationResponse = await authenticationClient.finalize({
 });
 ```
 
+If your flow has a client secret configured, include it:
+
+```ts
+const redirectUrl = window.location.href; // Get the url from the redirect page
+
+const authenticationResponse = await authenticationClient.finalize({
+  redirectUrl: redirectUrl,
+  clientAuth: {
+    client_secret: '<YOUR_CLIENT_SECRET>', // Required when flow has a client secret configured
+  },
+});
+```
+
 ### Get decoded Token
 
 Once you have the authentication response, you can verify and decode the token to get the JWT headers and typed payload:
 
 ```ts
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+const authenticationDecodedToken = await authenticationClient.decode(
+  authenticationResponse
+);
 ```

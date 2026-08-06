@@ -2,6 +2,10 @@
 
 Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes.
 
+### Prerequisites
+
+> **Important:** If you intend to use a `client_secret` with your disclosure flow, it **must be configured** in Ver.iD Studio first. Only a secret that has been configured in Studio can be used for intent creation and token exchange. When a client secret is configured, the [intent-based flow](#option-2-intent-based-flow-required-when-client-secret-is-configured) and passing the secret during [finalization](#finalize-with-client-secret) are both mandatory.
+
 ### Create a Disclosure client
 
 ```ts
@@ -99,19 +103,21 @@ There are two ways to initiate a disclosure flow:
 1. **Direct URL Generation** - Generate disclosure URL directly (simpler approach)
 2. **Intent-based Flow** - Create an intent first, then generate URL (more control)
 
-#### Option 1: Direct URL Generation (Recommended)
+**Important:** If your disclosure flow has a `client_secret` configured in Ver.iD Studio, the **intent-based flow is mandatory**. You must create a disclosure intent before generating the disclosure URL, and you must also pass the `client_secret` when calling `finalize`. See [Option 2](#option-2-intent-based-flow-required-when-client-secret-is-configured) and [Finalize Disclosure](#finalize-disclosure) for details.
 
-To start the disclosure flow, you need to first generate a disclosure URL. This URL is used to redirect the user to the Ver.iD disclosure experience.
+#### Option 1: Direct URL Generation
+
+For flows **without** a client secret configured, you can generate a disclosure URL directly. This URL is used to redirect the user to the Ver.iD disclosure experience.
 
 ```ts
 const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();
 ```
 
-**Note:** The `generateDisclosureUrl` method returns a Promise that resolves to the disclosure URL and state.
+**Note:** The `generateDisclosureUrl` method returns a Promise that resolves to the disclosure URL and state. This option is only available for flows that do not have a client secret configured in Ver.iD Studio.
 
-#### Option 2: Intent-based Flow (Advanced)
+#### Option 2: Intent-based Flow (Required when client secret is configured)
 
-For more control over the disclosure flow, you can create an intent first and then generate the disclosure URL. This is useful when you need to customize the disclosure experience with challenges, brand-specific settings, or explicit consent requirements.
+For flows with a `client_secret` configured in Ver.iD Studio, you **must** create an intent first and then generate the disclosure URL. This flow is also useful when you need to customize the disclosure experience with challenges, brand-specific settings, or explicit consent requirements.
 
 ##### Step 1: Generate Code Challenge
 
@@ -133,10 +139,11 @@ const intentId = await disclosureClient.createDisclosureIntent(
     requireExplicitConsent: true, // Optional: Require explicit user consent (default: false)
   },
   codeChallenge,
+  { client_secret: '<YOUR_CLIENT_SECRET>' } // Required when flow has a client secret configured
 );
 ```
 
-**Note:** All parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used.
+**Important:** If your flow has a `client_secret` configured in Ver.iD Studio, you **must** pass it as the third argument when creating a disclosure intent. The same `client_secret` must also be provided when calling `finalize`. All other parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used.
 
 ##### Step 3: Generate Disclosure URL with Intent
 
@@ -189,7 +196,9 @@ const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
 You can also provide a custom state when generating the code challenge:
 
 ```ts
-const { codeChallenge, state } = await disclosureClient.generateCodeChallenge('<CUSTOM_STATE>');
+const { codeChallenge, state } = await disclosureClient.generateCodeChallenge(
+  '<CUSTOM_STATE>'
+);
 ```
 
 **Security Note:** As per PKCE standards ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)), a code verifier is created when generating a code challenge. The code verifier is stored in the cache manager against the state and is used to complete the OAuth flow. **Never expose the code verifier or transmit it over the network**, as this could compromise security.
@@ -210,11 +219,29 @@ window.open(disclosureUrl, '_blank'); // Opens the disclosure flow in a new brow
 
 ### Finalize Disclosure
 
-After the user completes the disclosure flow, Ver.iD will redirect back to your registered `redirectUri` with query parameters such as `code`, `state` and any additional parameters you attached to the original disclosure url. You need to finalize the disclosure to get the disclosure response:
+After the user completes the disclosure flow, Ver.iD will redirect back to your registered `redirectUri` with query parameters such as `code`, `state` and any additional parameters you attached to the original disclosure url. You need to finalize the disclosure to get the disclosure response.
+
+#### Finalize without client secret
+
+For flows without a client secret configured:
 
 ```ts
 const disclosureResponse = await disclosureClient.finalize();
 ```
+
+#### Finalize with client secret
+
+If your flow has a `client_secret` configured in Ver.iD Studio, you **must** pass it when calling `finalize`:
+
+```ts
+const disclosureResponse = await disclosureClient.finalize({
+  clientAuth: {
+    client_secret: '<YOUR_CLIENT_SECRET>', // Required when flow has a client secret configured
+  },
+});
+```
+
+**Important:** When your flow has a client secret configured in Ver.iD Studio, the `client_secret` is required for both intent creation and finalization. Omitting it will result in an authentication error.
 
 The `finalize` method returns a Promise that resolves to the disclosure response. Response includes output JWT token as `access_token` of type depending on your settings in the disclosure. By default it is configured as an `attested` token.
 
@@ -226,14 +253,14 @@ It is possible to finalize disclosure flow at different location then the redire
 
 **Important:** We use code verifier to authorize the client in order to finalize the flow. Code verifier is read from the cache store internally. As code verifier should not travel or exposed externally, flow should be finalized where cache store is accessible.
 
-```ts
+````ts
 const redirectedUrl = window.location.href; // Get the url from the redirect page
 
 // Can be called on any page as long as you can access value of `redirectedUrl'
 const disclosureResponse = await disclosureClient.finalize({
   redirectedUrl: redirectedUrl,
-});
-```
+});```
+
 
 ### Get decoded Token
 
@@ -250,4 +277,4 @@ const disclosureDecodedToken = await disclosureClient.decode(
   disclosureResponse,
   assertDisclosureV1JwtPayload,
 );
-```
+````
