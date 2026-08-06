@@ -1,5 +1,7 @@
-import type { ICacheManager } from '@verid-sdk-js-mono/core';
-import { assertObject, assertString, assertFunction, assertNumber, InvalidArgumentError } from '@verid-sdk-js-mono/core';
+import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
+import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
+import { assertObject, assertString, assertFunction } from '@verid-sdk-js-mono/core/utils';
+import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
 
 /**
  * Lazily loaded DynamoDB command classes from `@aws-sdk/lib-dynamodb`.
@@ -53,25 +55,11 @@ export interface DynamoDBCacheManagerConfig {
   tableName: string;
 
   /**
-   * Optional settings for cache behavior.
+   * Optional settings for cache behavior, see {@link CacheManagerOptions}.
+   * DynamoDB TTL must be enabled on the `ttl` attribute of the table for expired
+   * items to be reclaimed; expired items never read back regardless.
    */
-  options?: {
-    /**
-     * Optional key prefix to namespace cache entries.
-     * Useful when sharing a DynamoDB table across multiple applications.
-     * @default 'verid:'
-     */
-    prefix?: string;
-
-    /**
-     * Optional TTL (time-to-live) in seconds for cache entries.
-     * Entries will be automatically removed after this duration.
-     * If not set, entries persist until explicitly removed.
-     * Note: DynamoDB TTL must be enabled on the `ttl` attribute of the table for this to work.
-     * @default undefined (no expiry)
-     */
-    ttlSeconds?: number;
-  };
+  options?: CacheManagerOptions;
 }
 
 /**
@@ -88,6 +76,9 @@ export interface DynamoDBCompatibleClient {
  * Table setup:
  * - Partition key: `pk` (String)
  * - Optional TTL attribute: `ttl` (Number) — enable DynamoDB TTL on this attribute
+ *
+ * DynamoDB reclaims expired items lazily (up to 48 hours late), so expiry is also
+ * enforced on read and an expired item never reaches the caller.
  *
  * @example
  * ```ts
@@ -115,53 +106,40 @@ export interface DynamoDBCompatibleClient {
  * });
  * ```
  */
-export class DynamoDBCacheManager implements ICacheManager {
+export class DynamoDBCacheManager extends BaseCacheManager {
   private client: DynamoDBCompatibleClient;
   private tableName: string;
-  private prefix: string;
-  private ttlSeconds?: number;
 
   /**
    * @param config - DynamoDB cache manager configuration
    * @throws {InvalidArgumentError} If client, tableName are missing/invalid, or if options contain invalid values
    */
   constructor(config: DynamoDBCacheManagerConfig) {
+    super(config?.options);
+
     assertObject(config?.client, 'config.client', InvalidArgumentError);
     assertFunction(config.client.send, 'config.client.send', InvalidArgumentError);
     assertString(config?.tableName, 'config.tableName', InvalidArgumentError);
 
-    if (config.options?.prefix !== undefined) {
-      assertString(config.options.prefix, 'config.options.prefix', InvalidArgumentError);
-    }
-
-    if (config.options?.ttlSeconds !== undefined) {
-      assertNumber(config.options.ttlSeconds, 'config.options.ttlSeconds', InvalidArgumentError);
-      if (!Number.isInteger(config.options.ttlSeconds)) {
-        throw new InvalidArgumentError('Invalid config.options.ttlSeconds: must be a whole number of seconds');
-      }
-    }
-
     this.client = config.client;
     this.tableName = config.tableName;
-    this.ttlSeconds = config.options?.ttlSeconds;
-    this.prefix = config.options?.prefix ?? 'verid:';
-  }
-
-  private prefixedKey(key: string): string {
-    return `${this.prefix}${key}`;
   }
 
   // ICacheManager methods
 
   async save(key: string, value: string): Promise<void> {
+    const prefixedKey = this.prefixedKey(key);
+    this.assertValue(value);
+
     const commands = await loadCommands();
     const item: Record<string, unknown> = {
-      pk: this.prefixedKey(key),
+      pk: prefixedKey,
       value,
     };
 
-    if (this.ttlSeconds) {
-      item['ttl'] = Math.floor(Date.now() / 1000) + this.ttlSeconds;
+    const expiresAt = this.expiresAt();
+    if (expiresAt !== undefined) {
+      item['ttl'] = Math.floor(expiresAt / 1000);
     }
 
     await this.client.send(
@@ -179,9 +157,19 @@ export class DynamoDBCacheManager implements ICacheManager {
         TableName: this.tableName,
         Key: { pk: this.prefixedKey(key) },
       }),
-    )) as { Item?: { value?: string } };
+    )) as { Item?: { value?: string; ttl?: number } };
 
-    return result.Item?.value ?? null;
+    const item = result.Item;
+    if (!item || typeof item.value !== 'string') {
+      return null;
+    }
+
+    // DynamoDB deletes expired items lazily, so an item may outlive its ttl by hours
+    if (typeof item.ttl === 'number' && item.ttl * 1000 <= Date.now()) {
+      return null;
+    }
+
+    return item.value;
   }
 
   async remove(key: string): Promise<void> {
