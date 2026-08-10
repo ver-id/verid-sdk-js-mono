@@ -6,12 +6,11 @@ import { config as loadDotenv } from 'dotenv';
  * Loads the sample server's `.env` before anything reads `process.env`.
  *
  * The controllers fall back to `process.env.VERID_*` when the request body
- * omits `issuerUri` / `client_id` / `redirectUri` (which the Vue "Node flow"
- * views do by design), so these values must be present in the environment.
+ * omits `issuerUri` / `client_id` / `redirectUri`, so these values must be
+ * present in the environment.
  *
- * `nx serve` launches the built server from the workspace root, while a direct
- * run uses the app (or `dist`) directory, so we probe a few candidate locations
- * and load the first `.env` we find.
+ * `nx serve` and a direct run resolve `.env` from different working
+ * directories, so we probe a few candidate locations and load the first one found.
  */
 const candidates = [
   resolve(process.cwd(), '.env'),

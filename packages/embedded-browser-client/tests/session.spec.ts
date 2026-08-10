@@ -127,8 +127,7 @@ describe('createEmbeddedSession', () => {
   });
 });
 
-// Compile-time (tsd-style) assertions: the event name must narrow event.detail.
-// This function is never called; it only needs to type-check.
+// Type-check only (never called): asserts each event name narrows event.detail correctly.
 function typeLevelAssertions(session: VeridEmbeddedSession): void {
   session.addEventListener('error', (event) => {
     const detail: VeridEmbeddedError = event.detail;

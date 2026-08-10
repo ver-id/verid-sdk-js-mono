@@ -3,11 +3,7 @@ export const SERVER_CONFIG = {
   port: process.env.PORT ? Number(process.env.PORT) : 3000,
 };
 
-/**
- * The three Ver.iD flow scopes that support embedded mode.
- *
- * GraphQL is not a flow scope and has no embedded variant.
- */
+/** The three Ver.iD flow scopes that support embedded mode (GraphQL has no embedded variant). */
 export const EMBEDDED_SCOPES = ['authentication', 'disclosure', 'issuance'] as const;
 
 export type EmbeddedScope = (typeof EMBEDDED_SCOPES)[number];
@@ -15,10 +11,8 @@ export type EmbeddedScope = (typeof EMBEDDED_SCOPES)[number];
 /**
  * Paths that must receive the raw, unparsed request body.
  *
- * The embedded webhook is authenticated with an HMAC computed over the exact
- * bytes of the request, so these paths must bypass `express.json()`.
- *
- * @see {@link file://../middleware/raw-body.ts}
+ * The embedded webhook is HMAC-signed over the exact request bytes, so these
+ * paths must bypass `express.json()` — see `../middleware/raw-body.ts`.
  */
 export const EMBEDDED_WEBHOOK_PATHS: string[] = EMBEDDED_SCOPES.map(
   (scope) => `/api/${scope}/embedded/webhook`,
@@ -28,24 +22,16 @@ export const EMBEDDED_CONFIG = {
   /**
    * Public base URL that the Ver.iD platform can reach this server on.
    *
-   * The embedded webhook is a *server-to-server* POST from Ver.iD to this
-   * server, so `http://localhost:3000` is never reachable. Two ways to get a
-   * usable URL:
-   *
-   * - **Garden (local cluster):** wildcard DNS such as `<profile>.ver.garden`
-   *   already resolves to your dev machine from inside the cluster, so you can
-   *   point this straight at your own host — no tunnel needed.
-   * - **Everyone else:** run a tunnel and paste its public URL here, e.g.
-   *   `cloudflared tunnel --url http://localhost:3000` or `ngrok http 3000`.
+   * The webhook is a server-to-server POST from Ver.iD, so `localhost` never
+   * works — use a Garden profile host or a tunnel (e.g. `ngrok http 3000`).
    */
   webhookPublicUrl: process.env.VERID_WEBHOOK_PUBLIC_URL ?? '',
 
   /**
    * Optional override for the Ronan embed URL handed to the browser.
    *
-   * When empty, `createEmbeddedSession()` defaults it to the `issuerUri` origin.
-   * Override it when Ronan is hosted separately from the OAuth issuer, which is
-   * the case in a Garden profile.
+   * Defaults to the `issuerUri` origin; override when Ronan is hosted
+   * separately from the OAuth issuer, as in a Garden profile.
    */
   ronanUri: process.env.VERID_RONAN_URI ?? '',
 
@@ -57,16 +43,9 @@ export const EMBEDDED_CONFIG = {
   /**
    * OAuth scope string sent with each embedded flow.
    *
-   * Unlike redirect mode, embedded mode has no scope baked into the SDK call:
-   * `createEmbeddedSession()` takes the scope verbatim and Ronan forwards it
-   * straight to the authorize request. So these must be correct.
-   *
-   * - `authentication` — **a single scope never works here.** The OAuth server
-   *   asserts "should at least contain an other scope next to the openid
-   *   scope", so `openid` alone is rejected. Hence `openid profile`.
-   * - `disclosure` / `issuance` — these are top-level scopes in their own right
-   *   (`AppAuthorizationScopeDisclosureNode.Scope = 'disclosure'`), and are what
-   *   redirect mode sends today. Override via env if your flow needs more.
+   * Unlike redirect mode, `createEmbeddedSession()` takes the scope verbatim,
+   * so it must be correct here. Note `authentication` needs a second scope
+   * alongside `openid` — the OAuth server rejects `openid` alone.
    */
   scopes: {
     authentication: process.env.VERID_EMBEDDED_AUTHENTICATION_SCOPES ?? 'openid profile',
@@ -80,15 +59,10 @@ export function embeddedScopeFor(scope: EmbeddedScope): string {
   return EMBEDDED_CONFIG.scopes[scope];
 }
 
-/**
- * Hosts that the Ver.iD platform can never reach over the network.
- */
+/** Hosts that the Ver.iD platform can never reach over the network. */
 const UNREACHABLE_HOSTNAMES = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1']);
 
-/**
- * Whether {@link EMBEDDED_CONFIG.webhookPublicUrl} looks reachable from outside
- * this machine.
- */
+/** Whether {@link EMBEDDED_CONFIG.webhookPublicUrl} looks reachable from outside this machine. */
 export function isWebhookPubliclyReachable(): boolean {
   if (!EMBEDDED_CONFIG.webhookPublicUrl) {
     return false;

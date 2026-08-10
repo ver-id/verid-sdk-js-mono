@@ -1,16 +1,12 @@
 import type { EmbeddedClientConfig } from '@ver-id/embedded-node-client';
 
-/**
- * Generate a code snippet showing the embedded client initialization
- */
 export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
   return `import { EmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
 
 const issuanceClient = new EmbeddedIssuanceClient({
   issuerUri: '${config.issuerUri}',
   client_id: '${config.client_id}',
-  // NOTE: no redirectUri is sent in embedded mode (authorize or token). The
-  // authorization code is bound to the client purely through PKCE.
+  // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.
 });`;
 }
 
@@ -48,10 +44,7 @@ export function generateStartSnippet(
 
   return `// SERVER — POST /api/issuance/embedded/start
 //
-// IMPORTANT: create the session FIRST, then bind the intent to the challenge it
-// produced. An intent is registered against a specific code_challenge, and
-// createEmbeddedSession() always mints a fresh one — so creating the intent
-// first would bind it to a challenge the browser never presents.
+// Create the session first — the intent must bind to the challenge it just produced.
 const bootstrap = await issuanceClient.createEmbeddedSession({
   scope: '${scope}',
   webhookUri: '${webhookUri}',
@@ -72,14 +65,11 @@ ${params.join(',\n')}
 res.json({ ...bootstrap, intentId: intent.intent_id });`;
 }
 
-/**
- * Generate code snippet for the signed webhook handler
- */
 export function generateWebhookSnippet(): string {
   return `// SERVER — POST /api/issuance/embedded/webhook
 //
-// Mounted with a RAW body parser. The HMAC is computed over the exact bytes,
-// so express.json() must not touch this route:
+// Mounted with a RAW body parser — the HMAC covers exact bytes, so
+// express.json() must not touch this route:
 //   app.use('/api/issuance/embedded/webhook', express.text({ type: '*/*' }));
 //   app.use(express.json());
 app.post('/api/issuance/embedded/webhook', async (req, res) => {
@@ -101,14 +91,11 @@ app.post('/api/issuance/embedded/webhook', async (req, res) => {
 });`;
 }
 
-/**
- * Generate code snippet for the result polling endpoint
- */
 export function generateResultSnippet(): string {
   return `// SERVER — GET /api/issuance/embedded/result?state=...
 //
-// Embedded mode has no redirect, so the browser cannot read the result from a
-// URL. It learns the flow finished via the 'complete' event, then asks here.
+// No redirect in embedded mode — the browser learns via the 'complete' event,
+// then polls here.
 app.get('/api/issuance/embedded/result', (req, res) => {
   const entry = embeddedResultStore.consume(String(req.query.state));
 

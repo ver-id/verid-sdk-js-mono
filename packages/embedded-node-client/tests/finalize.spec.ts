@@ -3,8 +3,7 @@ import { EmbeddedDisclosureClient } from '../src/clients/disclosure.js';
 import { MemoryStorageCacheManager } from '../src/cache/memory-storage.js';
 
 const ISSUER = 'https://issuer.example.com';
-// oauth4webapi's processDiscoveryResponse requires the discovery `issuer`
-// to equal the expected issuer URL's href (which carries a trailing slash).
+// oauth4webapi requires the discovery `issuer` to equal the issuer URL's href, trailing slash included.
 const ISSUER_HREF = 'https://issuer.example.com/';
 const CLIENT_ID = '11111111-1111-4111-8111-111111111111';
 const SECRET = 'test-webhook-secret';

@@ -48,8 +48,8 @@ export async function initializeEmbeddedDisclosureClient(
 
     const codeSnippet = generateEmbeddedDisclosureInitSnippet(config);
 
-    // Report webhook reachability rather than failing here, so the demo page can
-    // render step 1 and warn the user before they get stuck at step 2.
+    // Report reachability instead of failing here, so the demo page can still
+    // render step 1 and warn the user before step 2.
     const webhookReachable = isWebhookPubliclyReachable();
 
     return res.json({
@@ -119,10 +119,7 @@ export async function startEmbeddedDisclosureSession(
         InvalidArgumentError
       );
 
-      // Order matters. An intent is registered against a specific code_challenge,
-      // and createEmbeddedSession() always mints a fresh one, so the intent must
-      // be bound to the challenge the session just produced. Creating the intent
-      // first would bind it to a challenge the browser never presents.
+      // Create the session first — the intent must bind to the challenge it just produced.
       intentId = await disclosureClient.createDisclosureIntent(
         payload,
         bootstrap.codeChallenge,
@@ -138,8 +135,7 @@ export async function startEmbeddedDisclosureSession(
       codeSnippet = generateEmbeddedDisclosureStartSnippet(scope, webhookUri);
     }
 
-    // Register the session so a poll before the webhook lands reports "pending"
-    // rather than being indistinguishable from an unknown state.
+    // Register the session so an early poll reports "pending" instead of "unknown".
     embeddedResultStore.createPending(bootstrap.state);
 
     return res.json({
@@ -175,9 +171,8 @@ export async function handleEmbeddedDisclosureWebhook(
     return res.status(500).json({ error: 'Webhook secret is not configured' });
   }
 
-  // Verify first, standalone, so we learn the `state` and can attribute a
-  // failure to the browser session that is waiting on it. An unverified webhook
-  // is never trusted enough to touch the store.
+  // Verify before touching the store, so an unverified webhook can never be
+  // attributed to a browser session.
   const verification = verifyEmbeddedWebhook({ rawBody, signature, secret });
 
   if (!verification.ok) {
@@ -203,9 +198,8 @@ export async function handleEmbeddedDisclosureWebhook(
       InvalidArgumentError
     );
 
-    // finalizeEmbedded() re-verifies the signature (a cheap, pure check) and
-    // then exchanges the code using the verifier cached under `state`.
-    // No redirect_uri is sent at all in embedded mode.
+    // finalizeEmbedded() re-verifies the signature, then exchanges the code
+    // using the verifier cached under `state`. No redirect_uri is sent.
     const result = await disclosureClient.finalizeEmbedded({
       rawBody,
       signature,

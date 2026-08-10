@@ -14,13 +14,8 @@ router.use('/authentication/embedded', embeddedAuthenticationRoutes);
 router.use('/disclosure/embedded', embeddedDisclosureRoutes);
 router.use('/issuance/embedded', embeddedIssuanceRoutes);
 
-// Mount authentication routes
 router.use('/authentication', authenticationRoutes);
-
-// Mount disclosure routes
 router.use('/disclosure', disclosureRoutes);
-
-// Mount issuance routes
 router.use('/issuance', issuanceRoutes);
 
 export default router;

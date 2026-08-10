@@ -3,18 +3,12 @@ import express, { type RequestHandler } from 'express';
 /**
  * Captures the request body as an unparsed string.
  *
- * The embedded webhook is signed with `x-signature-256: sha256=<hex>`, an HMAC
- * computed over the **exact bytes** of the request body. Parsing the JSON and
- * re-serializing it changes those bytes (key order, whitespace, unicode
- * escaping), so the signature would never verify.
+ * The embedded webhook signature is an HMAC over the **exact bytes** of the
+ * body, so re-parsing/re-serializing JSON would break verification. The
+ * wildcard `type` ensures the body is captured regardless of content-type.
  *
- * The wildcard `type` is deliberate: it matches whatever content type the
- * platform sends, so the body is always captured regardless of the header.
- *
- * **This must be registered before the global `express.json()`.** Body parsers
- * consume the request stream exactly once; whichever runs first wins. Running
- * this first is safe for the JSON parser, which skips any request that has
- * already been parsed.
+ * **Must be registered before `express.json()`** — whichever body parser runs
+ * first wins the request stream; the JSON parser safely skips already-parsed requests.
  *
  * @see `EMBEDDED_WEBHOOK_PATHS` in `../config/index.js`
  */

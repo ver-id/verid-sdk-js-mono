@@ -1,8 +1,6 @@
-// Load environment variables from `.env` before anything reads `process.env`.
 import './load-env.js';
 
-// Disable TLS verification for development (NOT for production!)
-// This is needed for self-signed certificates in development environments
+// Development-only: allows self-signed certs. Never enable in production.
 if (process.env.NODE_ENV !== 'production') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
@@ -20,17 +18,14 @@ import routes from './routes/index.js';
 
 const app = express();
 
-// Middleware
 app.use(cors());
 
-// Embedded webhooks are HMAC-signed over the raw request bytes, so they must be
-// captured as text *before* the JSON parser consumes the stream. Registering
-// this first is safe: the JSON parser below skips any already-parsed request.
+// Embedded webhooks are HMAC-signed over the raw request bytes, so this must
+// run before express.json() consumes the stream (which it safely skips here).
 app.use(EMBEDDED_WEBHOOK_PATHS, rawBodyText);
 
 app.use(express.json());
 
-// Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Ver.iD Node.js API Server',
@@ -39,10 +34,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// API routes
 app.use('/api', routes);
 
-// Start server
 app.listen(SERVER_CONFIG.port, SERVER_CONFIG.host, () => {
   console.log(`[ ready ] http://${SERVER_CONFIG.host}:${SERVER_CONFIG.port}`);
 

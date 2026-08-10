@@ -5,17 +5,15 @@ import {
   EmbeddedIssuanceClient,
 } from '@ver-id/embedded-node-client';
 
-/**
- * Simple global client storage
- */
+/** Global in-memory storage for the SDK clients created by the demo endpoints. */
 class ClientService {
   private authClient: VeridAuthenticationClient | null = null;
   private disclosureClient: VeridDisclosureClient | null = null;
   private issuanceClient: VeridIssuanceClient | null = null;
 
-  // Embedded clients are kept separately from the redirect-based clients above:
-  // embedded flows have no redirect and no callback URL, so they must never
-  // clear `callbackUrl` out from under an in-flight redirect flow.
+  // Embedded clients are kept separate from the redirect-based clients above:
+  // embedded flows have no callback URL, so they must never clear it out from
+  // under an in-flight redirect flow.
   private embeddedAuthClient: EmbeddedAuthenticationClient | null = null;
   private embeddedDisclosureClient: EmbeddedDisclosureClient | null = null;
   private embeddedIssuanceClient: EmbeddedIssuanceClient | null = null;
@@ -35,82 +33,52 @@ class ClientService {
   private issuanceCodeChallenge: string | null = null;
   private issuanceState: string | null = null;
 
-  /**
-   * Set the authentication client
-   */
   setAuthClient(client: VeridAuthenticationClient): void {
     this.authClient = client;
-    this.authResponse = null; // Reset auth response when setting new client
-    this.callbackUrl = null; // Reset callback URL when setting new client
-    this.authIntentId = null; // Reset intent data
+    this.authResponse = null;
+    this.callbackUrl = null;
+    this.authIntentId = null;
     this.authCodeChallenge = null;
     this.authState = null;
   }
 
-  /**
-   * Get the authentication client
-   */
   getAuthClient(): VeridAuthenticationClient | null {
     return this.authClient;
   }
 
-  /**
-   * Set the disclosure client
-   */
   setDisclosureClient(client: VeridDisclosureClient): void {
     this.disclosureClient = client;
-    this.disclosureResponse = null; // Reset disclosure response when setting new client
-    this.callbackUrl = null; // Reset callback URL when setting new client
-    this.disclosureIntentId = null; // Reset intent data
+    this.disclosureResponse = null;
+    this.callbackUrl = null;
+    this.disclosureIntentId = null;
     this.disclosureCodeChallenge = null;
     this.disclosureState = null;
   }
 
-  /**
-   * Get the disclosure client
-   */
   getDisclosureClient(): VeridDisclosureClient | null {
     return this.disclosureClient;
   }
 
-  /**
-   * Store auth response after finalize
-   */
   setAuthResponse(response: AuthenticationResponse): void {
     this.authResponse = response;
   }
 
-  /**
-   * Get stored auth response
-   */
   getAuthResponse(): AuthenticationResponse | null {
     return this.authResponse;
   }
 
-  /**
-   * Store disclosure response after finalize
-   */
   setDisclosureResponse(response: DisclosureResponse): void {
     this.disclosureResponse = response;
   }
 
-  /**
-   * Get stored disclosure response
-   */
   getDisclosureResponse(): DisclosureResponse | null {
     return this.disclosureResponse;
   }
 
-  /**
-   * Store the backend callback URL
-   */
   setCallbackUrl(url: string): void {
     this.callbackUrl = url;
   }
 
-  /**
-   * Get stored callback URL
-   */
   getCallbackUrl(): string | null {
     return this.callbackUrl;
   }
@@ -212,12 +180,9 @@ class ClientService {
     return this.issuanceState;
   }
 
-  // Embedded client methods
-  //
-  // Unlike their redirect counterparts, these setters intentionally reset no
-  // other state. Per-session data for an embedded flow lives in
-  // `embeddedResultStore`, keyed by `state`, so re-initializing a client does
-  // not disturb a session that is already running in the browser.
+  // Embedded client setters intentionally reset no other state — per-session
+  // data lives in `embeddedResultStore`, keyed by `state`, so re-initializing a
+  // client does not disturb a session already running in the browser.
 
   setEmbeddedAuthClient(client: EmbeddedAuthenticationClient): void {
     this.embeddedAuthClient = client;
@@ -244,5 +209,4 @@ class ClientService {
   }
 }
 
-// Export singleton instance
 export const clientService = new ClientService();

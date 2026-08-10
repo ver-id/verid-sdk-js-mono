@@ -125,13 +125,8 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
   }
 
   /**
-   * Performs the embedded-flow authorization code token exchange.
-   *
-   * Embedded flows are registered without a `redirect_uri`, which oauth4webapi
-   * cannot omit, so this hand-builds the `authorization_code` token request
-   * (grant_type + code + client_id + code_verifier, plus optional
-   * ClientSecretBasic auth). The resulting response is validated by the shared
-   * `processAuthorizationCodeResponse`.
+   * Hand-builds the `authorization_code` token request because embedded flows have no
+   * `redirect_uri`, which oauth4webapi's helper can't omit.
    */
   private async embeddedAuthorizationCodeGrantRequest(
     authorizationServer: AuthorizationServer,

@@ -8,10 +8,8 @@ const API_URL = `${import.meta.env.VITE_NODE_SERVER_URL}/api`;
 export type EmbeddedScope = 'authentication' | 'disclosure' | 'issuance';
 
 /**
- * The public bootstrap the backend hands the browser.
- *
- * Note what is absent: there is no `code_verifier` and no authorization code.
- * Both stay server-side for the whole flow.
+ * The public bootstrap the backend hands the browser. Notably absent: `code_verifier`
+ * and the authorization code — both stay server-side for the whole flow.
  */
 export interface EmbeddedBootstrap {
   clientId: string;
@@ -24,10 +22,8 @@ export interface EmbeddedBootstrap {
 }
 
 /**
- * Where the flow currently is.
- *
- * `awaitingResult` is the state that makes embedded mode different: the iframe
- * has said it is finished, but the result only exists once the backend has
+ * Where the flow currently is. `awaitingResult` is unique to embedded mode: the
+ * iframe reported completion, but the result only exists once the backend has
  * processed the webhook.
  */
 export type EmbeddedStatus =
@@ -56,18 +52,15 @@ export interface EmbeddedIntentOptions {
 }
 
 /**
- * Composable for the embedded flow, shared by all three scopes.
- *
- * Encapsulates the browser half of embedded mode: fetch the bootstrap from your
- * own backend, mount the Ronan iframe, translate lifecycle events, and — once
- * the flow completes — poll the backend for the result it finalized from the
- * webhook.
+ * Composable for the embedded flow, shared by all three scopes. Fetches the
+ * bootstrap from your backend, mounts the Ronan iframe, and polls for the
+ * result once the flow completes.
  */
 export function useEmbeddedSession(scope: EmbeddedScope) {
   const base = `${API_URL}/${scope}/embedded`;
 
-  // Embedded clients send no redirectUri — not on authorize, not on token
-  // exchange. The flow may still have one registered for redirect mode.
+  // Embedded clients send no redirectUri, even though the flow may have one
+  // registered for redirect mode.
   const clientConfig = ref({
     issuerUri: '',
     client_id: '',
@@ -140,10 +133,8 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
 
   /**
    * Step 2 (SERVER) — create the embedded session and get the public bootstrap.
-   *
-   * When an intent is requested it is created in this same call, so it can be
-   * bound to the code challenge the session just generated. Issuance always
-   * passes `useIntent: true` — its intent is mandatory.
+   * An optional intent is created in the same call, bound to the session's code
+   * challenge; issuance always passes `useIntent: true`.
    */
   const startSession = async (intent?: Partial<EmbeddedIntentOptions>) => {
     loading.value = true;
@@ -212,9 +203,8 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
 
       embedded.addEventListener('complete', () => {
         if (terminated) return;
-        // Lifecycle signal only — there is no result and no authorization code
-        // in this event. The backend is finalizing from the webhook right now,
-        // so the only correct move is to go and ask it.
+        // Lifecycle signal only, not a result — the backend is finalizing from
+        // the webhook, so poll it.
         void awaitResult();
       });
 

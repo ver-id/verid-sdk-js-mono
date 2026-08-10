@@ -22,20 +22,18 @@ const SWEEP_INTERVAL_MS = 60 * 1000;
 /**
  * In-memory, `state`-keyed store for embedded flow results.
  *
- * Embedded mode has no redirect and no callback route: the authorization code
- * is delivered to this server on a webhook, out of band from the browser. The
- * browser only learns the flow finished (`ronan:complete`) and must then ask
- * this server for the outcome. `state` is the join key between the browser
- * session, the cached PKCE verifier, and the webhook payload.
+ * Embedded mode has no redirect or callback route — the authorization code
+ * arrives via webhook, out of band from the browser, which only learns the
+ * flow finished (`ronan:complete`) and must ask this server for the outcome.
+ * `state` joins the browser session, the cached PKCE verifier, and the
+ * webhook payload.
  *
- * This deliberately does **not** live on `clientService`: that singleton resets
- * its stored callback URL on every client initialization, which would destroy
- * an in-flight embedded session.
+ * Lives separately from `clientService`, which resets its callback URL on
+ * every client initialization — that would destroy an in-flight session here.
  *
- * **Demo-grade only.** A single process holds all entries, so a multi-instance
- * deployment would fail whenever the webhook and the poll landed on different
- * instances. Production should use a shared store (Redis) and should authorize
- * the lookup against the end user's own session rather than a bare `state`.
+ * **Demo-grade only.** A single process holds all entries, so this breaks in a
+ * multi-instance deployment. Production should use a shared store (Redis) and
+ * authorize the lookup against the user's own session, not a bare `state`.
  */
 class EmbeddedResultStore {
   readonly #entries = new Map<string, StoredEntry>();

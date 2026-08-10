@@ -9,7 +9,6 @@ export type {
   VeridEmbeddedError,
 } from './embedded/typed-event-target.js';
 
-// Shared wire-protocol types + validator from core.
 export { parseRonanMessage } from '@verid-sdk-js-mono/core';
 export type {
   RonanMessage,

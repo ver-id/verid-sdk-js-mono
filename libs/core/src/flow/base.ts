@@ -97,10 +97,8 @@ export interface FlowBasePkceResult {
  * @public
  */
 export abstract class VeridFlowBaseClient {
-  /** @protected */
   protected oauthClient: VeridOAuthClient;
 
-  /** @protected */
   protected cacheManager: ICacheManager;
 
   constructor(config: FlowBaseClientConfig) {
