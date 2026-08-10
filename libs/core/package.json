@@ -36,6 +36,11 @@
       "import": "./src/error/index.ts",
       "default": "./src/error/index.ts"
     },
+    "./cache": {
+      "types": "./src/cache/index.ts",
+      "import": "./src/cache/index.ts",
+      "default": "./src/cache/index.ts"
+    },
     "./utils": {
       "types": "./src/utils/index.ts",
       "import": "./src/utils/index.ts",

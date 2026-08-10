@@ -15,6 +15,8 @@ export type {
   DynamoDBCompatibleClient,
 } from './cache/index.js';
 export type { ICacheManager } from '@verid-sdk-js-mono/core';
+export { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
+export type { CacheManagerOptions, CacheEntry } from '@verid-sdk-js-mono/core/cache';
 
 export type {
   AuthenticationClientConfig,

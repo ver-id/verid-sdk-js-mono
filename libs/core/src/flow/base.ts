@@ -195,8 +195,11 @@ export abstract class VeridFlowBaseClient {
 
     const codeVerifier = await this.cacheManager.get(state);
     if (!codeVerifier) {
+      const store = this.cacheManager?.constructor?.name ?? 'the configured cache manager';
       throw new OperationFailedError(
-        `Invalid code verifier: missing or expired code verifier for state ${state}`,
+        `Invalid code verifier: no code verifier found for state ${state} in ${store}. ` +
+          'The flow was either started against a different cache store, or the entry expired. ' +
+          'Deployments that span multiple hosts need a shared store such as RedisCacheManager or DynamoDBCacheManager.',
       );
     }
 

@@ -162,6 +162,17 @@ For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISS
 
 All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `SessionStorageCacheManager` is used. You can swap it for `LocalStorageCacheManager` — or provide your own `ICacheManager` implementation.
 
+### Shared options
+
+Every store takes the same `options`, so swapping one for another does not change how the cache behaves:
+
+| Option       | Default    | Meaning                                                                                                               |
+| ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `prefix`     | `'verid:'` | Namespaces every key. Pass an empty string to store keys unprefixed.                                                  |
+| `ttlSeconds` | `3600`     | Entry lifetime in seconds. Expired entries read as a miss and are dropped from the store. Pass `0` to disable expiry. |
+
+Every store implements `save`, `get`, `remove` and `clear`. `clear` only removes entries carrying the configured prefix, so keys owned by the rest of your application survive.
+
 ### Session Storage (default)
 
 Persists cache to `sessionStorage`. Data is available for the lifetime of the browser tab.
@@ -170,6 +181,9 @@ Persists cache to `sessionStorage`. Data is available for the lifetime of the br
 import { SessionStorageCacheManager } from '@ver-id/browser-client';
 
 const cacheManager = new SessionStorageCacheManager();
+
+// Same options as every other store
+const cacheManager = new SessionStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 });
 ```
 
 ### Local Storage

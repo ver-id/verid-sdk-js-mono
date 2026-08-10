@@ -2,8 +2,10 @@
 export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient } from './client/index.js';
 
 // // Cache exports (browser-specific)
-export { SessionStorageCacheManager, LocalStorageCacheManager } from './cache/index.js';
+export { SessionStorageCacheManager, LocalStorageCacheManager, WebStorageCacheManager } from './cache/index.js';
 export type { ICacheManager } from '@verid-sdk-js-mono/core';
+export { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
+export type { CacheManagerOptions, CacheEntry } from '@verid-sdk-js-mono/core/cache';
 
 export type {
   AuthenticationClientConfig,
