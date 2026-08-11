@@ -92,7 +92,7 @@ export async function startEmbeddedDisclosureSession(
     const bootstrap = await disclosureClient.createEmbeddedSession({
       scope,
       webhookUri,
-      ...(EMBEDDED_CONFIG.ronanUri ? { ronanUri: EMBEDDED_CONFIG.ronanUri } : {}),
+      ...(EMBEDDED_CONFIG.embedUri ? { embedUri: EMBEDDED_CONFIG.embedUri } : {}),
     });
 
     let codeSnippet: string;

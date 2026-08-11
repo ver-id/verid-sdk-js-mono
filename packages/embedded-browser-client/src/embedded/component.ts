@@ -1,8 +1,5 @@
-import { parseRonanMessage, type RonanInitMessage } from '@ver-id/core';
-import type {
-  VeridEmbeddedError,
-  VeridEmbeddedSession,
-} from './typed-event-target.js';
+import { parseEmbeddedMessage, type EmbeddedInitMessage } from '@ver-id/core';
+import type { VeridEmbeddedError, VeridEmbeddedComponent } from './types.js';
 
 /**
  * Optional iframe presentation attributes.
@@ -18,15 +15,15 @@ export interface EmbeddedIframeOptions {
 }
 
 /**
- * Parameters for {@link createEmbeddedSession}.
+ * Parameters for {@link mountEmbeddedVeridComponent}.
  *
  * @public
  */
-export interface CreateEmbeddedSessionParams {
+export interface MountEmbeddedVeridComponentParams {
   /** Where to render the iframe: a container to create one in, or an existing iframe. */
   container: HTMLElement | HTMLIFrameElement;
-  /** Ronan embed URL. Its origin is the pinned trust anchor for postMessage. */
-  ronanUri: string;
+  /** Ver.iD embed URL. Its origin is the pinned trust anchor for postMessage. */
+  embedUri: string;
   /** Flow uuid (OAuth client_id). */
   clientId: string;
   /** Scopes to request. */
@@ -47,21 +44,25 @@ const DEFAULT_IFRAME_ALLOW = 'camera; microphone';
 const DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin';
 const DEFAULT_IFRAME_TITLE = 'Ver.iD embedded flow';
 
-/** Mounts the Ronan iframe and re-dispatches inbound `ronan:*` messages as typed `CustomEvent`s. */
-export class VeridEmbeddedSessionImpl extends EventTarget implements VeridEmbeddedSession {
+/** Mounts the Ver.iD iframe and re-dispatches inbound messages as typed `CustomEvent`s. */
+export class VeridEmbeddedComponentImpl
+  extends EventTarget
+  implements VeridEmbeddedComponent
+{
   readonly iframe: HTMLIFrameElement;
 
-  readonly #ronanOrigin: string;
-  readonly #initMessage: RonanInitMessage;
+  readonly #embedOrigin: string;
+  readonly #initMessage: EmbeddedInitMessage;
   readonly #ownsIframe: boolean;
-  readonly #onMessage = (event: MessageEvent): void => this.#handleMessage(event);
+  readonly #onMessage = (event: MessageEvent): void =>
+    this.#handleMessage(event);
   readonly #onLoad = (): void => this.#postInit();
   #destroyed = false;
 
-  constructor(params: CreateEmbeddedSessionParams) {
+  constructor(params: MountEmbeddedVeridComponentParams) {
     super();
 
-    this.#ronanOrigin = new URL(params.ronanUri).origin;
+    this.#embedOrigin = new URL(params.embedUri).origin;
     this.#initMessage = {
       type: 'ronan:init',
       clientId: params.clientId,
@@ -84,12 +85,15 @@ export class VeridEmbeddedSessionImpl extends EventTarget implements VeridEmbedd
     this.#applyIframeOptions(params.iframe);
     this.iframe.addEventListener('load', this.#onLoad);
     window.addEventListener('message', this.#onMessage);
-    this.iframe.src = params.ronanUri;
+    this.iframe.src = params.embedUri;
   }
 
   #applyIframeOptions(options: EmbeddedIframeOptions | undefined): void {
     this.iframe.allow = options?.allow ?? DEFAULT_IFRAME_ALLOW;
-    this.iframe.setAttribute('sandbox', options?.sandbox ?? DEFAULT_IFRAME_SANDBOX);
+    this.iframe.setAttribute(
+      'sandbox',
+      options?.sandbox ?? DEFAULT_IFRAME_SANDBOX,
+    );
     this.iframe.title = options?.title ?? DEFAULT_IFRAME_TITLE;
     if (options?.className !== undefined) {
       this.iframe.className = options.className;
@@ -104,20 +108,23 @@ export class VeridEmbeddedSessionImpl extends EventTarget implements VeridEmbedd
     if (target === null) {
       return;
     }
-    target.postMessage(this.#initMessage, this.#ronanOrigin);
+    target.postMessage(this.#initMessage, this.#embedOrigin);
   }
 
   #handleMessage(event: MessageEvent): void {
-    if (event.origin !== this.#ronanOrigin) {
+    if (event.origin !== this.#embedOrigin) {
       return;
     }
     if (event.source !== this.iframe.contentWindow) {
       return;
     }
 
-    const parsed = parseRonanMessage(event.data);
+    const parsed = parseEmbeddedMessage(event.data);
     if (!parsed.ok) {
-      this.#dispatchError({ error: 'invalid_message', error_description: parsed.reason });
+      this.#dispatchError({
+        error: 'invalid_message',
+        error_description: parsed.reason,
+      });
       return;
     }
 
@@ -132,7 +139,10 @@ export class VeridEmbeddedSessionImpl extends EventTarget implements VeridEmbedd
         this.#dispatchError(
           parsed.message.error_description === undefined
             ? { error: parsed.message.error }
-            : { error: parsed.message.error, error_description: parsed.message.error_description },
+            : {
+                error: parsed.message.error,
+                error_description: parsed.message.error_description,
+              },
         );
         return;
       case 'ronan:cancel':

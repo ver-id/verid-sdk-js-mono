@@ -1,5 +1,5 @@
 import { ICacheManager } from '../interface/ICacheManager.js';
-import { FlowRedirectBinding } from '../oauth/redirect-binding.js';
+import { FlowAuthCodeDeliveryBinding } from '../oauth/auth-code-delivery-binding.js';
 import {
   VeridOAuthClient,
   InvalidArgumentError,
@@ -114,8 +114,8 @@ export abstract class VeridFlowBaseClient {
     this.cacheManager = config.options.cacheManager;
   }
 
-  /** Returns the redirect binding for this client (redirect or embedded). */
-  protected abstract redirectBinding(): FlowRedirectBinding;
+  /** Returns how the authorization code is delivered to this client (redirect or embedded). */
+  protected abstract authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding;
 
   /** Generates a PKCE code challenge and stores the verifier in the cache. */
   async generateCodeChallenge(state?: string): Promise<FlowBasePkceResult> {
@@ -204,7 +204,7 @@ export abstract class VeridFlowBaseClient {
     await this.cacheManager.remove(state);
 
     const response = await this.oauthClient.authorizationCodeGrant({
-      binding: this.redirectBinding(),
+      binding: this.authCodeDeliveryBinding(),
       parameters: callbackParams,
       state,
       code_verifier: codeVerifier,

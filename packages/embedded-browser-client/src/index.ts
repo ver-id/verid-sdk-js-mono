@@ -1,22 +1,22 @@
-export { createEmbeddedSession } from './embedded/factory.js';
+export { mountEmbeddedVeridComponent } from './embedded/factory.js';
 export type {
-  CreateEmbeddedSessionParams,
+  MountEmbeddedVeridComponentParams,
   EmbeddedIframeOptions,
-} from './embedded/session.js';
+} from './embedded/component.js';
 export type {
-  VeridEmbeddedSession,
+  VeridEmbeddedComponent,
   VeridEmbeddedEventMap,
   VeridEmbeddedError,
-} from './embedded/typed-event-target.js';
+} from './embedded/types.js';
 
-export { parseRonanMessage } from '@ver-id/core';
+export { parseEmbeddedMessage } from '@ver-id/core';
 export type {
-  RonanMessage,
-  RonanInitMessage,
-  RonanInboundMessage,
-  RonanReadyMessage,
-  RonanCompleteMessage,
-  RonanErrorMessage,
-  RonanCancelMessage,
-  ParseRonanMessageResult,
+  EmbeddedMessage,
+  EmbeddedInitMessage,
+  EmbeddedInboundMessage,
+  EmbeddedReadyMessage,
+  EmbeddedCompleteMessage,
+  EmbeddedErrorMessage,
+  EmbeddedCancelMessage,
+  ParseEmbeddedMessageResult,
 } from '@ver-id/core';

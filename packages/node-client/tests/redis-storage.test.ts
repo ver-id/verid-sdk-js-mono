@@ -1,6 +1,6 @@
 import { InvalidArgumentError } from '@ver-id/core/error';
 import { RedisCacheManager, type RedisCompatibleClient } from '../src/cache/redis-storage';
-import { describeCacheManagerContract } from './cache-contract';
+import { describeCacheManagerContract } from '../../core/tests/cache-contract';
 
 interface StoredValue {
   value: string;

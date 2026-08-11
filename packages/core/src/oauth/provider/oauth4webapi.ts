@@ -22,7 +22,7 @@ import {
   AuthorizationResponseError as AuthResponseError,
   TokenGrantError,
 } from '../../error/index.js';
-import { FlowRedirectBinding } from '../redirect-binding.js';
+import { FlowAuthCodeDeliveryBinding } from '../auth-code-delivery-binding.js';
 
 export class OAuth4WebApiProvider implements IOAuthProvider {
   /**
@@ -88,7 +88,7 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
     clientConfig: ClientConfig,
     clientAuth: ClientAuth | null,
     params: URLSearchParams,
-    binding: FlowRedirectBinding,
+    binding: FlowAuthCodeDeliveryBinding,
     codeVerifier: string,
   ): Promise<Response> {
     try {

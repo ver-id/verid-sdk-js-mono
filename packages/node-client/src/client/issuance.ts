@@ -7,9 +7,9 @@ import {
   IntentResponse,
   ClientAuth,
   ICacheManager,
-  FlowRedirectBinding,
+  FlowAuthCodeDeliveryBinding,
 } from '@ver-id/core';
-import { FileStorageCacheManager } from '../cache/file-storage.js';
+import { FileStorageCacheManager } from '@ver-id/core/cache/node';
 
 // Re-export types from core
 export type {
@@ -56,7 +56,7 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     this.redirectUri = config.redirectUri;
   }
 
-  protected override redirectBinding(): FlowRedirectBinding {
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 

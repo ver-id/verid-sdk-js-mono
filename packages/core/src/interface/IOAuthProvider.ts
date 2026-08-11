@@ -1,5 +1,5 @@
 import { AuthorizationServer, ClientConfig, GrantResponse, ClientAuth } from '../types/index.js';
-import { FlowRedirectBinding } from '../oauth/redirect-binding.js';
+import { FlowAuthCodeDeliveryBinding } from '../oauth/auth-code-delivery-binding.js';
 
 /**
  * Interface for OAuth provider implementations.
@@ -33,7 +33,7 @@ export interface IOAuthProvider {
     clientConfig: ClientConfig,
     clientAuth: ClientAuth | null,
     params: URLSearchParams,
-    binding: FlowRedirectBinding,
+    binding: FlowAuthCodeDeliveryBinding,
     codeVerifier: string,
   ): Promise<Response>;
 

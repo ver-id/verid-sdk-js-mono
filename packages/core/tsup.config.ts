@@ -6,6 +6,7 @@ export default defineConfig({
   entry: [
     'src/index.ts',
     'src/cache/index.ts',
+    'src/cache/node/index.ts',
     'src/embedded/index.ts',
     'src/error/index.ts',
     'src/flow/index.ts',

@@ -1,6 +1,6 @@
-import type { ICacheManager } from '@ver-id/core';
-import type { CacheManagerOptions } from '@ver-id/core/cache';
-import { InvalidArgumentError } from '@ver-id/core/error';
+import type { ICacheManager } from '../src/interface/ICacheManager';
+import type { CacheManagerOptions } from '../src/cache/options';
+import { InvalidArgumentError } from '../src/error/index';
 
 /**
  * Factory for the cache manager under test. Managers built by the same factory must

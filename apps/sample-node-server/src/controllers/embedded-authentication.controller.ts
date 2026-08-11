@@ -91,7 +91,7 @@ export async function startEmbeddedAuthSession(
     const bootstrap = await authClient.createEmbeddedSession({
       scope,
       webhookUri,
-      ...(EMBEDDED_CONFIG.ronanUri ? { ronanUri: EMBEDDED_CONFIG.ronanUri } : {}),
+      ...(EMBEDDED_CONFIG.embedUri ? { embedUri: EMBEDDED_CONFIG.embedUri } : {}),
     });
 
     let codeSnippet: string;

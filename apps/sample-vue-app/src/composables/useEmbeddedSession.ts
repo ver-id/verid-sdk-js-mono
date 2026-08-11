@@ -1,5 +1,5 @@
 import { ref, shallowRef, onBeforeUnmount } from 'vue';
-import { createEmbeddedSession, type VeridEmbeddedSession } from '@ver-id/embedded-browser-client';
+import { mountEmbeddedVeridComponent, type VeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 import { formatError } from '../utils/errorHandler.js';
 
 const API_URL = `${import.meta.env.VITE_NODE_SERVER_URL}/api`;
@@ -17,7 +17,7 @@ export interface EmbeddedBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  ronanUri: string;
+  embedUri: string;
   intentId?: string;
 }
 
@@ -53,7 +53,7 @@ export interface EmbeddedIntentOptions {
 
 /**
  * Composable for the embedded flow, shared by all three scopes. Fetches the
- * bootstrap from your backend, mounts the Ronan iframe, and polls for the
+ * bootstrap from your backend, mounts the Ver.iD iframe, and polls for the
  * result once the flow completes.
  */
 export function useEmbeddedSession(scope: EmbeddedScope) {
@@ -91,7 +91,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   const webhookCode = ref('');
   const resultCode = ref('');
 
-  const session = shallowRef<VeridEmbeddedSession | null>(null);
+  const session = shallowRef<VeridEmbeddedComponent | null>(null);
 
   const handleError = (err: unknown) => {
     error.value = formatError(err);
@@ -177,7 +177,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   };
 
   /**
-   * Steps 3-5 (BROWSER) — mount the Ronan iframe and wire the lifecycle.
+   * Steps 3-5 (BROWSER) — mount the Ver.iD iframe and wire the lifecycle.
    */
   const mountSession = (container: HTMLElement) => {
     if (!bootstrap.value) {
@@ -188,7 +188,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     try {
       terminated = false;
 
-      const embedded = createEmbeddedSession({
+      const embedded = mountEmbeddedVeridComponent({
         container,
         ...bootstrap.value,
         iframe: {
@@ -345,13 +345,13 @@ const bootstrap = await fetch('/api/${scope}/embedded/start', {
   method: 'POST',
 }).then((r) => r.json());
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, ronanUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri }
 // No code_verifier, no authorization code — those never reach the browser.`,
 
-  mount: `// BROWSER — mount the Ronan iframe
-import { createEmbeddedSession } from '@ver-id/embedded-browser-client';
+  mount: `// BROWSER — mount the Ver.iD iframe
+import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
 
-const session = createEmbeddedSession({
+const veridComponent = mountEmbeddedVeridComponent({
   container: embedContainer.value,   // an HTMLElement, or an existing <iframe>
   ...bootstrap,
   iframe: {
@@ -362,31 +362,31 @@ const session = createEmbeddedSession({
 });`,
 
   listeners: `// BROWSER — attach the lifecycle listeners
-session.addEventListener('ready', () => {
+veridComponent.addEventListener('ready', () => {
   // The iframe has loaded and is interactive.
   loading.value = false;
 });
 
-session.addEventListener('complete', () => {
+veridComponent.addEventListener('complete', () => {
   // IMPORTANT: this is a lifecycle signal, NOT a result.
   // There is no token and no authorization code in this event — the backend
   // is finalizing from the webhook. Start awaiting its result.
   awaitResult();
 });
 
-session.addEventListener('error', (event) => {
+veridComponent.addEventListener('error', (event) => {
   error.value = event.detail.error_description ?? event.detail.error;
-  // Leave the session mounted: the iframe is showing Ronan's error screen.
+  // Leave the component mounted: the iframe is showing the Ver.iD error screen.
 });
 
-session.addEventListener('cancel', () => {
+veridComponent.addEventListener('cancel', () => {
   // The user backed out.
-  session.destroy();
+  veridComponent.destroy();
 });
 
 // Always destroy on unmount so the window message listener is detached and the
 // iframe is removed.
-onBeforeUnmount(() => session.destroy());`,
+onBeforeUnmount(() => veridComponent.destroy());`,
 
   poll: (scope: EmbeddedScope) => `// BROWSER — poll your backend for the finalized result
 async function awaitResult(state, timeoutMs = 60_000) {

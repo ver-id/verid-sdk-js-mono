@@ -1,5 +1,5 @@
-import { BaseCacheManager } from '@ver-id/core/cache';
-import type { CacheManagerOptions } from '@ver-id/core/cache';
+import { BaseCacheManager } from './base.js';
+import type { CacheManagerOptions } from './options.js';
 
 /**
  * Simple in-memory cache manager using Map.

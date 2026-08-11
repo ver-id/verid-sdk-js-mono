@@ -14,7 +14,7 @@ import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
 import { BaseIntent, IntentResponse } from '../types/intent/base.js';
 import { UUID } from '../types/generic.js';
-import { FlowRedirectBinding } from './redirect-binding.js';
+import { FlowAuthCodeDeliveryBinding } from './auth-code-delivery-binding.js';
 
 /**
  * Configuration options for the OAuth client.
@@ -35,7 +35,7 @@ export interface OAuthClientConfig {
  */
 export interface OAuthRequestParams {
   /** How the authorization code is bound to the client (redirect vs embedded). */
-  binding: FlowRedirectBinding;
+  binding: FlowAuthCodeDeliveryBinding;
   /**
    * The scope of the authorization request.
    */
@@ -68,7 +68,7 @@ export interface OAuthAuthorizationCodeGrantParams {
   /**
    * How the authorization code is bound to the client (redirect vs embedded).
    */
-  binding: FlowRedirectBinding;
+  binding: FlowAuthCodeDeliveryBinding;
   /**
    * The authorization response.
    */

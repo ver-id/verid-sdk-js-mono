@@ -18,7 +18,7 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
   webhookUri: '${webhookUri}',
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, ronanUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri }
 // The code_verifier is NOT in here — it stays cached server-side, keyed by state.
 res.json(bootstrap);`;
 }

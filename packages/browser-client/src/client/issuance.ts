@@ -4,7 +4,7 @@ import {
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
   IssuanceResponse,
   ICacheManager,
-  FlowRedirectBinding,
+  FlowAuthCodeDeliveryBinding,
 } from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
@@ -50,7 +50,7 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     this.redirectUri = config.redirectUri;
   }
 
-  protected override redirectBinding(): FlowRedirectBinding {
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 

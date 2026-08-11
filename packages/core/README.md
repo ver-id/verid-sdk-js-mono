@@ -28,9 +28,10 @@ npm install @ver-id/core
 | ------------------- | ----------------------------------------------------------------------------------------- |
 | `@ver-id/core`      | Everything below, re-exported.                                                            |
 | `@ver-id/core/flow` | Abstract `VeridAuthenticationClient`, `VeridDisclosureClient`, `VeridIssuanceClient` bases. |
-| `@ver-id/core/oauth`| `VeridOAuthClient`, `OAuth4WebApiProvider`, redirect binding helpers.                       |
-| `@ver-id/core/cache`| `BaseCacheManager` and the `ICacheManager` contract shared by every store.                  |
-| `@ver-id/core/embedded` | The `ronan:*` postMessage union and the signed embedded webhook payload parser.         |
+| `@ver-id/core/oauth`| `VeridOAuthClient`, `OAuth4WebApiProvider`, authorization code delivery bindings.           |
+| `@ver-id/core/cache`| `BaseCacheManager`, the `ICacheManager` contract shared by every store, and `MemoryStorageCacheManager`. |
+| `@ver-id/core/cache/node` | Node-only stores: `FileStorageCacheManager`. Kept out of `@ver-id/core/cache` so browser bundles never see `fs`. |
+| `@ver-id/core/embedded` | The embedded postMessage union and the signed embedded webhook payload parser.         |
 | `@ver-id/core/error`| `VeridError` and its typed subclasses.                                                     |
 | `@ver-id/core/types`| JWT payloads, OAuth types, flow response types.                                            |
 | `@ver-id/core/utils`| `assert*` helpers used to validate untrusted input.                                        |

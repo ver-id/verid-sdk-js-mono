@@ -224,7 +224,7 @@
       v-if="bootstrap"
       class="section step-browser"
     >
-      <h2><span class="step-badge browser">Browser</span>4. Mount the Ronan iframe</h2>
+      <h2><span class="step-badge browser">Browser</span>4. Mount the Ver.iD iframe</h2>
 
       <p v-if="status === 'starting'">
         Mount the session to render the flow inline. The iframe origin is pinned as the trust
@@ -380,7 +380,7 @@
           <strong>[Browser]</strong> Fetch that bootstrap from your own backend
         </li>
         <li>
-          <strong>[Browser]</strong> <code>createEmbeddedSession()</code> mounts the Ronan iframe and
+          <strong>[Browser]</strong> <code>mountEmbeddedVeridComponent()</code> mounts the Ver.iD iframe and
           posts <code>ronan:init</code> to the pinned origin
         </li>
         <li>
@@ -464,7 +464,7 @@ const statusLabel = computed(() => {
     case 'starting':
       return 'Session created — not mounted yet';
     case 'mounted':
-      return 'Iframe mounted, waiting for Ronan to become ready…';
+      return 'Iframe mounted, waiting for the Ver.iD component to become ready…';
     case 'ready':
       return 'Ready — the user is completing the flow';
     case 'awaitingResult':

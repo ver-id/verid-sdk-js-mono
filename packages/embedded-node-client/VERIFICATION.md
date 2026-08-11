@@ -1,6 +1,6 @@
 ## Verification (embedded mode)
 
-Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. In **embedded mode** the Ronan flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) mounts the iframe, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
+Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. In **embedded mode** the Ver.iD flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) mounts the iframe, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
 
 ### Create a Disclosure client
 
@@ -70,15 +70,15 @@ app.post('/api/verid/start', async (_req, res) => {
   });
 
   res.json(bootstrap);
-  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, ronanUri }
+  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri }
 });
 ```
 
 `EmbeddedSessionParams`:
 
 - `scope` — the scopes to request (e.g. `'openid disclosure'`). Requested scopes must be registered in the disclosure flow.
-- `webhookUri` — your backend endpoint that Ronan/webhook-worker will POST the signed result to.
-- `ronanUri` — optional Ronan embed URL to hand the browser. Defaults to the `issuerUri` origin.
+- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
+- `embedUri` — optional Ver.iD embed URL to hand the browser. Defaults to the `issuerUri` origin.
 - `state` — optional caller-supplied state; otherwise one is generated.
 
 #### Optional: intent-based disclosure
@@ -108,14 +108,14 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
 
 ### Hand the bootstrap to the browser
 
-Your frontend fetches the bootstrap and passes it straight into the browser client, which mounts the Ronan iframe and performs the origin-pinned `postMessage` handshake. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/VERIFICATION.md) for the browser side.
+Your frontend fetches the bootstrap and passes it straight into the browser client, which mounts the Ver.iD iframe and performs the origin-pinned `postMessage` handshake. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/VERIFICATION.md) for the browser side.
 
 ```ts
 // Frontend
-import { createEmbeddedSession } from '@ver-id/embedded-browser-client';
+import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const session = createEmbeddedSession({
+const veridComponent = mountEmbeddedVeridComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });
@@ -123,7 +123,7 @@ const session = createEmbeddedSession({
 
 ### Finalize disclosure from the signed webhook
 
-When the user completes the flow, Ronan does **not** hand the authorization code to the browser. Instead a signed server-to-server webhook is POSTed to your `webhookUri`. Read the request body as **raw text** (the HMAC is computed over the exact bytes) and call `finalizeEmbedded`, which verifies the signature and then exchanges the code for tokens — with no `redirect_uri`:
+When the user completes the flow, Ver.iD does **not** hand the authorization code to the browser. Instead a signed server-to-server webhook is POSTed to your `webhookUri`. Read the request body as **raw text** (the HMAC is computed over the exact bytes) and call `finalizeEmbedded`, which verifies the signature and then exchanges the code for tokens — with no `redirect_uri`:
 
 ```ts
 // POST /api/verid/webhook  (body read as raw text)

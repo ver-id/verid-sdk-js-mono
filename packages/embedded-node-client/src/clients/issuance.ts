@@ -1,9 +1,9 @@
 import {
   VeridIssuanceClient,
   type IssuanceResponse,
-  type FlowRedirectBinding,
+  type FlowAuthCodeDeliveryBinding,
 } from '@ver-id/core';
-import { FileStorageCacheManager } from '../cache/file-storage.js';
+import { FileStorageCacheManager } from '@ver-id/core/cache/node';
 import {
   buildEmbeddedSessionBootstrap,
   type EmbeddedSessionBootstrap,
@@ -36,7 +36,7 @@ export class EmbeddedIssuanceClient extends VeridIssuanceClient {
     this.#issuerUri = config.issuerUri;
   }
 
-  protected override redirectBinding(): FlowRedirectBinding {
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
     return { kind: 'embedded' };
   }
 

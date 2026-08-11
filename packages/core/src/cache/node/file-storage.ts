@@ -1,7 +1,7 @@
-import { BaseCacheManager } from '@ver-id/core/cache';
-import type { CacheEntry, CacheManagerOptions } from '@ver-id/core/cache';
-import { assertString } from '@ver-id/core/utils';
-import { InvalidArgumentError } from '@ver-id/core/error';
+import { BaseCacheManager } from '../base.js';
+import type { CacheEntry, CacheManagerOptions } from '../options.js';
+import { assertString } from '../../utils/index.js';
+import { InvalidArgumentError } from '../../error/index.js';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'fs';
 import { mkdir, readdir, rename, stat, unlink, writeFile } from 'fs/promises';
 import { createHash, randomUUID } from 'crypto';

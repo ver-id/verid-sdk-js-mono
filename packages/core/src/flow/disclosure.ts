@@ -83,7 +83,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
 
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
       {
-        binding: this.redirectBinding(),
+        binding: this.authCodeDeliveryBinding(),
         scope: DISCLOSURE_SCOPE,
         state,
         code_challenge: codeChallenge,

@@ -19733,9 +19733,9 @@ export type PaginationInput = {
   after?: InputMaybe<Scalars['String']['input']>;
   /** Returns the elements in the list that come before the specified cursor. */
   before?: InputMaybe<Scalars['String']['input']>;
-  /** Returns the first _n_ elements from the list. */
+  /** Returns the first _n_ elements from the list. Accepts at most 100. */
   first?: InputMaybe<Scalars['Int']['input']>;
-  /** Returns the last _n_ elements from the list. */
+  /** Returns the last _n_ elements from the list. Accepts at most 100. */
   last?: InputMaybe<Scalars['Int']['input']>;
 };
 

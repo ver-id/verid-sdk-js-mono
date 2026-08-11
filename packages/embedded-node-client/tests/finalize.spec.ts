@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { EmbeddedDisclosureClient } from '../src/clients/disclosure.js';
-import { MemoryStorageCacheManager } from '../src/cache/memory-storage.js';
+import { MemoryStorageCacheManager } from '../src/cache/index.js';
 
 const ISSUER = 'https://issuer.example.com';
 // oauth4webapi requires the discovery `issuer` to equal the issuer URL's href, trailing slash included.

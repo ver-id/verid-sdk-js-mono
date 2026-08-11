@@ -56,6 +56,18 @@
       },
       "default": "./dist/cache/index.js"
     },
+    "./cache/node": {
+      "@verid-sdk-js-mono/source": "./src/cache/node/index.ts",
+      "import": {
+        "types": "./dist/cache/node/index.d.ts",
+        "default": "./dist/cache/node/index.js"
+      },
+      "require": {
+        "types": "./dist/cache/node/index.d.cts",
+        "default": "./dist/cache/node/index.cjs"
+      },
+      "default": "./dist/cache/node/index.js"
+    },
     "./embedded": {
       "@verid-sdk-js-mono/source": "./src/embedded/index.ts",
       "import": {

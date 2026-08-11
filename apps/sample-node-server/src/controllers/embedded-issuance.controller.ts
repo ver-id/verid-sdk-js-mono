@@ -121,7 +121,7 @@ export async function startEmbeddedIssuanceSession(
     const bootstrap = await issuanceClient.createEmbeddedSession({
       scope,
       webhookUri,
-      ...(EMBEDDED_CONFIG.ronanUri ? { ronanUri: EMBEDDED_CONFIG.ronanUri } : {}),
+      ...(EMBEDDED_CONFIG.embedUri ? { embedUri: EMBEDDED_CONFIG.embedUri } : {}),
     });
 
     const intent: IssuanceIntentPayload = {

@@ -7,7 +7,7 @@
 [![Browser](https://img.shields.io/badge/Platform-Browser-orange.svg)](https://developer.mozilla.org/)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blueviolet.svg)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-07)
 
-The browser half of Ver.iD **embedded mode**: it mounts the Ronan iframe, performs
+The browser half of Ver.iD **embedded mode**: it mounts the Ver.iD iframe, performs
 the origin-pinned `postMessage` handshake, and surfaces the flow lifecycle as
 typed events. The backend half is [`@ver-id/embedded-node-client`](https://www.npmjs.com/package/@ver-id/embedded-node-client),
 which generates the PKCE material, receives the webhook, and finalizes the flow.
@@ -36,26 +36,26 @@ pnpm add @ver-id/embedded-browser-client
 
 ## Usage
 
-Fetch the embedded-session bootstrap from your backend, then mount the session and
+Fetch the embedded-session bootstrap from your backend, then mount the component and
 attach lifecycle listeners:
 
 ```ts
-import { createEmbeddedSession } from '@ver-id/embedded-browser-client';
+import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const session = createEmbeddedSession({
+const veridComponent = mountEmbeddedVeridComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });
 
-session.addEventListener('ready',    () => setLoading(false));
-session.addEventListener('complete', async () => {
+veridComponent.addEventListener('ready',    () => setLoading(false));
+veridComponent.addEventListener('complete', async () => {
   const token = await pollBackend(bootstrap.state); // backend already finalized via webhook
   onVerified(token);
-  session.destroy();
+  veridComponent.destroy();
 });
-session.addEventListener('error',    (e) => { showError(e.detail.error); session.destroy(); });
-session.addEventListener('cancel',   () => session.destroy());
+veridComponent.addEventListener('error',    (e) => { showError(e.detail.error); veridComponent.destroy(); });
+veridComponent.addEventListener('cancel',   () => veridComponent.destroy());
 ```
 
 ## Security & ordering
@@ -67,12 +67,12 @@ session.addEventListener('cancel',   () => session.destroy());
   backend result" (poll/SSE) — not "the result is ready". The backend finalizes the
   flow from the webhook; the browser only learns the flow finished.
 - **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin`
-  fixed to the Ronan origin, and inbound messages are accepted only from that origin
-  and from the session's own iframe.
+  fixed to the embed origin, and inbound messages are accepted only from that origin
+  and from the component's own iframe.
 
 ## Per-flow guides
 
-For other comprehensive configurations and examples, see the per-flow documents. The browser API (`createEmbeddedSession`) is the same in all three — each guide frames it for that flow:
+For other comprehensive configurations and examples, see the per-flow documents. The browser API (`mountEmbeddedVeridComponent`) is the same in all three — each guide frames it for that flow:
 
 - [Authentication](./AUTHENTICATION.md) — mounting an embedded authentication session.
 - [Verification](./VERIFICATION.md) — mounting an embedded disclosure session.

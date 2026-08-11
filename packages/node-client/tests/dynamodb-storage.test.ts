@@ -1,6 +1,6 @@
 import { InvalidArgumentError } from '@ver-id/core/error';
 import { DynamoDBCacheManager, type DynamoDBCompatibleClient } from '../src/cache/dynamodb-storage';
-import { describeCacheManagerContract } from './cache-contract';
+import { describeCacheManagerContract } from '../../core/tests/cache-contract';
 
 jest.mock(
   '@aws-sdk/lib-dynamodb',

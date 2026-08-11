@@ -11,4 +11,4 @@ export type {
 export type { IOAuthProvider } from '../interface/IOAuthProvider.js';
 export { OAuth4WebApiProvider } from './provider/oauth4webapi.js';
 
-export type { FlowRedirectBinding } from './redirect-binding.js';
+export type { FlowAuthCodeDeliveryBinding } from './auth-code-delivery-binding.js';

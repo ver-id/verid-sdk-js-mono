@@ -1,6 +1,6 @@
 import { EmbeddedDisclosureClient } from '../src/clients/disclosure.js';
 import { EmbeddedIssuanceClient } from '../src/clients/issuance.js';
-import { MemoryStorageCacheManager } from '../src/cache/memory-storage.js';
+import { MemoryStorageCacheManager } from '../src/cache/index.js';
 
 const ISSUER = 'https://issuer.example.com';
 const CLIENT_ID = '11111111-1111-4111-8111-111111111111';
@@ -23,7 +23,7 @@ describe('createEmbeddedSession', () => {
     expect(bootstrap.clientId).toBe(CLIENT_ID);
     expect(bootstrap.scope).toBe('disclosure');
     expect(bootstrap.webhookUri).toBe(webhookUri);
-    expect(bootstrap.ronanUri).toBe('https://issuer.example.com');
+    expect(bootstrap.embedUri).toBe('https://issuer.example.com');
     expect(bootstrap.state).toBeTruthy();
     expect(bootstrap.codeChallenge).toBeTruthy();
     expect(bootstrap.intentId).toBeUndefined();
@@ -38,7 +38,7 @@ describe('createEmbeddedSession', () => {
     }
   });
 
-  it('passes through explicit ronanUri and intentId (issuance)', async () => {
+  it('passes through explicit embedUri and intentId (issuance)', async () => {
     const cacheManager = new MemoryStorageCacheManager();
     const client = new EmbeddedIssuanceClient({
       issuerUri: ISSUER,
@@ -46,16 +46,16 @@ describe('createEmbeddedSession', () => {
       options: { cacheManager },
     });
 
-    const ronanUri = 'https://ronan.example.com';
+    const embedUri = 'https://embed.example.com';
     const intentId = 'intent-123';
     const bootstrap = await client.createEmbeddedSession({
       scope: 'issuance',
       webhookUri: 'https://app.example.com/api/verid/webhook',
-      ronanUri,
+      embedUri,
       intentId,
     });
 
-    expect(bootstrap.ronanUri).toBe(ronanUri);
+    expect(bootstrap.embedUri).toBe(embedUri);
     expect(bootstrap.intentId).toBe(intentId);
     expect(bootstrap.scope).toBe('issuance');
   });

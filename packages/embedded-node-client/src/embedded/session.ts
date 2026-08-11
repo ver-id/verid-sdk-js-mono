@@ -4,10 +4,10 @@ import type { FlowBasePkceResult } from '@ver-id/core';
 export interface EmbeddedSessionParams {
   /** Scopes to request. */
   scope: string;
-  /** The backend's own webhook endpoint Ronan will call. */
+  /** The backend's own webhook endpoint Ver.iD will call. */
   webhookUri: string;
-  /** Ronan embed URL to hand the browser. Defaults to the issuerUri origin. */
-  ronanUri?: string;
+  /** Ver.iD embed URL to hand the browser. Defaults to the issuerUri origin. */
+  embedUri?: string;
   /** Issuance only: an intent created via createIssuanceIntent(). */
   intentId?: string;
   /** Optional caller-supplied state; otherwise generated. */
@@ -21,7 +21,7 @@ export interface EmbeddedSessionBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  ronanUri: string;
+  embedUri: string;
   intentId?: string;
 }
 
@@ -38,7 +38,7 @@ export async function buildEmbeddedSessionBootstrap(
   params: EmbeddedSessionParams,
 ): Promise<EmbeddedSessionBootstrap> {
   const { codeChallenge, state } = await context.generateCodeChallenge(params.state);
-  const ronanUri = params.ronanUri ?? new URL(context.issuerUri).origin;
+  const embedUri = params.embedUri ?? new URL(context.issuerUri).origin;
 
   const bootstrap: EmbeddedSessionBootstrap = {
     clientId: context.clientId,
@@ -46,7 +46,7 @@ export async function buildEmbeddedSessionBootstrap(
     state,
     codeChallenge,
     webhookUri: params.webhookUri,
-    ronanUri,
+    embedUri,
   };
 
   if (params.intentId !== undefined) {

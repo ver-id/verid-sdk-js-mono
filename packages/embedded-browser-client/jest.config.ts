@@ -22,7 +22,7 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   setupFiles: ['<rootDir>/jest.setup.ts'],
-  // The public barrel re-exports `parseRonanMessage` from core, which transitively
+  // The public barrel re-exports `parseEmbeddedMessage` from core, which transitively
   // pulls in the ESM-only `jose` and `oauth4webapi` packages. Let swc transform them.
   transformIgnorePatterns: ['node_modules/(?!(?:.pnpm/)?(?:jose|oauth4webapi))'],
   coverageDirectory: 'test-output/jest/coverage',

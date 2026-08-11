@@ -1,6 +1,6 @@
 ## Issuance (embedded mode)
 
-Execute an issuance flow to issue verified credentials to users. This allows you to create and deliver digital credentials that users can store in their decentralized identity wallets, enabling them to prove attributes about themselves without repeatedly going through verification processes. In **embedded mode** the Ronan flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) mounts the iframe, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
+Execute an issuance flow to issue verified credentials to users. This allows you to create and deliver digital credentials that users can store in their decentralized identity wallets, enabling them to prove attributes about themselves without repeatedly going through verification processes. In **embedded mode** the Ver.iD flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) mounts the iframe, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
 
 ### Create an Issuance client
 
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Issuance requires an intent
 
-**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so Ronan issues the right credential.
+**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so the embedded flow issues the right credential.
 
 #### Step 1: Generate a code challenge
 
@@ -136,30 +136,30 @@ app.post('/api/verid/start', async (_req, res) => {
   });
 
   res.json(bootstrap);
-  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, ronanUri, intentId }
+  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri, intentId }
 });
 ```
 
 `EmbeddedSessionParams`:
 
 - `scope` — the scopes to request (e.g. `'openid issuance'`). Requested scopes must be registered in the issuance flow.
-- `webhookUri` — your backend endpoint that Ronan/webhook-worker will POST the signed result to.
-- `ronanUri` — optional Ronan embed URL to hand the browser. Defaults to the `issuerUri` origin.
+- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
+- `embedUri` — optional Ver.iD embed URL to hand the browser. Defaults to the `issuerUri` origin.
 - `intentId` — **required for issuance**; the intent created in Step 2.
 - `state` — optional caller-supplied state; otherwise one is generated.
 
-For issuance the returned `EmbeddedSessionBootstrap` also carries the `intentId`, so the browser can forward it to Ronan unchanged.
+For issuance the returned `EmbeddedSessionBootstrap` also carries the `intentId`, so the browser can forward it to the embedded flow unchanged.
 
 ### Hand the bootstrap to the browser
 
-Your frontend fetches the bootstrap and passes it straight into the browser client, which mounts the Ronan iframe and performs the origin-pinned `postMessage` handshake. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/ISSUANCE.md) for the browser side.
+Your frontend fetches the bootstrap and passes it straight into the browser client, which mounts the Ver.iD iframe and performs the origin-pinned `postMessage` handshake. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/ISSUANCE.md) for the browser side.
 
 ```ts
 // Frontend
-import { createEmbeddedSession } from '@ver-id/embedded-browser-client';
+import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const session = createEmbeddedSession({
+const veridComponent = mountEmbeddedVeridComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap, // includes intentId
 });
@@ -167,7 +167,7 @@ const session = createEmbeddedSession({
 
 ### Finalize issuance from the signed webhook
 
-When the user completes the flow, Ronan does **not** hand the authorization code to the browser. Instead a signed server-to-server webhook is POSTed to your `webhookUri`. Read the request body as **raw text** (the HMAC is computed over the exact bytes) and call `finalizeEmbedded`, which verifies the signature and then exchanges the code for tokens — with no `redirect_uri`:
+When the user completes the flow, Ver.iD does **not** hand the authorization code to the browser. Instead a signed server-to-server webhook is POSTed to your `webhookUri`. Read the request body as **raw text** (the HMAC is computed over the exact bytes) and call `finalizeEmbedded`, which verifies the signature and then exchanges the code for tokens — with no `redirect_uri`:
 
 ```ts
 // POST /api/verid/webhook  (body read as raw text)

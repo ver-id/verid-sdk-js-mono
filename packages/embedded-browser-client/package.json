@@ -1,7 +1,7 @@
 {
   "name": "@ver-id/embedded-browser-client",
   "version": "0.1.0",
-  "description": "Ver.iD embedded-mode browser SDK: mounts the Ronan iframe and surfaces the flow lifecycle as typed events",
+  "description": "Ver.iD embedded-mode browser SDK: mounts the Ver.iD iframe and surfaces the flow lifecycle as typed events",
   "license": "MIT",
   "author": "Ver.iD",
   "homepage": "https://github.com/ver-id/verid-sdk-js-mono/tree/main/packages/embedded-browser-client#readme",

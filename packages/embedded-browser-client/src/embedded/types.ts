@@ -1,5 +1,5 @@
 /**
- * Error detail for embedded session error events.
+ * Error detail for embedded component error events.
  *
  * @public
  */
@@ -14,22 +14,22 @@ export interface VeridEmbeddedError {
  * @public
  */
 export interface VeridEmbeddedEventMap {
-  /** Ronan is ready (ronan:ready). */
+  /** The embedded flow is ready to display. */
   ready: CustomEvent<void>;
-  /** Ronan finished (ronan:complete). */
+  /** The embedded flow finished; carries no result. */
   complete: CustomEvent<void>;
-  /** An error occurred inside the session. */
+  /** An error occurred inside the embedded flow. */
   error: CustomEvent<VeridEmbeddedError>;
-  /** The user cancelled (ronan:cancel). */
+  /** The user cancelled the embedded flow. */
   cancel: CustomEvent<void>;
 }
 
 /**
- * Strongly typed embedded session interface.
+ * A mounted Ver.iD embedded component: the iframe plus its strongly typed lifecycle events.
  *
  * @public
  */
-export interface VeridEmbeddedSession extends EventTarget {
+export interface VeridEmbeddedComponent extends EventTarget {
   addEventListener<K extends keyof VeridEmbeddedEventMap>(
     type: K,
     listener: (event: VeridEmbeddedEventMap[K]) => void,
@@ -52,7 +52,7 @@ export interface VeridEmbeddedSession extends EventTarget {
     options?: boolean | EventListenerOptions,
   ): void;
 
-  /** The iframe element the session drives. */
+  /** The iframe element the component drives. */
   readonly iframe: HTMLIFrameElement;
   /** Detach the message listener and remove the iframe if the SDK created it. */
   destroy(): void;

@@ -66,7 +66,7 @@ export type {
   OAuthAuthorizationCodeGrantParams,
   OAuthClientCredentialsGrantParams,
   IOAuthProvider,
-  FlowRedirectBinding,
+  FlowAuthCodeDeliveryBinding,
 } from '@ver-id/core/oauth';
 
 /**

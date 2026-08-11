@@ -118,7 +118,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
 
     const authorizationUrl = await this.oauthClient.generateAuthorizationUrl(
       {
-        binding: this.redirectBinding(),
+        binding: this.authCodeDeliveryBinding(),
         scope: ISSUANCE_SCOPE,
         state,
         code_challenge: codeChallenge,
