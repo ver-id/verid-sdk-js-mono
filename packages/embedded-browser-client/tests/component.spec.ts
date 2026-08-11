@@ -4,13 +4,13 @@ import type {
   VeridEmbeddedComponent,
 } from '../src/embedded/types';
 
-const EMBED_URI = 'https://embed.example.com/embed';
-const EMBED_ORIGIN = 'https://embed.example.com';
+const GATEWAY_URI = 'https://gateway.example.com/embed';
+const GATEWAY_ORIGIN = 'https://gateway.example.com';
 
 function bootstrap(container: HTMLElement | HTMLIFrameElement) {
   return {
     container,
-    embedUri: EMBED_URI,
+    gatewayUri: GATEWAY_URI,
     clientId: '11111111-1111-4111-8111-111111111111',
     scope: 'disclosure',
     state: 'state-abc',
@@ -19,7 +19,7 @@ function bootstrap(container: HTMLElement | HTMLIFrameElement) {
   };
 }
 
-function postFromEmbed(source: Window | null, data: unknown, origin = EMBED_ORIGIN): void {
+function postFromGateway(source: Window | null, data: unknown, origin = GATEWAY_ORIGIN): void {
   window.dispatchEvent(new MessageEvent('message', { data, origin, source }));
 }
 
@@ -35,11 +35,11 @@ describe('mountEmbeddedVeridComponent', () => {
     container.remove();
   });
 
-  it('creates and appends an iframe pointed at the embed URI', () => {
+  it('creates and appends an iframe pointed at the gateway URI', () => {
     const component = mountEmbeddedVeridComponent(bootstrap(container));
     expect(component.iframe).toBeInstanceOf(HTMLIFrameElement);
     expect(container.contains(component.iframe)).toBe(true);
-    expect(component.iframe.src).toBe(EMBED_URI);
+    expect(component.iframe.src).toBe(GATEWAY_URI);
     component.destroy();
   });
 
@@ -48,7 +48,7 @@ describe('mountEmbeddedVeridComponent', () => {
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
-    postFromEmbed(component.iframe.contentWindow, { type: 'ronan:complete' });
+    postFromGateway(component.iframe.contentWindow, { type: 'ronan:complete' });
 
     expect(onComplete).toHaveBeenCalledTimes(1);
     component.destroy();
@@ -59,7 +59,7 @@ describe('mountEmbeddedVeridComponent', () => {
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
-    postFromEmbed(component.iframe.contentWindow, { type: 'ronan:complete' }, 'https://evil.example.com');
+    postFromGateway(component.iframe.contentWindow, { type: 'ronan:complete' }, 'https://evil.example.com');
 
     expect(onComplete).not.toHaveBeenCalled();
     component.destroy();
@@ -70,7 +70,7 @@ describe('mountEmbeddedVeridComponent', () => {
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
-    postFromEmbed(null, { type: 'ronan:complete' });
+    postFromGateway(null, { type: 'ronan:complete' });
 
     expect(onComplete).not.toHaveBeenCalled();
     component.destroy();
@@ -81,7 +81,7 @@ describe('mountEmbeddedVeridComponent', () => {
     const details: VeridEmbeddedError[] = [];
     component.addEventListener('error', (event) => details.push(event.detail));
 
-    postFromEmbed(component.iframe.contentWindow, { type: 'ronan:bogus' });
+    postFromGateway(component.iframe.contentWindow, { type: 'ronan:bogus' });
 
     expect(details).toHaveLength(1);
     expect(details[0].error).toBe('invalid_message');
@@ -93,7 +93,7 @@ describe('mountEmbeddedVeridComponent', () => {
     const details: VeridEmbeddedError[] = [];
     component.addEventListener('error', (event) => details.push(event.detail));
 
-    postFromEmbed(component.iframe.contentWindow, {
+    postFromGateway(component.iframe.contentWindow, {
       type: 'ronan:error',
       error: 'access_denied',
       error_description: 'user bailed',
@@ -112,7 +112,7 @@ describe('mountEmbeddedVeridComponent', () => {
     component.destroy();
 
     expect(container.contains(iframe)).toBe(false);
-    postFromEmbed(iframe.contentWindow, { type: 'ronan:complete' });
+    postFromGateway(iframe.contentWindow, { type: 'ronan:complete' });
     expect(onComplete).not.toHaveBeenCalled();
   });
 

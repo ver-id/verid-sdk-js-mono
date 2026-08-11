@@ -67,7 +67,7 @@ veridComponent.addEventListener('cancel',   () => veridComponent.destroy());
   backend result" (poll/SSE) — not "the result is ready". The backend finalizes the
   flow from the webhook; the browser only learns the flow finished.
 - **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin`
-  fixed to the embed origin, and inbound messages are accepted only from that origin
+  fixed to the gateway origin, and inbound messages are accepted only from that origin
   and from the component's own iframe.
 
 ## Per-flow guides

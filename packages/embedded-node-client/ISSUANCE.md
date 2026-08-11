@@ -136,7 +136,7 @@ app.post('/api/verid/start', async (_req, res) => {
   });
 
   res.json(bootstrap);
-  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri, intentId }
+  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri, intentId }
 });
 ```
 
@@ -144,7 +144,7 @@ app.post('/api/verid/start', async (_req, res) => {
 
 - `scope` — the scopes to request (e.g. `'openid issuance'`). Requested scopes must be registered in the issuance flow.
 - `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
-- `embedUri` — optional Ver.iD embed URL to hand the browser. Defaults to the `issuerUri` origin.
+- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
 - `intentId` — **required for issuance**; the intent created in Step 2.
 - `state` — optional caller-supplied state; otherwise one is generated.
 

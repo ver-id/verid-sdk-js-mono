@@ -1,5 +1,8 @@
 import { ref, shallowRef, onBeforeUnmount } from 'vue';
-import { mountEmbeddedVeridComponent, type VeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
+import {
+  mountEmbeddedVeridComponent,
+  type VeridEmbeddedComponent,
+} from '@ver-id/embedded-browser-client';
 import { formatError } from '../utils/errorHandler.js';
 
 const API_URL = `${import.meta.env.VITE_NODE_SERVER_URL}/api`;
@@ -17,7 +20,7 @@ export interface EmbeddedBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  embedUri: string;
+  gatewayUri: string;
   intentId?: string;
 }
 
@@ -345,7 +348,7 @@ const bootstrap = await fetch('/api/${scope}/embedded/start', {
   method: 'POST',
 }).then((r) => r.json());
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
 // No code_verifier, no authorization code — those never reach the browser.`,
 
   mount: `// BROWSER — mount the Ver.iD iframe

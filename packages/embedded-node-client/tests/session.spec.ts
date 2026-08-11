@@ -23,7 +23,7 @@ describe('createEmbeddedSession', () => {
     expect(bootstrap.clientId).toBe(CLIENT_ID);
     expect(bootstrap.scope).toBe('disclosure');
     expect(bootstrap.webhookUri).toBe(webhookUri);
-    expect(bootstrap.embedUri).toBe('https://issuer.example.com');
+    expect(bootstrap.gatewayUri).toBe('https://issuer.example.com');
     expect(bootstrap.state).toBeTruthy();
     expect(bootstrap.codeChallenge).toBeTruthy();
     expect(bootstrap.intentId).toBeUndefined();
@@ -38,7 +38,7 @@ describe('createEmbeddedSession', () => {
     }
   });
 
-  it('passes through explicit embedUri and intentId (issuance)', async () => {
+  it('passes through explicit gatewayUri and intentId (issuance)', async () => {
     const cacheManager = new MemoryStorageCacheManager();
     const client = new EmbeddedIssuanceClient({
       issuerUri: ISSUER,
@@ -46,16 +46,16 @@ describe('createEmbeddedSession', () => {
       options: { cacheManager },
     });
 
-    const embedUri = 'https://embed.example.com';
+    const gatewayUri = 'https://gateway.example.com';
     const intentId = 'intent-123';
     const bootstrap = await client.createEmbeddedSession({
       scope: 'issuance',
       webhookUri: 'https://app.example.com/api/verid/webhook',
-      embedUri,
+      gatewayUri,
       intentId,
     });
 
-    expect(bootstrap.embedUri).toBe(embedUri);
+    expect(bootstrap.gatewayUri).toBe(gatewayUri);
     expect(bootstrap.intentId).toBe(intentId);
     expect(bootstrap.scope).toBe('issuance');
   });

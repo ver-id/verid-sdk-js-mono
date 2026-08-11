@@ -22,8 +22,8 @@ export interface EmbeddedIframeOptions {
 export interface MountEmbeddedVeridComponentParams {
   /** Where to render the iframe: a container to create one in, or an existing iframe. */
   container: HTMLElement | HTMLIFrameElement;
-  /** Ver.iD embed URL. Its origin is the pinned trust anchor for postMessage. */
-  embedUri: string;
+  /** Ver.iD gateway URL. Its origin is the pinned trust anchor for postMessage. */
+  gatewayUri: string;
   /** Flow uuid (OAuth client_id). */
   clientId: string;
   /** Scopes to request. */
@@ -45,24 +45,20 @@ const DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin';
 const DEFAULT_IFRAME_TITLE = 'Ver.iD embedded flow';
 
 /** Mounts the Ver.iD iframe and re-dispatches inbound messages as typed `CustomEvent`s. */
-export class VeridEmbeddedComponentImpl
-  extends EventTarget
-  implements VeridEmbeddedComponent
-{
+export class VeridEmbeddedComponentImpl extends EventTarget implements VeridEmbeddedComponent {
   readonly iframe: HTMLIFrameElement;
 
-  readonly #embedOrigin: string;
+  readonly #gatewayOrigin: string;
   readonly #initMessage: EmbeddedInitMessage;
   readonly #ownsIframe: boolean;
-  readonly #onMessage = (event: MessageEvent): void =>
-    this.#handleMessage(event);
+  readonly #onMessage = (event: MessageEvent): void => this.#handleMessage(event);
   readonly #onLoad = (): void => this.#postInit();
   #destroyed = false;
 
   constructor(params: MountEmbeddedVeridComponentParams) {
     super();
 
-    this.#embedOrigin = new URL(params.embedUri).origin;
+    this.#gatewayOrigin = new URL(params.gatewayUri).origin;
     this.#initMessage = {
       type: 'ronan:init',
       clientId: params.clientId,
@@ -85,15 +81,12 @@ export class VeridEmbeddedComponentImpl
     this.#applyIframeOptions(params.iframe);
     this.iframe.addEventListener('load', this.#onLoad);
     window.addEventListener('message', this.#onMessage);
-    this.iframe.src = params.embedUri;
+    this.iframe.src = params.gatewayUri;
   }
 
   #applyIframeOptions(options: EmbeddedIframeOptions | undefined): void {
     this.iframe.allow = options?.allow ?? DEFAULT_IFRAME_ALLOW;
-    this.iframe.setAttribute(
-      'sandbox',
-      options?.sandbox ?? DEFAULT_IFRAME_SANDBOX,
-    );
+    this.iframe.setAttribute('sandbox', options?.sandbox ?? DEFAULT_IFRAME_SANDBOX);
     this.iframe.title = options?.title ?? DEFAULT_IFRAME_TITLE;
     if (options?.className !== undefined) {
       this.iframe.className = options.className;
@@ -108,11 +101,11 @@ export class VeridEmbeddedComponentImpl
     if (target === null) {
       return;
     }
-    target.postMessage(this.#initMessage, this.#embedOrigin);
+    target.postMessage(this.#initMessage, this.#gatewayOrigin);
   }
 
   #handleMessage(event: MessageEvent): void {
-    if (event.origin !== this.#embedOrigin) {
+    if (event.origin !== this.#gatewayOrigin) {
       return;
     }
     if (event.source !== this.iframe.contentWindow) {
@@ -121,10 +114,7 @@ export class VeridEmbeddedComponentImpl
 
     const parsed = parseEmbeddedMessage(event.data);
     if (!parsed.ok) {
-      this.#dispatchError({
-        error: 'invalid_message',
-        error_description: parsed.reason,
-      });
+      this.#dispatchError({ error: 'invalid_message', error_description: parsed.reason });
       return;
     }
 
@@ -139,10 +129,7 @@ export class VeridEmbeddedComponentImpl
         this.#dispatchError(
           parsed.message.error_description === undefined
             ? { error: parsed.message.error }
-            : {
-                error: parsed.message.error,
-                error_description: parsed.message.error_description,
-              },
+            : { error: parsed.message.error, error_description: parsed.message.error_description },
         );
         return;
       case 'ronan:cancel':

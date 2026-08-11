@@ -54,9 +54,7 @@ export type ParseEmbeddedMessageResult =
   | { readonly ok: false; readonly reason: string };
 
 /** Validates an untrusted `postMessage` payload against the inbound embedded protocol. */
-export function parseEmbeddedMessage(
-  data: unknown,
-): ParseEmbeddedMessageResult {
+export function parseEmbeddedMessage(data: unknown): ParseEmbeddedMessageResult {
   if (typeof data !== 'object' || data === null) {
     return { ok: false, reason: 'message must be an object' };
   }
@@ -76,17 +74,10 @@ export function parseEmbeddedMessage(
       if (!('error' in data) || typeof data.error !== 'string') {
         return { ok: false, reason: 'ronan:error requires a string "error"' };
       }
-      if (
-        'error_description' in data &&
-        typeof data.error_description === 'string'
-      ) {
+      if ('error_description' in data && typeof data.error_description === 'string') {
         return {
           ok: true,
-          message: {
-            type,
-            error: data.error,
-            error_description: data.error_description,
-          },
+          message: { type, error: data.error, error_description: data.error_description },
         };
       }
       return { ok: true, message: { type, error: data.error } };

@@ -6,8 +6,8 @@ export interface EmbeddedSessionParams {
   scope: string;
   /** The backend's own webhook endpoint Ver.iD will call. */
   webhookUri: string;
-  /** Ver.iD embed URL to hand the browser. Defaults to the issuerUri origin. */
-  embedUri?: string;
+  /** Ver.iD gateway URL to hand the browser. Defaults to the issuerUri origin. */
+  gatewayUri?: string;
   /** Issuance only: an intent created via createIssuanceIntent(). */
   intentId?: string;
   /** Optional caller-supplied state; otherwise generated. */
@@ -21,7 +21,7 @@ export interface EmbeddedSessionBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  embedUri: string;
+  gatewayUri: string;
   intentId?: string;
 }
 
@@ -38,7 +38,7 @@ export async function buildEmbeddedSessionBootstrap(
   params: EmbeddedSessionParams,
 ): Promise<EmbeddedSessionBootstrap> {
   const { codeChallenge, state } = await context.generateCodeChallenge(params.state);
-  const embedUri = params.embedUri ?? new URL(context.issuerUri).origin;
+  const gatewayUri = params.gatewayUri ?? new URL(context.issuerUri).origin;
 
   const bootstrap: EmbeddedSessionBootstrap = {
     clientId: context.clientId,
@@ -46,7 +46,7 @@ export async function buildEmbeddedSessionBootstrap(
     state,
     codeChallenge,
     webhookUri: params.webhookUri,
-    embedUri,
+    gatewayUri,
   };
 
   if (params.intentId !== undefined) {

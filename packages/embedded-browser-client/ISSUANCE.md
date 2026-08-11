@@ -33,7 +33,7 @@ app.post('/api/verid/start', async (_req, res) => {
   });
 
   res.json(bootstrap);
-  // { clientId, scope, state, codeChallenge, webhookUri, embedUri, intentId }
+  // { clientId, scope, state, codeChallenge, webhookUri, gatewayUri, intentId }
 });
 ```
 
@@ -59,7 +59,7 @@ const veridComponent = mountEmbeddedVeridComponent({
 | Field          | Source     | Description                                                              |
 | -------------- | ---------- | ----------------------------------------------------------------------- |
 | `container`    | you        | An `HTMLElement` to mount into, or an existing `HTMLIFrameElement`.     |
-| `embedUri`     | bootstrap  | Ver.iD embed origin. Inbound messages are pinned to this origin.         |
+| `gatewayUri`   | bootstrap  | Ver.iD gateway origin. Inbound messages are pinned to this origin.       |
 | `clientId`     | bootstrap  | The issuance flow id.                                                    |
 | `scope`        | bootstrap  | The requested scopes (e.g. `openid issuance`).                          |
 | `state`        | bootstrap  | PKCE state; correlate the backend result to this value.                 |
@@ -126,4 +126,4 @@ The authorization `code` is **never** delivered to the browser. When the flow co
 
 - **No secrets in the browser.** No PKCE verifier or authorization code ever touches the browser. The backend generates the `state`/`codeChallenge`, keeps the verifier server-side, and receives the code on its webhook.
 - **`complete` is a lifecycle signal, not a result.** It means "start awaiting the backend result" (poll/SSE) — not "the result is ready".
-- **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin` fixed to `embedUri`; inbound messages are accepted only from that origin and from the component's own iframe. A malformed message from the pinned origin is surfaced as an `error` event.
+- **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin` fixed to `gatewayUri`; inbound messages are accepted only from that origin and from the component's own iframe. A malformed message from the pinned origin is surfaced as an `error` event.

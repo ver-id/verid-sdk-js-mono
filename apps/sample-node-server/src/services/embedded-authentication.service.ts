@@ -20,7 +20,7 @@ const bootstrap = await authClient.createEmbeddedSession({
   webhookUri: '${webhookUri}',
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, embedUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
 // The code_verifier is NOT in here — it stays cached server-side, keyed by state.
 res.json(bootstrap);`;
 }
