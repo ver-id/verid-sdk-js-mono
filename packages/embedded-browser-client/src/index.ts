@@ -9,7 +9,7 @@ export type {
   VeridEmbeddedError,
 } from './embedded/typed-event-target.js';
 
-export { parseRonanMessage } from '@verid-sdk-js-mono/core';
+export { parseRonanMessage } from '@ver-id/core';
 export type {
   RonanMessage,
   RonanInitMessage,
@@ -19,4 +19,4 @@ export type {
   RonanErrorMessage,
   RonanCancelMessage,
   ParseRonanMessageResult,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';

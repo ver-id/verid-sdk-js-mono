@@ -1,4 +1,4 @@
-import { VeridOAuthClient } from '@verid-sdk-js-mono/core';
+import { VeridOAuthClient } from '@ver-id/core';
 import { ApolloLink, Observable } from '@apollo/client/core';
 
 /**

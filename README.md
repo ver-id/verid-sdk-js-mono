@@ -235,6 +235,18 @@ const attribute = await getAttribute(client, '<ATTRIBUTE_UUID>');
 
 For comprehensive configurations and examples, see the [graphql-client](packages/graphql-client/README.md).
 
+### [@ver-id/core](./packages/core)
+
+The shared foundation every client above is built on: the abstract flow clients, the OAuth client,
+the cache contract, the embedded wire protocol, the error hierarchy and the shared types. It is
+published as its own package and listed as a dependency of the other clients, so a fix lands once
+instead of being duplicated into five bundles.
+
+You normally do not install it directly — the client packages re-export what you need. Reach for it
+when you are building your own client on top of the Ver.iD protocol.
+
+For details, see the [core](./packages/core/README.md) README.
+
 ### Prerequisites
 
 - Node.js >= 18.0.0

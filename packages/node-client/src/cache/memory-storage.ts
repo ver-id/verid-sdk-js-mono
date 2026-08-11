@@ -1,5 +1,5 @@
-import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
-import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
+import { BaseCacheManager } from '@ver-id/core/cache';
+import type { CacheManagerOptions } from '@ver-id/core/cache';
 
 /**
  * Simple in-memory cache manager using Map.

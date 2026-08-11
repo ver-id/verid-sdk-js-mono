@@ -1,4 +1,4 @@
-import type { ICacheManager } from '@verid-sdk-js-mono/core';
+import type { ICacheManager } from '@ver-id/core';
 
 /**
  * In-memory cache manager; data is lost on process restart.

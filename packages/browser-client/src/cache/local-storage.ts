@@ -1,4 +1,4 @@
-import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
+import type { CacheManagerOptions } from '@ver-id/core/cache';
 import { WebStorageCacheManager } from './web-storage.js';
 
 /**

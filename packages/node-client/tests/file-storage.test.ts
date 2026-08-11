@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
+import { InvalidArgumentError } from '@ver-id/core/error';
 import { FileStorageCacheManager } from '../src/cache/file-storage';
 import { describeCacheManagerContract } from './cache-contract';
 

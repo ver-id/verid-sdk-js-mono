@@ -2,7 +2,7 @@ import {
   VeridIssuanceClient,
   type IssuanceResponse,
   type FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 import {
   buildEmbeddedSessionBootstrap,

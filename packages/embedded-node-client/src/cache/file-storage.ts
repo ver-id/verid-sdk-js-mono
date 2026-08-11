@@ -1,4 +1,4 @@
-import type { ICacheManager } from '@verid-sdk-js-mono/core';
+import type { ICacheManager } from '@ver-id/core';
 import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { mkdir, writeFile, rename, unlink } from 'fs/promises';
 import { join } from 'path';

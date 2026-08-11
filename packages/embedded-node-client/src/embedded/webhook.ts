@@ -4,7 +4,7 @@ import {
   InvalidAssertionError,
   AuthorizationResponseError,
   type EmbeddedWebhookPayload,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Why a webhook verification failed. */
 export type EmbeddedWebhookRejectionReason =

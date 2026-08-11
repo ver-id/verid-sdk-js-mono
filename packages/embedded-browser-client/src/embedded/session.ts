@@ -1,4 +1,4 @@
-import { parseRonanMessage, type RonanInitMessage } from '@verid-sdk-js-mono/core';
+import { parseRonanMessage, type RonanInitMessage } from '@ver-id/core';
 import type {
   VeridEmbeddedError,
   VeridEmbeddedSession,

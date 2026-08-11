@@ -58,6 +58,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@ver-id/core": "workspace:^"
+  },
   "nx": {
     "targets": {
       "build": {

@@ -1,6 +1,6 @@
 // Re-export from sub-paths for convenience
-// Users can import from '@verid-sdk-js-mono/core' (all exports)
-// or from specific paths like '@verid-sdk-js-mono/core/flow'
+// Users can import from '@ver-id/core' (all exports)
+// or from specific paths like '@ver-id/core/flow'
 
 // Interface exports
 export type { ICacheManager } from './interface/ICacheManager.js';

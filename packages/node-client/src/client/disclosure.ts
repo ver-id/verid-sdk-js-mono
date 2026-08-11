@@ -7,7 +7,7 @@ import {
   ClientAuth,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
 // Re-export types from core
@@ -15,7 +15,7 @@ export type {
   DisclosureIntentPayload,
   DisclosureClientConfig,
   DisclosureRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the Node.js disclosure client. */
 export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {

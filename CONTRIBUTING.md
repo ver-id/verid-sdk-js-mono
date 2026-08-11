@@ -158,10 +158,13 @@ Before submitting, ensure:
 ```
 verid-sdk-js-mono/
 ├── packages/
-│   ├── graphql-client/    # GraphQL client for Ver.ID API
-│   └── browser-client/    # Browser-specific client
-├── libs/
-│   └── core/              # Shared core functionality
+│   ├── core/              # Shared core, published as @ver-id/core and depended on by every client
+│   ├── browser-client/    # Browser-specific client
+│   ├── node-client/       # Node.js client
+│   ├── embedded-browser-client/
+│   ├── embedded-node-client/
+│   └── graphql-client/    # GraphQL client for Ver.ID API
+├── apps/                  # Sample applications
 ├── .github/
 │   └── workflows/         # CI/CD workflows
 └── nx.json                # Nx configuration

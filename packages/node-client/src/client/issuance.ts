@@ -8,7 +8,7 @@ import {
   ClientAuth,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
 // Re-export types from core
@@ -16,7 +16,7 @@ export type {
   IssuanceIntentPayload,
   IssuanceClientConfig,
   IssuanceRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the Node.js issuance client. */
 export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {

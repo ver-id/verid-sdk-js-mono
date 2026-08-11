@@ -4980,18 +4980,33 @@ __metadata:
 "@ver-id/browser-client@workspace:packages/browser-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/browser-client@workspace:packages/browser-client"
+  dependencies:
+    "@ver-id/core": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@ver-id/core@workspace:^, @ver-id/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@ver-id/core@workspace:packages/core"
+  dependencies:
+    jose: "npm:^6.2.1"
+    oauth4webapi: "npm:^3.8.5"
   languageName: unknown
   linkType: soft
 
 "@ver-id/embedded-browser-client@workspace:*, @ver-id/embedded-browser-client@workspace:packages/embedded-browser-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/embedded-browser-client@workspace:packages/embedded-browser-client"
+  dependencies:
+    "@ver-id/core": "workspace:^"
   languageName: unknown
   linkType: soft
 
 "@ver-id/embedded-node-client@workspace:*, @ver-id/embedded-node-client@workspace:packages/embedded-node-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/embedded-node-client@workspace:packages/embedded-node-client"
+  dependencies:
+    "@ver-id/core": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -5005,6 +5020,7 @@ __metadata:
     "@graphql-codegen/typescript": "npm:^4.1.6"
     "@graphql-codegen/typescript-operations": "npm:^5.0.9"
     "@graphql-typed-document-node/core": "npm:^3.2.0"
+    "@ver-id/core": "workspace:^"
     graphql: "npm:^16.13.1"
   languageName: unknown
   linkType: soft
@@ -5012,6 +5028,8 @@ __metadata:
 "@ver-id/node-client@workspace:packages/node-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/node-client@workspace:packages/node-client"
+  dependencies:
+    "@ver-id/core": "workspace:^"
   peerDependencies:
     "@aws-sdk/client-dynamodb": ">=3.0.0"
     "@aws-sdk/lib-dynamodb": ">=3.0.0"
@@ -5026,15 +5044,6 @@ __metadata:
       optional: true
     redis:
       optional: true
-  languageName: unknown
-  linkType: soft
-
-"@verid-sdk-js-mono/core@workspace:libs/core":
-  version: 0.0.0-use.local
-  resolution: "@verid-sdk-js-mono/core@workspace:libs/core"
-  dependencies:
-    jose: "npm:^6.2.1"
-    oauth4webapi: "npm:^3.8.5"
   languageName: unknown
   linkType: soft
 

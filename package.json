@@ -52,7 +52,6 @@
   },
   "workspaces": [
     "packages/*",
-    "libs/*",
     "apps/sample-vue-app",
     "apps/*"
   ],

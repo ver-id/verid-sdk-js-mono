@@ -1,4 +1,4 @@
-import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
+import { InvalidArgumentError } from '@ver-id/core/error';
 import { DynamoDBCacheManager, type DynamoDBCompatibleClient } from '../src/cache/dynamodb-storage';
 import { describeCacheManagerContract } from './cache-contract';
 

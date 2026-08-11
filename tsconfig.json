@@ -4,7 +4,7 @@
   "files": [],
   "references": [
     {
-      "path": "./libs/core"
+      "path": "./packages/core"
     },
     {
       "path": "./packages/browser-client"

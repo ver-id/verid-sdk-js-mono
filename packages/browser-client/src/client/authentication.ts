@@ -5,7 +5,7 @@ import {
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 // Re-export types from core
@@ -13,7 +13,7 @@ export type {
   AuthenticationIntentPayload,
   AuthenticationClientConfig,
   AuthenticationRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the browser authentication client. */
 export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {

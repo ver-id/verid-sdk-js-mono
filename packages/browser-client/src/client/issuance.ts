@@ -5,7 +5,7 @@ import {
   IssuanceResponse,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 // Re-export types from core
@@ -13,7 +13,7 @@ export type {
   IssuanceIntentPayload,
   IssuanceClientConfig,
   IssuanceRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the browser issuance client. */
 export type BrowserIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {

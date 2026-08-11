@@ -21,14 +21,14 @@ export type {
 
 // Cache managers
 export { FileStorageCacheManager, MemoryStorageCacheManager } from './cache/index.js';
-export type { ICacheManager } from '@verid-sdk-js-mono/core';
+export type { ICacheManager } from '@ver-id/core';
 
 // Shared protocol from core
-export { parseEmbeddedWebhookPayload } from '@verid-sdk-js-mono/core';
+export { parseEmbeddedWebhookPayload } from '@ver-id/core';
 export type {
   EmbeddedWebhookPayload,
   ParseEmbeddedWebhookResult,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 // Errors
 export {
@@ -40,7 +40,7 @@ export {
   TokenGrantError,
   OperationFailedError,
   UnknownError,
-} from '@verid-sdk-js-mono/core/error';
+} from '@ver-id/core/error';
 
 // Common assert helpers + response types for decode()
 export {
@@ -48,7 +48,7 @@ export {
   assertOpenIdJwtPayload,
   assertIssuanceV1JwtPayload,
   assertSignatureV1JwtPayload,
-} from '@verid-sdk-js-mono/core/utils';
+} from '@ver-id/core/utils';
 export type {
   DisclosureResponse,
   AuthenticationResponse,
@@ -58,4 +58,4 @@ export type {
   DisclosureV1JwtPayload,
   IssuanceV1JwtPayload,
   OpenIdJwtPayload,
-} from '@verid-sdk-js-mono/core/types';
+} from '@ver-id/core/types';

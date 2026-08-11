@@ -5,7 +5,7 @@ import {
   DisclosureResponse,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 // Re-export types from core
@@ -13,7 +13,7 @@ export type {
   DisclosureIntentPayload,
   DisclosureClientConfig,
   DisclosureRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the browser disclosure client. */
 export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {

@@ -7,7 +7,7 @@ import {
   ClientAuth,
   ICacheManager,
   FlowRedirectBinding,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { FileStorageCacheManager } from '../cache/file-storage.js';
 
 // Re-export types from core
@@ -15,7 +15,7 @@ export type {
   AuthenticationIntentPayload,
   AuthenticationClientConfig,
   AuthenticationRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /** Configuration for the Node.js authentication client. */
 export type NodeAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {

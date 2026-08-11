@@ -1,5 +1,5 @@
 export default {
-  displayName: '@verid-sdk-js-mono/core',
+  displayName: '@ver-id/core',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

@@ -19,7 +19,7 @@ export {
   InvalidResponseError,
   OperationFailedError,
   UnknownError
-} from '@verid-sdk-js-mono/core/error';
+} from '@ver-id/core/error';
 
 /**
  * Export core utilities
@@ -36,7 +36,7 @@ export {
   assertString,
   assertUUID,
   assertUrlString,
-} from '@verid-sdk-js-mono/core/utils';
+} from '@ver-id/core/utils';
 
 /**
  * Export core types
@@ -52,4 +52,4 @@ export type {
   TrustAppEntity,
   TrustIssuerEntity,
   LocaleEntity
-} from '@verid-sdk-js-mono/core/types';
+} from '@ver-id/core/types';

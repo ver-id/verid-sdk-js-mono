@@ -1,4 +1,4 @@
-import type { FlowBasePkceResult } from '@verid-sdk-js-mono/core';
+import type { FlowBasePkceResult } from '@ver-id/core';
 
 /** Parameters to start an embedded session (bootstrap for the browser). */
 export interface EmbeddedSessionParams {

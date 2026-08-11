@@ -1,4 +1,4 @@
-import type { ClientAuth, ICacheManager } from '@verid-sdk-js-mono/core';
+import type { ClientAuth, ICacheManager } from '@ver-id/core';
 
 /** Configuration shared by all embedded clients. No redirectUri — embedded flows are registered without one. */
 export interface EmbeddedClientConfig {
