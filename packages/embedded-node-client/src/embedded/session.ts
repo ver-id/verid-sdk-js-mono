@@ -6,9 +6,9 @@ export interface EmbeddedSessionParams {
   scope: string;
   /** The backend's own webhook endpoint Ver.iD will call. */
   webhookUri: string;
-  /** Ver.iD gateway URL to hand the browser. Defaults to the issuerUri origin. */
+  /** You probably don't need to set this, used to override the frame URL to another gateway compatible URI. */
   gatewayUri?: string;
-  /** Issuance only: an intent created via createIssuanceIntent(). */
+  /** an intent created via createIssuanceIntent(). */
   intentId?: string;
   /** Optional caller-supplied state; otherwise generated. */
   state?: string;

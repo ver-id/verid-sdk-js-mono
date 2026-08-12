@@ -72,28 +72,17 @@
   "release": {
     "projects": ["packages/*"],
     "projectsRelationship": "independent",
-    "releaseTagPattern": "{projectName}@{version}",
-    "git": {
-      "commit": true,
-      "commitMessage": "chore(release): publish {version}",
-      "tag": true,
-      "push": true
-    },
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
       "conventionalCommits": true,
-      "fallbackCurrentVersionResolver": "disk"
+      "preserveLocalDependencyProtocols": false,
+      "preserveMatchingDependencyRanges": false,
+      "versionPrefix": "^"
     },
     "changelog": {
-      "automaticFromRef": true,
       "projectChangelogs": {
         "createRelease": "github",
-        "file": false,
-        "renderOptions": {
-          "authors": true,
-          "commitReferences": true,
-          "versionTitleDate": true
-        }
+        "file": false
       }
     }
   }
