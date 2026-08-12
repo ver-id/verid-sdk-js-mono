@@ -10,7 +10,7 @@ export function useDisclosure() {
   // Reactive configuration that can be edited by the user
   const clientConfig = reactive({
     issuerUri: import.meta.env.VITE_VERID_DISCLOSURE_API_URL || '',
-    client_id: import.meta.env.VITE_VERID_DISCLOSURE_FLOW_ID || '',
+    clientId: import.meta.env.VITE_VERID_DISCLOSURE_FLOW_ID || '',
     redirectUri: import.meta.env.VITE_VERID_DISCLOSURE_REDIRECT_URI || '',
   });
 
@@ -110,7 +110,7 @@ export function useDisclosure() {
 
   /**
    * Generate disclosure URL with PKCE
-   * If intent was created, uses intent_id and PKCE params
+   * If intent was created, uses intentId and PKCE params
    */
   const generateDisclosureUrl = async () => {
     if (!disclosureClient) return;
@@ -122,9 +122,9 @@ export function useDisclosure() {
       let url: string;
 
       if (useIntent.value && intentId.value && codeChallenge.value && state.value) {
-        // Intent-based flow: use intent_id and existing PKCE params
+        // Intent-based flow: use intentId and existing PKCE params
         const result = await disclosureClient.generateDisclosureUrl({
-          intent_id: intentId.value,
+          intentId: intentId.value,
           state: state.value,
           codeChallenge: codeChallenge.value,
         });

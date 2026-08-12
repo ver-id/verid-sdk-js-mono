@@ -11,7 +11,7 @@ export function useIssuance() {
   // Reactive configuration that can be edited by the user
   const clientConfig = reactive({
     issuerUri: import.meta.env.VITE_VERID_ISSUANCE_API_URL || '',
-    client_id: import.meta.env.VITE_VERID_ISSUANCE_FLOW_ID || '',
+    clientId: import.meta.env.VITE_VERID_ISSUANCE_FLOW_ID || '',
     redirectUri: import.meta.env.VITE_VERID_ISSUANCE_REDIRECT_URI || '',
   });
 
@@ -135,7 +135,7 @@ export function useIssuance() {
 
   /**
    * Generate issuance URL with intent
-   * Intent is MANDATORY for issuance, so always uses intent_id and PKCE params
+   * Intent is MANDATORY for issuance, so always uses intentId and PKCE params
    */
   const generateIssuanceUrl = async () => {
     if (!issuanceClient) return;
@@ -151,7 +151,7 @@ export function useIssuance() {
     try {
       // Issuance always requires intent
       const result = await issuanceClient.generateIssuanceUrl({
-        intent_id: intentId.value,
+        intentId: intentId.value,
         state: state.value,
         codeChallenge: codeChallenge.value,
       });

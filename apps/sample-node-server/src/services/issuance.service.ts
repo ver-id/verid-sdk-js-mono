@@ -8,7 +8,7 @@ export function generateInitCodeSnippet(config: NodeIssuanceClientConfig): strin
 
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '${config.issuerUri}',
-  client_id: '${config.client_id}',
+  clientId: '${config.clientId}',
   redirectUri: '${config.redirectUri}',
 });`;
 }
@@ -89,7 +89,7 @@ export function generateIssuanceUrlWithIntentSnippet(
 ): string {
   return `// Generate issuance URL with intent (intent is MANDATORY)
 const { issuanceUrl } = await issuanceClient.generateIssuanceUrl({
-  intent_id: '${intentId}',
+  intentId: '${intentId}',
   state: '${state}',
   codeChallenge: '${codeChallenge}',
 });`;

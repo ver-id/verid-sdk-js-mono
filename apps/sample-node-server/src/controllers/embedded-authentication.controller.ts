@@ -35,12 +35,12 @@ export async function initializeEmbeddedAuthClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_AUTHENTICATION_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_EMBEDDED_AUTHENTICATION_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_EMBEDDED_AUTHENTICATION_FLOW_ID;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Embedded Authentication Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Embedded Authentication Flow ID is required', InvalidArgumentError);
 
-    const config: EmbeddedClientConfig = { issuerUri, client_id };
+    const config: EmbeddedClientConfig = { issuerUri, clientId };
 
     const authClient = new EmbeddedAuthenticationClient(config);
     clientService.setEmbeddedAuthClient(authClient);

@@ -40,10 +40,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Embedded Authentication Flow ID:</label>
+          <label for="clientId">Embedded Authentication Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             :placeholder="defaultFlowId || 'flow uuid'"
           >

@@ -25,9 +25,9 @@ export interface OAuthClientConfig {
    */
   issuer: string;
   /**
-   * The OAuth 2.1 client identifier.
+   * The OAuth 2.1 client identifier (sent on the wire as `client_id`).
    */
-  client_id: string;
+  clientId: string;
 }
 
 /**
@@ -48,17 +48,17 @@ export interface OAuthRequestParams {
   /**
    * The Code challenge for the PKCE
    */
-  code_challenge: string;
+  codeChallenge: string;
 
   /**
    * The Code challenge method for the PKCE
    */
-  code_challenge_method?: 'S256' | 'plain';
+  codeChallengeMethod?: 'S256' | 'plain';
 
   /**
    * Intent Id to associate with the request
    */
-  intent_id?: UUID;
+  intentId?: UUID;
 }
 
 /**
@@ -80,11 +80,11 @@ export interface OAuthAuthorizationCodeGrantParams {
   /**
    * The code verifier for the PKCE flow.
    */
-  code_verifier: string;
+  codeVerifier: string;
   /**
    * The client authentication details.
    */
-  client_auth?: ClientAuth;
+  clientAuth?: ClientAuth;
 }
 
 /**
@@ -107,16 +107,16 @@ export interface OAuthClientCredentialsGrantParams {
  * @public
  */
 export class VeridOAuthClient {
-  private client_id: string;
+  private readonly _clientId: string;
 
   private issuer: URL;
 
   private provider: IOAuthProvider;
 
   constructor(config: OAuthClientConfig) {
-    assertUUID(config.client_id, 'client_id', InvalidArgumentError);
+    assertUUID(config.clientId, 'clientId', InvalidArgumentError);
     assertUrlString(config.issuer, 'issuer', InvalidArgumentError);
-    this.client_id = config.client_id;
+    this._clientId = config.clientId;
     this.issuer = new URL(config.issuer);
 
     this.provider = new OAuth4WebApiProvider();
@@ -126,7 +126,7 @@ export class VeridOAuthClient {
    * Getter for the client ID.
    */
   clientId() {
-    return this.client_id;
+    return this._clientId;
   }
 
   /**
@@ -181,7 +181,7 @@ export class VeridOAuthClient {
     if (clientAuth) {
       assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
       assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-      const credentials = btoa(`${this.client_id}:${clientAuth.client_secret}`);
+      const credentials = btoa(`${this._clientId}:${clientAuth.client_secret}`);
       headers['Authorization'] = `Basic ${credentials}`;
     }
 
@@ -230,7 +230,7 @@ export class VeridOAuthClient {
    * const authorizationUrl = await client.generateAuthorizationUrl({
    *   binding: { kind: 'redirect', redirectUri: 'https://example.com/callback' },
    *   scope: 'openid profile',
-   *   code_challenge: '<code_challenge>',
+   *   codeChallenge: '<code_challenge>',
    * });
    * ```
    */
@@ -262,23 +262,23 @@ export class VeridOAuthClient {
       url.searchParams.set('state', params.state);
     }
 
-    url.searchParams.set('client_id', this.client_id);
+    url.searchParams.set('client_id', this._clientId);
     url.searchParams.set('response_type', 'code');
 
-    assertString(params.code_challenge, 'code_challenge', InvalidArgumentError);
-    url.searchParams.set('code_challenge', params.code_challenge);
-    if (params.code_challenge_method) {
+    assertString(params.codeChallenge, 'codeChallenge', InvalidArgumentError);
+    url.searchParams.set('code_challenge', params.codeChallenge);
+    if (params.codeChallengeMethod) {
       assert(
-        ['S256', 'plain'].includes(params.code_challenge_method),
-        `Invalid code_challenge_method: ${params.code_challenge_method} is not a supported method`,
+        ['S256', 'plain'].includes(params.codeChallengeMethod),
+        `Invalid codeChallengeMethod: ${params.codeChallengeMethod} is not a supported method`,
         InvalidArgumentError,
       );
     }
-    url.searchParams.set('code_challenge_method', params.code_challenge_method ?? 'S256');
+    url.searchParams.set('code_challenge_method', params.codeChallengeMethod ?? 'S256');
 
-    if (params.intent_id) {
-      assertUUID(params.intent_id, 'intent_id', InvalidArgumentError);
-      url.searchParams.set('intent_id', params.intent_id);
+    if (params.intentId) {
+      assertUUID(params.intentId, 'intentId', InvalidArgumentError);
+      url.searchParams.set('intent_id', params.intentId);
     }
 
     if (additionalParams) {
@@ -302,7 +302,7 @@ export class VeridOAuthClient {
     if (params.binding.kind === 'redirect') {
       assertUrlString(params.binding.redirectUri, 'redirect_uri', InvalidArgumentError);
     }
-    assertString(params.code_verifier, 'code_verifier', InvalidArgumentError);
+    assertString(params.codeVerifier, 'codeVerifier', InvalidArgumentError);
     assert(
       params.parameters instanceof URL || params.parameters instanceof URLSearchParams,
       'parameters',
@@ -311,18 +311,18 @@ export class VeridOAuthClient {
     if (params.state) {
       assertString(params.state, 'state', InvalidArgumentError);
     }
-    if (params.client_auth) {
-      assertObject(params.client_auth, 'client_auth', InvalidArgumentError);
+    if (params.clientAuth) {
+      assertObject(params.clientAuth, 'clientAuth', InvalidArgumentError);
       assertString(
-        params.client_auth.client_secret,
-        'client_auth.client_secret',
+        params.clientAuth.client_secret,
+        'clientAuth.client_secret',
         InvalidArgumentError,
       );
     }
 
     const authorizationServer = await this.provider.discover(this.issuer);
     const clientConfig: ClientConfig = {
-      client_id: this.client_id,
+      client_id: this._clientId,
       id_token_signed_response_alg: 'ES384',
     };
 
@@ -336,10 +336,10 @@ export class VeridOAuthClient {
     const authorizationCodeGrantResponse = await this.provider.authorizationCodeGrantRequest(
       authorizationServer,
       clientConfig,
-      params.client_auth ?? null,
+      params.clientAuth ?? null,
       callbackParams,
       params.binding,
-      params.code_verifier,
+      params.codeVerifier,
     );
 
     const result = await this.provider.processAuthorizationCodeResponse(
@@ -366,7 +366,7 @@ export class VeridOAuthClient {
 
     const authorizationServer = await this.provider.discover(this.issuer);
     const clientConfig: ClientConfig = {
-      client_id: this.client_id,
+      client_id: this._clientId,
     };
 
     const clientCredentialGrantRequest = await this.provider.clientCredentialsGrantRequest(

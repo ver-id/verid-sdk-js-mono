@@ -9,7 +9,7 @@ import { EmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
 
 const authenticationClient = new EmbeddedAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
 });
 ```
 
@@ -27,7 +27,7 @@ import {
 
 const authenticationClient = new EmbeddedAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
   options: {
     cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
   },
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Start an embedded session
 
-The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the iframe. `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier).
+The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the iframe. By default `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier). If you supply an existing `state`/`codeChallenge` pair, that pair is reused as-is and the already-cached verifier is left untouched.
 
 Expose this from an endpoint your frontend calls:
 
@@ -79,7 +79,9 @@ app.post('/api/verid/start', async (_req, res) => {
 - `scope` — the scopes to request (e.g. `'openid'`). Requested scopes must be registered in the authentication flow.
 - `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
 - `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
-- `state` — optional caller-supplied state; otherwise one is generated.
+- `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
+- `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`). Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
+- `intentId` — optional authentication intent created via `createAuthenticationIntent()`. Because the intent is created against a challenge, pass **both** the `state` and the `codeChallenge` it was created against alongside it, so the session reuses that pair instead of generating a new one.
 
 The returned `EmbeddedSessionBootstrap` is safe to send to the browser as-is:
 

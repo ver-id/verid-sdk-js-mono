@@ -8,7 +8,7 @@ export function generateInitCodeSnippet(config: NodeAuthenticationClientConfig):
 
 const authClient = new VeridAuthenticationClient({
   issuerUri: '${config.issuerUri}',
-  client_id: '${config.client_id}',
+  clientId: '${config.clientId}',
   redirectUri: '${config.redirectUri}',
 });`;
 }
@@ -59,9 +59,9 @@ export function generateAuthUrlWithIntentSnippet(
   return `// Generate authentication URL with intent
 const { authenticationUrl } = await authClient.generateAuthenticationUrl({
   scope: '${scope}',
-  intent_id: '${intentId}',
+  intentId: '${intentId}',
   state: '${state}',
-  code_challenge: '${codeChallenge}',
+  codeChallenge: '${codeChallenge}',
 });`;
 }
 

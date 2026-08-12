@@ -13,7 +13,7 @@ export function useIssuanceCallback() {
   // Configuration from environment variables
   const CLIENT_CONFIG = {
     issuerUri: import.meta.env.VITE_VERID_ISSUANCE_API_URL,
-    client_id: import.meta.env.VITE_VERID_ISSUANCE_FLOW_ID,
+    clientId: import.meta.env.VITE_VERID_ISSUANCE_FLOW_ID,
     redirectUri: import.meta.env.VITE_VERID_ISSUANCE_REDIRECT_URI,
   };
 

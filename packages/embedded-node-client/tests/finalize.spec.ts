@@ -66,7 +66,7 @@ describe('finalizeEmbedded', () => {
     const cacheManager = new MemoryStorageCacheManager();
     const client = new EmbeddedDisclosureClient({
       issuerUri: ISSUER,
-      client_id: CLIENT_ID,
+      clientId: CLIENT_ID,
       options: { cacheManager },
     });
 

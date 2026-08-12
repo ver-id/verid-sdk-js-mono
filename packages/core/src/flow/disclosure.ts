@@ -49,7 +49,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     super(
       {
         issuerUri: config.issuerUri,
-        client_id: config.client_id,
+        clientId: config.clientId,
         options: config.options,
       },
     );
@@ -114,9 +114,9 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
         binding: this.authCodeDeliveryBinding(),
         scope: DISCLOSURE_SCOPE,
         state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        intent_id: params?.intent_id,
+        codeChallenge,
+        codeChallengeMethod: 'S256',
+        intentId: params?.intentId,
       },
       {
         ...additionalParams,

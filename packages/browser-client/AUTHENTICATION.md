@@ -9,7 +9,7 @@ import { VeridAuthenticationClient } from '@ver-id/browser-client';
 
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 ```
@@ -26,7 +26,7 @@ import { LocalStorageCacheManager } from '@ver-id/browser-client';
 
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new LocalStorageCacheManager(), // Use local storage as cache store
@@ -84,7 +84,7 @@ const CustomSessionStorageCache = {
 
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new CustomSessionStorageCache() // use custom store for caching
@@ -150,7 +150,7 @@ const { authenticationUrl, state } = await authenticationClient.generateAuthenti
   scope: '<SCOPES_TO_REQUEST>',
   state: state, // Use the state from Step 1
   codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  intent_id: intentId, // Pass the intent ID from Step 2
+  intentId, // Pass the intent ID from Step 2
 });
 ```
 

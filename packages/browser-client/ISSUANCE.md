@@ -9,7 +9,7 @@ import { VeridIssuanceClient } from '@ver-id/browser-client';
 
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
+  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 ```
@@ -26,7 +26,7 @@ import { LocalStorageCacheManager } from '@ver-id/browser-client';
 
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_ISSUANCE_FLOW_ID>',
+  clientId: '<VERID_ISSUANCE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new LocalStorageCacheManager(), // Use local storage as cache store
@@ -84,7 +84,7 @@ const CustomSessionStorageCache = {
 
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_ISSUANCE_FLOW_ID>',
+  clientId: '<VERID_ISSUANCE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new CustomSessionStorageCache() // use custom store for caching
@@ -179,13 +179,13 @@ Generate the issuance URL using the created intent:
 
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId, // Intent ID is mandatory for issuance flows
+  intentId, // Intent ID is mandatory for issuance flows
   state: state, // Use the state from Step 1
   codeChallenge: codeChallenge, // Use the code challenge from Step 1
 });
 ```
 
-**Note:** The `intent_id` parameter is **required** for `generateIssuanceUrl`. You cannot generate an issuance URL without first creating an intent.
+**Note:** The `intentId` parameter is **required** for `generateIssuanceUrl`. You cannot generate an issuance URL without first creating an intent.
 
 #### Advanced PKCE Configuration
 
@@ -197,7 +197,7 @@ You can provide your own unique state identifier:
 
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId,
+  intentId,
   state: '<UNIQUE_STATE>',
 });
 ```
@@ -210,7 +210,7 @@ You can provide an externally generated code challenge. This is useful when the 
 
 ```ts
 const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intent_id: intentId,
+  intentId,
   state: '<UNIQUE_STATE>',
   codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
 });

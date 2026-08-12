@@ -40,10 +40,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Embedded Issuance Flow ID:</label>
+          <label for="clientId">Embedded Issuance Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             :placeholder="defaultFlowId || 'flow uuid'"
           >
@@ -137,7 +137,9 @@
       >
         <strong>Issuance always needs an intent.</strong> It carries what is being issued, so
         unlike authentication and disclosure there is no intent-less variant. The intent is created
-        <em>after</em> the session so it can be bound to that session's code challenge.
+        <em>before</em> the session, and the session reuses the intent's
+        <code>state</code> / <code>codeChallenge</code> pair — so the two stay bound to the same
+        PKCE challenge.
       </div>
 
       <div
@@ -438,8 +440,10 @@
           redirect URI
         </li>
         <li>
-          <strong>[Server]</strong> <code>createEmbeddedSession()</code> generates PKCE, then
-          <code>createIssuanceIntent()</code> binds the mandatory intent to that code challenge
+          <strong>[Server]</strong> <code>generateCodeChallenge()</code> generates PKCE, then
+          <code>createIssuanceIntent()</code> binds the mandatory intent to that code challenge;
+          <code>createEmbeddedSession()</code> is then given that same <code>state</code> /
+          <code>codeChallenge</code> pair plus the <code>intentId</code>
         </li>
         <li>
           <strong>[Browser]</strong> Fetch the bootstrap (plus <code>intentId</code>) from your own

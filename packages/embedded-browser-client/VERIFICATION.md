@@ -12,7 +12,7 @@ The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/
 // Backend — @ver-id/embedded-node-client
 import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({ issuerUri, client_id });
+const disclosureClient = new EmbeddedDisclosureClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await disclosureClient.createEmbeddedSession({

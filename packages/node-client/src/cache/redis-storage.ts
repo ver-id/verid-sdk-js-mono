@@ -64,7 +64,7 @@ export interface RedisCompatibleClient {
  *
  * const authClient = new VeridAuthenticationClient({
  *   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
- *   client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+ *   clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
  *   redirectUri: 'REGISTERED_REDIRECT_URI',
  *   options: {
  *     cacheManager: new RedisCacheManager({ client: redisClient }),

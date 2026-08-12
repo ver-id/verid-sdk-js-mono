@@ -9,7 +9,7 @@ import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
 const disclosureClient = new EmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
 });
 ```
 
@@ -27,7 +27,7 @@ import {
 
 const disclosureClient = new EmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>',
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
   options: {
     cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
   },
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Start an embedded session
 
-The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the iframe. `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier).
+The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the iframe. By default `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier). If you supply an existing `state`/`codeChallenge` pair, that pair is reused as-is and the already-cached verifier is left untouched.
 
 Expose this from an endpoint your frontend calls:
 
@@ -79,11 +79,12 @@ app.post('/api/verid/start', async (_req, res) => {
 - `scope` — the scopes to request (e.g. `'openid disclosure'`). Requested scopes must be registered in the disclosure flow.
 - `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
 - `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
-- `state` — optional caller-supplied state; otherwise one is generated.
+- `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
+- `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`); this is what binds a session to a pre-created intent. Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
 
 #### Optional: intent-based disclosure
 
-For more control (custom challenge, brand-specific settings, or explicit consent) create a disclosure intent first, then forward its `intentId`. Generate the PKCE material yourself so the intent and the session share the same `state`/`codeChallenge`:
+For more control (custom challenge, brand-specific settings, or explicit consent) create a disclosure intent first, then forward its `intentId`. Generate the PKCE material yourself and pass **both** `state` and `codeChallenge` to `createEmbeddedSession`: the intent is created against that challenge, so the session must reuse the same pair rather than generating a new one — otherwise the bootstrap's `codeChallenge` will not match the one the intent was bound to.
 
 ```ts
 const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
@@ -101,7 +102,8 @@ const intentId = await disclosureClient.createDisclosureIntent(
 const bootstrap = await disclosureClient.createEmbeddedSession({
   scope: 'openid disclosure',
   webhookUri: 'https://app.example.com/api/verid/webhook',
-  state, // reuse the state the intent was bound to
+  state, // reuse the state/codeChallenge pair the intent was created against
+  codeChallenge,
   intentId,
 });
 ```

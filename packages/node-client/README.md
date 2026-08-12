@@ -43,7 +43,7 @@ import { VeridAuthenticationClient } from '@ver-id/node-client';
 // Create authentication client
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -86,7 +86,7 @@ import { VeridDisclosureClient } from '@ver-id/node-client';
 // Create disclosure client
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -126,7 +126,7 @@ import { VeridIssuanceClient } from '@ver-id/node-client';
 // Create issuance client
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
+  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -152,7 +152,7 @@ const intentId = await issuanceClient.createIssuanceIntent(
 // Step 3: Generate issuance url with intent
 const { issuanceUrl, state: finalState } =
   await issuanceClient.generateIssuanceUrl({
-    intent_id: intentId,
+    intentId,
     state, // Use the state from Step 1
     codeChallenge, // Use the code challenge from Step 1
   });
@@ -307,7 +307,7 @@ Pass the cache manager via the `options.cacheManager` property:
 ```ts
 const authClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new RedisCacheManager({ client: redisClient }),

@@ -51,7 +51,7 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
   constructor(config: NodeDisclosureClientConfig) {
     super({
       issuerUri: config.issuerUri,
-      client_id: config.client_id,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },

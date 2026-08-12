@@ -5,7 +5,7 @@ export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
 
 const issuanceClient = new EmbeddedIssuanceClient({
   issuerUri: '${config.issuerUri}',
-  client_id: '${config.client_id}',
+  clientId: '${config.clientId}',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.
 });`;
 }
@@ -44,11 +44,8 @@ export function generateStartSnippet(
 
   return `// SERVER — POST /api/issuance/embedded/start
 //
-// Create the session first — the intent must bind to the challenge it just produced.
-const bootstrap = await issuanceClient.createEmbeddedSession({
-  scope: '${scope}',
-  webhookUri: '${webhookUri}',
-});
+// Generate PKCE first — the intent must bind to the challenge the session will use.
+const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
 
 // Issuance REQUIRES an intent: it carries what is being issued. Provide exactly
 // one of payload.mapping or payload.data — never both.
@@ -56,13 +53,26 @@ const intent = await issuanceClient.createIssuanceIntent(
   {
 ${params.join(',\n')}
   },
-  bootstrap.codeChallenge, // bind the intent to THIS session's challenge
+  codeChallenge, // bind the intent to THIS session's challenge
   { client_secret: '*****' }
 );
 
 // NOTE: createIssuanceIntent() returns an IntentResponse object, whereas
 // createDisclosureIntent() returns a bare id string.
-res.json({ ...bootstrap, intentId: intent.intent_id });`;
+//
+// createEmbeddedSession() REQUIRES intentId for issuance, and echoes it back on
+// the bootstrap it returns. Pass the state/codeChallenge pair the intent was
+// created against so the session runs against that same challenge instead of
+// generating a new one.
+const bootstrap = await issuanceClient.createEmbeddedSession({
+  scope: '${scope}',
+  webhookUri: '${webhookUri}',
+  state,         // reuse the state the intent was bound to
+  codeChallenge, // ...and the challenge cached under it
+  intentId: intent.intent_id,
+});
+
+res.json(bootstrap);`;
 }
 
 export function generateWebhookSnippet(): string {

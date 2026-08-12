@@ -11,7 +11,7 @@ async function getAuthorizationToken(
 ): Promise<string | undefined> {
   const oauthClient = new VeridOAuthClient({
     issuer,
-    client_id: clientId,
+    clientId,
   });
 
   const tokenResponse = await oauthClient.clientCredentialGrant({

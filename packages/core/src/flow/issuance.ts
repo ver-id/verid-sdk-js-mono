@@ -38,9 +38,11 @@ export interface IssuanceClientConfig extends FlowBaseClientConfig {}
 /**
  * Parameters for Issuance flow request.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-empty-interface
 export interface IssuanceRequestParams extends FlowBaseAuthorizationRequestParams {
-  intent_id: string;
+  /**
+   * Intent Id to issue from. Issuance always runs from an intent, so this is required.
+   */
+  intentId: string;
 }
 
 /**
@@ -59,7 +61,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     super(
       {
         issuerUri: config.issuerUri,
-        client_id: config.client_id,
+        clientId: config.clientId,
         options: config.options,
       },
     );
@@ -138,7 +140,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
    * @returns Object containing the issuance URL and state
    * @example
    * ```typescript
-   * const { issuanceUrl, state } = await client.generateIssuanceUrl({ intent_id });
+   * const { issuanceUrl, state } = await client.generateIssuanceUrl({ intentId });
    * // Browser: window.location.href = issuanceUrl;
    * // Node: res.redirect(issuanceUrl);
    * ```
@@ -156,9 +158,9 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
         binding: this.authCodeDeliveryBinding(),
         scope: ISSUANCE_SCOPE,
         state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        intent_id: params.intent_id,
+        codeChallenge,
+        codeChallengeMethod: 'S256',
+        intentId: params.intentId,
       },
       {
         ...additionalParams,

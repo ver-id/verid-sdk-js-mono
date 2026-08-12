@@ -4,8 +4,8 @@ import type { ClientAuth, ICacheManager } from '@ver-id/core';
 export interface EmbeddedClientConfig {
   /** Ver.iD OAuth Issuer URI. */
   issuerUri: string;
-  /** The client_id (flow identifier). */
-  client_id: string;
+  /** The flow identifier (sent to the authorization server as `client_id`). */
+  clientId: string;
   options?: {
     /** Defaults to FileStorageCacheManager. */
     cacheManager?: ICacheManager;

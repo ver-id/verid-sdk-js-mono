@@ -12,7 +12,7 @@ The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/
 // Backend — @ver-id/embedded-node-client
 import { EmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
 
-const authenticationClient = new EmbeddedAuthenticationClient({ issuerUri, client_id });
+const authenticationClient = new EmbeddedAuthenticationClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await authenticationClient.createEmbeddedSession({

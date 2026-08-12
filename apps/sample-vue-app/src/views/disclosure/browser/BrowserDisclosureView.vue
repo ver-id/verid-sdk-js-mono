@@ -25,10 +25,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Disclosure Flow ID:</label>
+          <label for="clientId">Disclosure Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             placeholder="disclosure_flow_123"
           >
@@ -316,9 +316,9 @@ const getGenerateDisclosureUrlCode = computed(() => {
     return `// Step 3: Generate disclosure URL with intent
 const { disclosureUrl } = 
   await disclosureClient.generateDisclosureUrl({
-    intent_id: '${intentId.value}',
+    intentId: '${intentId.value}',
     state: '${state.value}',
-    code_challenge: '${codeChallenge.value}',
+    codeChallenge: '${codeChallenge.value}',
   });`;
   } else {
     return `// Generate disclosure URL with PKCE

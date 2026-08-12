@@ -140,7 +140,7 @@ const {
 const getFinalizeCode = () => {
   return `const issuanceClient = new VeridIssuanceClient({
   issuerUri: '${CLIENT_CONFIG.issuerUri}',
-  client_id: '${CLIENT_CONFIG.client_id}',
+  clientId: '${CLIENT_CONFIG.clientId}',
   redirectUri: '${CLIENT_CONFIG.redirectUri}',
 });
 

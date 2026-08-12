@@ -8,7 +8,7 @@ export function generateInitCodeSnippet(config: NodeDisclosureClientConfig): str
 
 const authClient = new VeridDisclosureClient({
   issuerUri: '${config.issuerUri}',
-  client_id: '${config.client_id}',
+  clientId: '${config.clientId}',
   redirectUri: '${config.redirectUri}',
 });`;
 }
@@ -60,9 +60,9 @@ export function generateDisclosureUrlWithIntentSnippet(
 ): string {
   return `// Generate disclosure URL with intent
 const { disclosureUrl } = await disclosureClient.generateDisclosureUrl({
-  intent_id: '${intentId}',
+  intentId: '${intentId}',
   state: '${state}',
-  code_challenge: '${codeChallenge}',
+  codeChallenge: '${codeChallenge}',
 });`;
 }
 

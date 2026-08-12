@@ -21,16 +21,16 @@ export async function initializeDisclosureClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_DISCLOSURE_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_DISCLOSURE_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_DISCLOSURE_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_DISCLOSURE_REDIRECT_URI;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Disclosure Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Disclosure Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: NodeDisclosureClientConfig = {
       issuerUri,
-      client_id: client_id,
+      clientId: clientId,
       redirectUri,
     };
 
@@ -194,7 +194,7 @@ export async function generateDisclosureUrl(
     if (intentId && codeChallenge && state) {
       // Intent-based flow
       result = await disclosureClient.generateDisclosureUrl({
-        intent_id: intentId,
+        intentId: intentId,
         state: state,
         codeChallenge: codeChallenge,
       });

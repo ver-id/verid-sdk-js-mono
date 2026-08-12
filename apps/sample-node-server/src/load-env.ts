@@ -6,7 +6,7 @@ import { config as loadDotenv } from 'dotenv';
  * Loads the sample server's `.env` before anything reads `process.env`.
  *
  * The controllers fall back to `process.env.VERID_*` when the request body
- * omits `issuerUri` / `client_id` / `redirectUri`, so these values must be
+ * omits `issuerUri` / `clientId` / `redirectUri`, so these values must be
  * present in the environment.
  *
  * `nx serve` and a direct run resolve `.env` from different working

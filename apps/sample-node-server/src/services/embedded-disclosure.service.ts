@@ -5,7 +5,7 @@ export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
 
 const disclosureClient = new EmbeddedDisclosureClient({
   issuerUri: '${config.issuerUri}',
-  client_id: '${config.client_id}',
+  clientId: '${config.clientId}',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.
 });`;
 }

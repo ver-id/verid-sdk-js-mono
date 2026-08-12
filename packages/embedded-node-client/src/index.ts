@@ -4,6 +4,10 @@ export {
   EmbeddedIssuanceClient,
 } from './clients/index.js';
 export type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './clients/index.js';
+export type {
+  EmbeddedIssuanceSessionParams,
+  EmbeddedIssuanceSessionBootstrap,
+} from './clients/index.js';
 
 export {
   verifyEmbeddedWebhook,

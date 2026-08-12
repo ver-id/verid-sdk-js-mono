@@ -4,17 +4,17 @@ Execute an issuance flow to issue verified credentials to users that they can st
 
 The browser API is a single, flow-agnostic function, `mountEmbeddedVeridComponent(...)`. Whether a session runs an authentication, verification, or issuance flow is decided by the backend that created the **bootstrap** (here, an `EmbeddedIssuanceClient`) and by the `clientId`/`scope` it carries. This page frames the API for issuance.
 
-> **Issuance needs an `intentId`.** Issuance flows require an intent that carries the credential payload. The backend creates it and includes `intentId` in the bootstrap, so the browser simply forwards it to the embedded flow. If you spread the bootstrap into `mountEmbeddedVeridComponent`, `intentId` is carried through automatically — no extra work on the browser side.
+> **Issuance requires an `intentId`.** Issuance flows always issue from an intent that carries the credential payload. The backend creates it and passes it to `createEmbeddedSession`, which **requires** `intentId` (`EmbeddedIssuanceSessionParams`) and throws `InvalidArgumentError` without it. The resulting `EmbeddedIssuanceSessionBootstrap` always carries `intentId`, so the browser simply forwards it to the embedded flow. If you spread the bootstrap into `mountEmbeddedVeridComponent`, `intentId` is carried through automatically — no extra work on the browser side.
 
 ### Prerequisite: a backend bootstrap (with intent)
 
-The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/ISSUANCE.md), creates the issuance intent and returns a bootstrap that includes its `intentId`. Expose it from an endpoint your frontend can call:
+The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/ISSUANCE.md), creates the issuance intent and returns an `EmbeddedIssuanceSessionBootstrap` that always includes its `intentId`. Expose it from an endpoint your frontend can call:
 
 ```ts
 // Backend — @ver-id/embedded-node-client
 import { EmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
 
-const issuanceClient = new EmbeddedIssuanceClient({ issuerUri, client_id });
+const issuanceClient = new EmbeddedIssuanceClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
@@ -29,6 +29,7 @@ app.post('/api/verid/start', async (_req, res) => {
     scope: 'openid issuance',
     webhookUri: 'https://app.example.com/api/verid/webhook',
     state,
+    codeChallenge, // reuse the pair the intent was created against
     intentId,
   });
 
@@ -37,7 +38,7 @@ app.post('/api/verid/start', async (_req, res) => {
 });
 ```
 
-The bootstrap contains only public values — the `code_verifier` stays on the server, keyed by `state`.
+The bootstrap contains only public values — the `code_verifier` stays on the server, keyed by `state`. Note that the backend passes **both** the `state` and the `codeChallenge` it created the intent against into `createEmbeddedSession`: the intent is bound to that challenge, so the session must reuse the same pair instead of generating a new one.
 
 ### Mount the embedded component
 

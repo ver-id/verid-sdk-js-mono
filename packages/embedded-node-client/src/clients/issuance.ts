@@ -1,5 +1,7 @@
 import {
   VeridIssuanceClient,
+  assertString,
+  InvalidArgumentError,
   type IssuanceResponse,
   type FlowAuthCodeDeliveryBinding,
 } from '@ver-id/core';
@@ -18,6 +20,28 @@ import {
 import type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './types.js';
 
 /**
+ * Parameters to start an embedded issuance session.
+ *
+ * Issuance always issues from an intent, so `intentId` is required here — unlike authentication
+ * and disclosure, where it is optional.
+ *
+ * @public
+ */
+export interface EmbeddedIssuanceSessionParams extends EmbeddedSessionParams {
+  /** The intent created via `createIssuanceIntent()`; carries the credential payload. */
+  intentId: string;
+}
+
+/**
+ * Bootstrap for an embedded issuance session. Always carries the `intentId`.
+ *
+ * @public
+ */
+export interface EmbeddedIssuanceSessionBootstrap extends EmbeddedSessionBootstrap {
+  intentId: string;
+}
+
+/**
  * Embedded issuance client that owns PKCE and webhook verification.
  *
  * @public
@@ -28,7 +52,7 @@ export class EmbeddedIssuanceClient extends VeridIssuanceClient {
   constructor(config: EmbeddedClientConfig) {
     super({
       issuerUri: config.issuerUri,
-      client_id: config.client_id,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
@@ -41,16 +65,20 @@ export class EmbeddedIssuanceClient extends VeridIssuanceClient {
   }
 
   /**
-   * Starts an embedded session and returns the browser bootstrap (no code_verifier).
+   * Starts an embedded issuance session and returns the browser bootstrap (no code_verifier).
    *
-   * @param params - The scopes to request, the backend's own webhook endpoint, and optionally the
-   *   gateway URI, the intent id created via `createIssuanceIntent()`, and a caller-supplied state.
+   * @param params - The scopes to request, the backend's own webhook endpoint, the intent id
+   *   created via `createIssuanceIntent()`, and optionally the gateway URI and a caller-supplied
+   *   state.
    * @returns The public bootstrap values to hand to `@ver-id/embedded-browser-client`.
+   * @throws {InvalidArgumentError} When `intentId` is missing or empty.
    */
   async createEmbeddedSession(
-    params: EmbeddedSessionParams,
-  ): Promise<EmbeddedSessionBootstrap> {
-    return buildEmbeddedSessionBootstrap(
+    params: EmbeddedIssuanceSessionParams,
+  ): Promise<EmbeddedIssuanceSessionBootstrap> {
+    assertString(params.intentId, 'intentId', InvalidArgumentError);
+
+    const bootstrap = await buildEmbeddedSessionBootstrap(
       {
         clientId: this.oauthClient.clientId(),
         issuerUri: this.#issuerUri,
@@ -58,6 +86,8 @@ export class EmbeddedIssuanceClient extends VeridIssuanceClient {
       },
       params,
     );
+
+    return { ...bootstrap, intentId: params.intentId };
   }
 
   /**

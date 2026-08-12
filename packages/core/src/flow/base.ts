@@ -21,9 +21,9 @@ export interface FlowBaseClientConfig {
    */
   issuerUri: string;
   /**
-   * The client_id (flow identifier)
+   * The flow identifier (sent to the authorization server as `client_id`)
    */
-  client_id: string;
+  clientId: string;
   /**
    * Additional options for the flow client.
    */
@@ -50,7 +50,7 @@ export interface FlowBaseAuthorizationRequestParams {
   /**
    * Intent Id to associate with the request
    */
-  intent_id?: string;
+  intentId?: string;
 }
 
 /**
@@ -103,10 +103,10 @@ export abstract class VeridFlowBaseClient {
 
   constructor(config: FlowBaseClientConfig) {
     assertUrlString(config.issuerUri, 'issuerUri');
-    assertString(config.client_id, 'flowId', InvalidArgumentError);
+    assertString(config.clientId, 'clientId', InvalidArgumentError);
 
     this.oauthClient = new VeridOAuthClient({
-      client_id: config.client_id,
+      clientId: config.clientId,
       issuer: config.issuerUri,
     });
 
@@ -141,7 +141,7 @@ export abstract class VeridFlowBaseClient {
   protected validateAuthorizationRequestParams(params?: FlowBaseAuthorizationRequestParams): void {
     if (!params) return;
 
-    if (params.intent_id && !params.codeChallenge) {
+    if (params.intentId && !params.codeChallenge) {
       throw new InvalidArgumentError('Code challenge must be provided when using intentId.');
     }
 
@@ -216,8 +216,8 @@ export abstract class VeridFlowBaseClient {
       binding: this.authCodeDeliveryBinding(),
       parameters: callbackParams,
       state,
-      code_verifier: codeVerifier,
-      client_auth: params.clientAuth,
+      codeVerifier,
+      clientAuth: params.clientAuth,
     });
 
     assertResponseFunc(response, 'OAuth response', Error);

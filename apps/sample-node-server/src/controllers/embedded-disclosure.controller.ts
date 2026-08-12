@@ -36,12 +36,12 @@ export async function initializeEmbeddedDisclosureClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_DISCLOSURE_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_EMBEDDED_DISCLOSURE_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_EMBEDDED_DISCLOSURE_FLOW_ID;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Embedded Disclosure Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Embedded Disclosure Flow ID is required', InvalidArgumentError);
 
-    const config: EmbeddedClientConfig = { issuerUri, client_id };
+    const config: EmbeddedClientConfig = { issuerUri, clientId };
 
     const disclosureClient = new EmbeddedDisclosureClient(config);
     clientService.setEmbeddedDisclosureClient(disclosureClient);

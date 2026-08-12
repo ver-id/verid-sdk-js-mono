@@ -9,7 +9,7 @@ import { EmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
 
 const issuanceClient = new EmbeddedIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
+  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
 });
 ```
 
@@ -27,7 +27,7 @@ import {
 
 const issuanceClient = new EmbeddedIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_ISSUANCE_FLOW_ID>',
+  clientId: '<VERID_ISSUANCE_FLOW_ID>',
   options: {
     cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
   },
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Issuance requires an intent
 
-**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so the embedded flow issues the right credential.
+**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so the embedded flow issues the right credential. `EmbeddedIssuanceClient.createEmbeddedSession()` enforces this: it throws `InvalidArgumentError` when `intentId` is missing or empty.
 
 #### Step 1: Generate a code challenge
 
@@ -115,7 +115,7 @@ const intentId = await issuanceClient.createIssuanceIntent(
 
 #### Step 3: Start the embedded session with the intent
 
-Pass the same `state` the intent was bound to, plus the `intentId`, into `createEmbeddedSession`. The `code_verifier` is persisted against the `state`; only the public bootstrap is returned to the browser:
+Pass the same `state`/`codeChallenge` pair the intent was created against, plus the **required** `intentId`, into `createEmbeddedSession`. The intent is bound to that challenge, so the session has to reuse it — pass **both** values or `createEmbeddedSession` mints a fresh challenge and the bootstrap no longer matches the intent. When both are supplied the pair is reused as-is and the cached `code_verifier` is left untouched; only the public bootstrap is returned to the browser:
 
 ```ts
 // POST /api/verid/start
@@ -131,7 +131,8 @@ app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await issuanceClient.createEmbeddedSession({
     scope: 'openid issuance',
     webhookUri: 'https://app.example.com/api/verid/webhook',
-    state, // reuse the state the intent was bound to
+    state, // reuse the state/codeChallenge pair the intent was created against
+    codeChallenge,
     intentId, // issuance-only
   });
 
@@ -140,15 +141,16 @@ app.post('/api/verid/start', async (_req, res) => {
 });
 ```
 
-`EmbeddedSessionParams`:
+`EmbeddedIssuanceSessionParams` (`EmbeddedSessionParams` plus a required `intentId`):
 
 - `scope` — the scopes to request (e.g. `'openid issuance'`). Requested scopes must be registered in the issuance flow.
 - `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
 - `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
-- `intentId` — **required for issuance**; the intent created in Step 2.
-- `state` — optional caller-supplied state; otherwise one is generated.
+- `intentId` — **required**; the intent created in Step 2. Omitting it (or passing an empty string) throws `InvalidArgumentError` before any session is started.
+- `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
+- `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under — the pair returned by `generateCodeChallenge()` in Step 1 — so the session uses the same challenge the intent was created against. Supplying `codeChallenge` without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge."); supplying neither generates and caches a fresh pair.
 
-For issuance the returned `EmbeddedSessionBootstrap` also carries the `intentId`, so the browser can forward it to the embedded flow unchanged.
+Issuance returns an `EmbeddedIssuanceSessionBootstrap` — an `EmbeddedSessionBootstrap` that always carries the `intentId`, so the browser can forward it to the embedded flow unchanged.
 
 ### Hand the bootstrap to the browser
 

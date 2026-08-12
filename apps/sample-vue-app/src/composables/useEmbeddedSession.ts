@@ -66,7 +66,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   // registered for redirect mode.
   const clientConfig = ref({
     issuerUri: '',
-    client_id: '',
+    clientId: '',
   });
 
   const showConfigForm = ref(false);
@@ -299,7 +299,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     startCode.value = '';
     webhookCode.value = '';
     resultCode.value = '';
-    clientConfig.value = { issuerUri: '', client_id: '' };
+    clientConfig.value = { issuerUri: '', clientId: '' };
   };
 
   // Navigating away must not leave a window-level message listener behind.

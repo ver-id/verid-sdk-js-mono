@@ -33,10 +33,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Authentication Flow ID:</label>
+          <label for="clientId">Authentication Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             placeholder="authentication_flow_123"
           >
@@ -363,7 +363,7 @@ const intentCreated = ref(false);
 
 const clientConfig = ref({
   issuerUri: '',
-  client_id: '',
+  clientId: '',
   redirectUri: '',
 });
 
@@ -544,7 +544,7 @@ const resetClient = () => {
   // Reset config to defaults
   clientConfig.value = {
     issuerUri: '',
-    client_id: '',
+    clientId: '',
     redirectUri: '',
   };
   

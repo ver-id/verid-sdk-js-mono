@@ -35,12 +35,12 @@ export async function initializeEmbeddedIssuanceClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_ISSUANCE_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_EMBEDDED_ISSUANCE_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_EMBEDDED_ISSUANCE_FLOW_ID;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Embedded Issuance Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Embedded Issuance Flow ID is required', InvalidArgumentError);
 
-    const config: EmbeddedClientConfig = { issuerUri, client_id };
+    const config: EmbeddedClientConfig = { issuerUri, clientId };
 
     const issuanceClient = new EmbeddedIssuanceClient(config);
     clientService.setEmbeddedIssuanceClient(issuanceClient);
@@ -118,11 +118,10 @@ export async function startEmbeddedIssuanceSession(
     const scope = embeddedScopeFor('issuance');
     const webhookUri = embeddedWebhookUri('issuance');
 
-    const bootstrap = await issuanceClient.createEmbeddedSession({
-      scope,
-      webhookUri,
-      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
-    });
+    // Issuance sessions require the intent id up front, so generate PKCE first and
+    // create the intent against it. The session then reuses that same
+    // state/codeChallenge pair, which is what keeps it bound to the intent.
+    const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
 
     const intent: IssuanceIntentPayload = {
       payload: hasMapping ? { mapping: intentPayload.mapping } : { data: intentPayload.data },
@@ -136,9 +135,18 @@ export async function startEmbeddedIssuanceSession(
 
     const intentResponse = await issuanceClient.createIssuanceIntent(
       intent,
-      bootstrap.codeChallenge,
+      codeChallenge,
       { client_secret: clientSecret }
     );
+
+    const bootstrap = await issuanceClient.createEmbeddedSession({
+      scope,
+      webhookUri,
+      state,
+      codeChallenge,
+      intentId: intentResponse.intent_id,
+      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
+    });
 
     const codeSnippet = generateEmbeddedIssuanceStartSnippet(scope, webhookUri, {
       ...(challenge ? { challenge } : {}),
@@ -152,7 +160,7 @@ export async function startEmbeddedIssuanceSession(
 
     return res.json({
       success: true,
-      bootstrap: { ...bootstrap, intentId: intentResponse.intent_id },
+      bootstrap,
       code: codeSnippet,
       message: 'Embedded issuance session created successfully',
     });

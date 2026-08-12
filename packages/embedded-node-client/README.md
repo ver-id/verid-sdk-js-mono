@@ -40,7 +40,7 @@ pnpm add @ver-id/embedded-node-client
 ```ts
 import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const client = new EmbeddedDisclosureClient({ issuerUri, client_id });
+const client = new EmbeddedDisclosureClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await client.createEmbeddedSession({
@@ -65,7 +65,8 @@ app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) =
 
 The same shape applies to `EmbeddedAuthenticationClient` and
 `EmbeddedIssuanceClient`. For issuance, create an intent first and forward its
-`intentId` via `createEmbeddedSession`.
+`intentId` via `createEmbeddedSession` — it is required there and throws
+`InvalidArgumentError` if omitted.
 
 ## Security
 
