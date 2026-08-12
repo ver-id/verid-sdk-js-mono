@@ -40,7 +40,13 @@ export class EmbeddedAuthenticationClient extends VeridAuthenticationClient {
     return { kind: 'embedded' };
   }
 
-  /** Starts an embedded session and returns the browser bootstrap (no code_verifier). */
+  /**
+   * Starts an embedded session and returns the browser bootstrap (no code_verifier).
+   *
+   * @param params - The scopes to request, the backend's own webhook endpoint, and optionally the
+   *   gateway URI, an intent id, and a caller-supplied state.
+   * @returns The public bootstrap values to hand to `@ver-id/embedded-browser-client`.
+   */
   async createEmbeddedSession(
     params: EmbeddedSessionParams,
   ): Promise<EmbeddedSessionBootstrap> {
@@ -54,14 +60,30 @@ export class EmbeddedAuthenticationClient extends VeridAuthenticationClient {
     );
   }
 
-  /** Verifies an inbound signed webhook. */
+  /**
+   * Verifies an inbound signed webhook.
+   *
+   * @param params - The raw request body, the `x-signature-256` header value, and the flow's
+   *   webhook secret.
+   * @returns `{ ok: true, payload }` with the verified payload, or `{ ok: false, reason }`
+   *   describing why the webhook was rejected.
+   */
   verifyEmbeddedWebhook(
     params: VerifyEmbeddedWebhookParams,
   ): EmbeddedWebhookVerification {
     return verifyEmbeddedWebhook(params);
   }
 
-  /** Verifies the webhook and, on success, exchanges the code for tokens (no redirect_uri). */
+  /**
+   * Verifies the webhook and, on success, exchanges the code for tokens (no redirect_uri).
+   *
+   * @param params - The raw webhook body, its signature header, the flow's webhook secret, and the
+   *   client authentication credentials for the token exchange.
+   * @returns The authentication response containing access_token, id_token, and token metadata.
+   * @throws {InvalidAssertionError} When the signature header is missing or the payload is
+   *   malformed.
+   * @throws {AuthorizationResponseError} When the signature does not match the raw body.
+   */
   async finalizeEmbedded(params: FinalizeEmbeddedParams): Promise<AuthenticationResponse> {
     const verification = verifyEmbeddedWebhook({
       rawBody: params.rawBody,

@@ -15,7 +15,11 @@ export type {
   DisclosureRequestParams,
 } from '@ver-id/core';
 
-/** Configuration for the browser disclosure client. */
+/**
+ * Configuration for the browser disclosure client.
+ *
+ * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
+ */
 export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -54,7 +58,19 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /** Finalizes the disclosure flow, defaulting to window.location if no params are provided. */
+  /**
+   * Finalizes the disclosure flow, defaulting to window.location if no params are provided.
+   * Exchanges the authorization code for tokens including the access token.
+   *
+   * @param params - Parameters for finalizing the disclosure flow
+   * @returns The disclosure response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * // Reads the callback params from window.location by default
+   * const disclosureResponse = await client.finalize();
+   * const jwt = await client.decode(disclosureResponse, assertDisclosureV1JwtPayload);
+   * ```
+   */
   async finalize(params?: DisclosureFinalizeParams): Promise<DisclosureResponse> {
     let callbackParams = params?.callbackParams;
 

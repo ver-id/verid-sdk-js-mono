@@ -53,7 +53,13 @@ export type ParseEmbeddedMessageResult =
   | { readonly ok: true; readonly message: EmbeddedInboundMessage }
   | { readonly ok: false; readonly reason: string };
 
-/** Validates an untrusted `postMessage` payload against the inbound embedded protocol. */
+/**
+ * Validates an untrusted `postMessage` payload against the inbound embedded protocol.
+ *
+ * @param data - The raw `MessageEvent.data` value received from the iframe.
+ * @returns `{ ok: true, message }` with the payload narrowed to an inbound message, or
+ *   `{ ok: false, reason }` describing why the payload was rejected.
+ */
 export function parseEmbeddedMessage(data: unknown): ParseEmbeddedMessageResult {
   if (typeof data !== 'object' || data === null) {
     return { ok: false, reason: 'message must be an object' };

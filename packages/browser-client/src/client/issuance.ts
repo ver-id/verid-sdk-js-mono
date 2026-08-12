@@ -15,7 +15,11 @@ export type {
   IssuanceRequestParams,
 } from '@ver-id/core';
 
-/** Configuration for the browser issuance client. */
+/**
+ * Configuration for the browser issuance client.
+ *
+ * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
+ */
 export type BrowserIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -54,7 +58,18 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /** Finalizes the issuance flow, defaulting to window.location if no params are provided. */
+  /**
+   * Finalizes the issuance flow, defaulting to window.location if no params are provided.
+   * Exchanges the authorization code for tokens including the access token.
+   *
+   * @param params - Parameters for finalizing the issuance flow
+   * @returns The issuance response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * // Reads the callback params from window.location by default
+   * const issuanceResponse = await client.finalize();
+   * ```
+   */
   async finalize(params?: IssuanceFinalizeParams): Promise<IssuanceResponse> {
     let callbackParams = params?.callbackParams;
 

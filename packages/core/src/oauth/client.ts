@@ -129,7 +129,15 @@ export class VeridOAuthClient {
     return this.client_id;
   }
 
-  /** Generates a PKCE code verifier and corresponding code challenge. */
+  /**
+   * Generates a PKCE code verifier and corresponding code challenge.
+   *
+   * @returns Object containing the code verifier and code challenge
+   * @example
+   * ```typescript
+   * const { codeVerifier, codeChallenge } = await client.generateCodeChallenge();
+   * ```
+   */
   async generateCodeChallenge() {
     const codeVerifier = this.provider.generateRandomCodeVerifier();
     const codeChallenge = await this.provider.calculateCodeChallenge(codeVerifier);
@@ -140,7 +148,23 @@ export class VeridOAuthClient {
     };
   }
 
-  /** Creates a new intent at the authorization server's intent endpoint. */
+  /**
+   * Creates a new intent at the authorization server's intent endpoint.
+   *
+   * @param intent - The intent to create
+   * @param clientAuth - Optional client authentication for server-side requests
+   * @returns The created intent, including its intent identifier
+   * @throws {InvalidAssertionError} When the authorization server metadata has no intent endpoint
+   * @throws {OperationFailedError} When the intent endpoint returns an error or is unreachable
+   * @example
+   * ```typescript
+   * const intent = await client.createIntent({
+   *   scope: 'authentication',
+   *   code_challenge: '<code_challenge>',
+   *   client_id: '<client_id>',
+   * });
+   * ```
+   */
   async createIntent(intent: BaseIntent, clientAuth?: ClientAuth): Promise<IntentResponse> {
     const authorizationServer = await this.provider.discover(this.issuer);
     assertUrlString(
@@ -179,12 +203,37 @@ export class VeridOAuthClient {
   }
   }
 
-  /** Generates a random state string for OAuth requests. */
+  /**
+   * Generates a random state string for OAuth requests.
+   *
+   * @returns A random state string
+   * @example
+   * ```typescript
+   * const state = client.generateRandomState();
+   * ```
+   */
   generateRandomState() {
     return this.provider.generateRandomState();
   }
 
-  /** Generates an OAuth 2.1 authorization URL with PKCE parameters. */
+  /**
+   * Generates an OAuth 2.1 authorization URL with PKCE parameters.
+   *
+   * @param params - Parameters for the authorization request
+   * @param additionalParams - Additional query parameters to append to the authorization URL
+   * @returns The authorization URL
+   * @throws {InvalidArgumentError} When required parameters are invalid or missing
+   * @throws {InvalidAssertionError} When the authorization server metadata has no authorization
+   * endpoint
+   * @example
+   * ```typescript
+   * const authorizationUrl = await client.generateAuthorizationUrl({
+   *   binding: { kind: 'redirect', redirectUri: 'https://example.com/callback' },
+   *   scope: 'openid profile',
+   *   code_challenge: '<code_challenge>',
+   * });
+   * ```
+   */
   async generateAuthorizationUrl(
     params: OAuthRequestParams,
     additionalParams?: Record<string, string>,
@@ -241,7 +290,14 @@ export class VeridOAuthClient {
     return url.toString();
   }
 
-  /** Validates the callback and exchanges the authorization code for tokens. */
+  /**
+   * Validates the callback and exchanges the authorization code for tokens.
+   *
+   * @param params - Authorization code grant parameters
+   * @returns The grant response containing the access token and other token information
+   * @throws {InvalidArgumentError} When the callback parameters are invalid
+   * @throws {OperationFailedError} When the token exchange fails
+   */
   async authorizationCodeGrant(params: OAuthAuthorizationCodeGrantParams): Promise<GrantResponse> {
     if (params.binding.kind === 'redirect') {
       assertUrlString(params.binding.redirectUri, 'redirect_uri', InvalidArgumentError);
@@ -297,7 +353,13 @@ export class VeridOAuthClient {
 
   }
 
-  /** Performs the OAuth client credentials grant flow. */
+  /**
+   * Performs the OAuth client credentials grant flow.
+   *
+   * @param params - Parameters including client authentication credentials
+   * @returns The grant response containing the access token
+   * @throws {InvalidArgumentError} When client credentials are invalid or missing
+   */
   async clientCredentialGrant(params: OAuthClientCredentialsGrantParams): Promise<GrantResponse> {
     assertObject(params, 'params', InvalidArgumentError);
     assertString(params.clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
@@ -323,7 +385,17 @@ export class VeridOAuthClient {
     return result;
   }
 
-  /** Verifies a JWT token using the issuer's public keys and returns a typed payload. */
+  /**
+   * Verifies a JWT token using the issuer's public keys and returns a typed payload.
+   *
+   * @param token - The JWT token string to verify and decode
+   * @param typeAssert - Assertion function that narrows the verified payload to `T`
+   * @param options - Optional verification options including issuer and audience
+   * @returns Verified decoded JWT containing the typed payload and protected header
+   * @throws {InvalidArgumentError} When the token is invalid
+   * @throws {OperationFailedError} When JWT verification fails
+   * @throws {InvalidAssertionError} When the token payload does not match the expected structure
+   */
   async decode<T extends JWTPayload>(
     token: string,
     typeAssert: (payload: unknown, name: string) => asserts payload is T,

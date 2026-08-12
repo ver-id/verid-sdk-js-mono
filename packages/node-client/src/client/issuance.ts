@@ -18,7 +18,11 @@ export type {
   IssuanceRequestParams,
 } from '@ver-id/core';
 
-/** Configuration for the Node.js issuance client. */
+/**
+ * Configuration for the Node.js issuance client.
+ *
+ * `options` is optional and defaults to caching with a `FileStorageCacheManager`.
+ */
 export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -60,7 +64,14 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /** Creates an issuance intent; clientAuth is required server-side. */
+  /**
+   * Creates an issuance intent; clientAuth is required server-side.
+   *
+   * @param issuanceIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - The client authentication credentials (required)
+   * @returns The created intent, containing the intent ID and optional issuance run UUID
+   */
   override async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
@@ -69,7 +80,21 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
     return super.createIssuanceIntent(issuanceIntent, codeChallenge, clientAuth);
   }
 
-  /** Finalizes the issuance flow using the provided callback params. */
+  /**
+   * Finalizes the issuance flow using the provided callback params.
+   * Exchanges the authorization code for tokens including the access token.
+   *
+   * @param params - Parameters for finalizing the issuance flow, including the required client
+   * authentication credentials
+   * @returns The issuance response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * const issuanceResponse = await client.finalize({
+   *   callbackParams: new URL(callbackUrl).searchParams,
+   *   clientAuth: { client_secret: clientSecret },
+   * });
+   * ```
+   */
   async finalize(params: IssuanceFinalizeParams): Promise<IssuanceResponse> {
     return this.finalizeIssuance({ ...params, clientAuth: params.clientAuth });
   }

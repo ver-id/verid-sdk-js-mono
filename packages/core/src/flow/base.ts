@@ -117,7 +117,16 @@ export abstract class VeridFlowBaseClient {
   /** Returns how the authorization code is delivered to this client (redirect or embedded). */
   protected abstract authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding;
 
-  /** Generates a PKCE code challenge and stores the verifier in the cache. */
+  /**
+   * Generates a PKCE code challenge and stores the verifier in the cache.
+   *
+   * @param state - Optional state parameter. If not provided, a random state will be generated
+   * @returns Object containing the code challenge and state
+   * @example
+   * ```typescript
+   * const { codeChallenge, state } = await client.generateCodeChallenge();
+   * ```
+   */
   async generateCodeChallenge(state?: string): Promise<FlowBasePkceResult> {
     assertString(state, 'state', InvalidArgumentError, { allowUndefined: true });
     

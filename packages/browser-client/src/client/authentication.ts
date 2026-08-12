@@ -15,7 +15,11 @@ export type {
   AuthenticationRequestParams,
 } from '@ver-id/core';
 
-/** Configuration for the browser authentication client. */
+/**
+ * Configuration for the browser authentication client.
+ *
+ * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
+ */
 export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -54,7 +58,19 @@ export class VeridAuthenticationClient extends CoreAuthenticationClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /** Finalizes the authentication flow, defaulting to window.location if no params are provided. */
+  /**
+   * Finalizes the authentication flow, defaulting to window.location if no params are provided.
+   * Exchanges the authorization code for tokens including the ID token.
+   *
+   * @param params - Parameters for finalizing the authentication flow
+   * @returns The authentication response containing access_token, id_token, and token metadata
+   * @example
+   * ```typescript
+   * // Reads the callback params from window.location by default
+   * const authenticationResponse = await client.finalize();
+   * const idToken = await client.decode(authenticationResponse);
+   * ```
+   */
   async finalize(params?: AuthenticationFinalizeParams): Promise<AuthenticationResponse> {
     let callbackParams = params?.callbackParams;
 

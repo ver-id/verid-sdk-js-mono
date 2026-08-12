@@ -17,7 +17,11 @@ export type {
   DisclosureRequestParams,
 } from '@ver-id/core';
 
-/** Configuration for the Node.js disclosure client. */
+/**
+ * Configuration for the Node.js disclosure client.
+ *
+ * `options` is optional and defaults to caching with a `FileStorageCacheManager`.
+ */
 export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
   /** The registered redirect URI for the flow. */
   redirectUri: string;
@@ -59,7 +63,14 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
-  /** Creates a disclosure intent; clientAuth is required server-side. */
+  /**
+   * Creates a disclosure intent; clientAuth is required server-side.
+   *
+   * @param disclosureIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - The client authentication credentials (required)
+   * @returns The ID of the created intent
+   */
   override async createDisclosureIntent(
     disclosureIntent: DisclosureIntentPayload,
     codeChallenge: string,
@@ -68,7 +79,22 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
     return super.createDisclosureIntent(disclosureIntent, codeChallenge, clientAuth);
   }
 
-  /** Finalizes the disclosure flow using the provided callback params. */
+  /**
+   * Finalizes the disclosure flow using the provided callback params.
+   * Exchanges the authorization code for tokens including the access token.
+   *
+   * @param params - Parameters for finalizing the disclosure flow, including the required client
+   * authentication credentials
+   * @returns The disclosure response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * const disclosureResponse = await client.finalize({
+   *   callbackParams: new URL(callbackUrl).searchParams,
+   *   clientAuth: { client_secret: clientSecret },
+   * });
+   * const jwt = await client.decode(disclosureResponse, assertDisclosureV1JwtPayload);
+   * ```
+   */
   async finalize(params: DisclosureFinalizeParams): Promise<DisclosureResponse> {
     return this.finalizeDisclosure({ ...params, clientAuth: params.clientAuth });
   }

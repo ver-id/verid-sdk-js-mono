@@ -17,7 +17,13 @@ export type ParseEmbeddedWebhookResult =
   | { readonly ok: true; readonly payload: EmbeddedWebhookPayload }
   | { readonly ok: false; readonly reason: string };
 
-/** Validates untrusted webhook JSON against {@link EmbeddedWebhookPayload}. */
+/**
+ * Validates untrusted webhook JSON against {@link EmbeddedWebhookPayload}.
+ *
+ * @param data - The parsed JSON body of the webhook request.
+ * @returns `{ ok: true, payload }` with the payload narrowed to {@link EmbeddedWebhookPayload}, or
+ *   `{ ok: false, reason }` naming the field that failed validation.
+ */
 export function parseEmbeddedWebhookPayload(data: unknown): ParseEmbeddedWebhookResult {
   if (typeof data !== 'object' || data === null) {
     return { ok: false, reason: 'payload must be an object' };

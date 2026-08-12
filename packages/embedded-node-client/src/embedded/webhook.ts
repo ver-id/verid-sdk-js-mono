@@ -45,7 +45,14 @@ function timingSafeEqualStrings(a: string, b: string): boolean {
   return timingSafeEqual(aBuffer, bBuffer);
 }
 
-/** Verifies the HMAC-SHA256 signature and parses the webhook payload. */
+/**
+ * Verifies the HMAC-SHA256 signature and parses the webhook payload.
+ *
+ * @param params - The raw request body, the `x-signature-256` header value, and the flow's webhook
+ *   secret.
+ * @returns `{ ok: true, payload }` when the payload parses and the signature matches the raw body,
+ *   otherwise `{ ok: false, reason }`.
+ */
 export function verifyEmbeddedWebhook(
   params: VerifyEmbeddedWebhookParams,
 ): EmbeddedWebhookVerification {
@@ -66,7 +73,13 @@ export function verifyEmbeddedWebhook(
   return { ok: true, payload: payloadResult.payload };
 }
 
-/** Maps a rejection reason to the typed error `finalizeEmbedded` throws. */
+/**
+ * Maps a rejection reason to the typed error `finalizeEmbedded` throws.
+ *
+ * @param reason - The rejection reason from {@link verifyEmbeddedWebhook}.
+ * @returns An `InvalidAssertionError` for a missing signature header or a malformed payload, or an
+ *   `AuthorizationResponseError` for a signature mismatch.
+ */
 export function embeddedWebhookRejectionError(
   reason: EmbeddedWebhookRejectionReason,
 ): Error {

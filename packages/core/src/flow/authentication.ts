@@ -53,7 +53,22 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
     );
   }
 
-  /** Creates an authentication intent and returns its ID. */
+  /**
+   * Creates an authentication intent and returns its ID.
+   *
+   * @param authenticationIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
+   * @returns The ID of the created intent
+   * @example
+   * ```typescript
+   * const { codeChallenge } = await client.generateCodeChallenge();
+   * const intentId = await client.createAuthenticationIntent({
+   *   challenge: 'your-challenge-string',
+   *   brandUuid: 'your-brand-uuid',
+   * }, codeChallenge);
+   * ```
+   */
   async createAuthenticationIntent(
     authenticationIntent: AuthenticationIntentPayload,
     codeChallenge: string,
@@ -70,7 +85,22 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
     return response.intent_id;
   }
 
-  /** Generates the authorization URL for the authentication flow. */
+  /**
+   * Generates the authorization URL for the authentication flow.
+   * Automatically includes the `openid` scope if not already present.
+   *
+   * @param params - Parameters for the authentication request including scope and optional PKCE options
+   * @param additionalParams - Additional query parameters to append to the authentication URL
+   * @returns Object containing the authentication URL and state
+   * @example
+   * ```typescript
+   * const { authenticationUrl, state } = await client.generateAuthenticationUrl({
+   *   scope: 'profile email'
+   * });
+   * // Browser: window.location.href = authenticationUrl;
+   * // Node: res.redirect(authenticationUrl);
+   * ```
+   */
   async generateAuthenticationUrl(
     params: AuthenticationRequestParams,
     additionalParams?: Record<string, string>,
@@ -116,7 +146,14 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
     return response as AuthenticationResponse;
   }
 
-  /** Verifies and decodes the ID token from an authentication response. */
+  /**
+   * Verifies and decodes the ID token from an authentication response.
+   *
+   * @param authenticationResponse - The authentication response containing the ID token
+   * @returns Typed JWT with OpenIdJwtPayload
+   * @throws {OperationFailedError} When JWT verification fails
+   * @throws {InvalidAssertionError} When token payload doesn't match OpenID Connect structure
+   */
   async decode(authenticationResponse: AuthenticationResponse): Promise<Jwt<OpenIdJwtPayload>> {
     return await this.oauthClient.decode(authenticationResponse.id_token, assertOpenIdJwtPayload);
   }

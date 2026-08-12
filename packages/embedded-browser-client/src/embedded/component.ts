@@ -22,7 +22,7 @@ export interface EmbeddedIframeOptions {
 export interface MountEmbeddedVeridComponentParams {
   /** Where to render the iframe: a container to create one in, or an existing iframe. */
   container: HTMLElement | HTMLIFrameElement;
-  /** Ver.iD gateway URL. Its origin is the pinned trust anchor for postMessage. */
+  /** Ver.iD gateway URL. */
   gatewayUri: string;
   /** Flow uuid (OAuth client_id). */
   clientId: string;

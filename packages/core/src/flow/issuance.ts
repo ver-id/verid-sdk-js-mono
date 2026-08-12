@@ -65,7 +65,30 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     );
   }
 
-  /** Creates an issuance intent and returns it. */
+  /**
+   * Creates an issuance intent and returns it.
+   *
+   * Exactly one of `payload.data` or `payload.mapping` must be provided.
+   *
+   * @param issuanceIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
+   * @returns The created intent, containing the intent ID and optional issuance run UUID
+   * @throws {InvalidArgumentError} When neither or both of `payload.data` and `payload.mapping`
+   * are provided, or when they are of the wrong type
+   * @example
+   * ```typescript
+   * const { codeChallenge } = await client.generateCodeChallenge();
+   * const { intent_id } = await client.createIssuanceIntent({
+   *   payload: {
+   *     data: [{ attributeUuid: 'your-attribute-uuid', value: 'some-value' }],
+   *   },
+   *   challenge: 'your-challenge-string',
+   *   brandUuid: 'your-brand-uuid',
+   *   requireExplicitConsent: true,
+   * }, codeChallenge);
+   * ```
+   */
   async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
     codeChallenge: string,
@@ -107,7 +130,19 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     return this.oauthClient.createIntent(intent, clientAuth);
   }
 
-  /** Generates the authorization URL for the issuance flow. */
+  /**
+   * Generates the authorization URL for the issuance flow.
+   *
+   * @param params - Parameters for the issuance request including optional PKCE options
+   * @param additionalParams - Additional query parameters to append to the issuance URL
+   * @returns Object containing the issuance URL and state
+   * @example
+   * ```typescript
+   * const { issuanceUrl, state } = await client.generateIssuanceUrl({ intent_id });
+   * // Browser: window.location.href = issuanceUrl;
+   * // Node: res.redirect(issuanceUrl);
+   * ```
+   */
   async generateIssuanceUrl(
     params: IssuanceRequestParams,
     additionalParams?: Record<string, string>,
@@ -144,7 +179,15 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     return response as IssuanceResponse;
   }
 
-  /** Verifies and decodes the access token from an issuance response. */
+  /**
+   * Verifies and decodes the access token from an issuance response.
+   *
+   * @param issuanceResponse - The issuance response containing the access token
+   * @param typeAssertFunc - The function to assert the token payload type
+   * @returns Typed JWT with typed payload
+   * @throws {OperationFailedError} When JWT verification fails
+   * @throws {InvalidAssertionError} When token payload doesn't match expected structure
+   */
   async decode<T extends JWTPayload>(
     issuanceResponse: IssuanceResponse,
     typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,

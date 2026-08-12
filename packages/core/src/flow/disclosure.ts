@@ -55,7 +55,23 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     );
   }
 
-  /** Creates a disclosure intent and returns its ID. */
+  /**
+   * Creates a disclosure intent and returns its ID.
+   *
+   * @param disclosureIntent - The intent payload
+   * @param codeChallenge - The PKCE code challenge
+   * @param clientAuth - Optional client authentication (required in node-client)
+   * @returns The ID of the created intent
+   * @example
+   * ```typescript
+   * const { codeChallenge } = await client.generateCodeChallenge();
+   * const intentId = await client.createDisclosureIntent({
+   *   challenge: 'your-challenge-string',
+   *   brandUuid: 'your-brand-uuid',
+   *   requireExplicitConsent: true,
+   * }, codeChallenge);
+   * ```
+   */
   async createDisclosureIntent(
     disclosureIntent: DisclosureIntentPayload,
     codeChallenge: string,
@@ -72,7 +88,19 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     return response.intent_id;
   }
 
-  /** Generates the authorization URL for the disclosure flow. */
+  /**
+   * Generates the authorization URL for the disclosure flow.
+   *
+   * @param params - Parameters for the disclosure request including optional PKCE options
+   * @param additionalParams - Additional query parameters to append to the disclosure URL
+   * @returns Object containing the disclosure URL and state
+   * @example
+   * ```typescript
+   * const { disclosureUrl, state } = await client.generateDisclosureUrl();
+   * // Browser: window.location.href = disclosureUrl;
+   * // Node: res.redirect(disclosureUrl);
+   * ```
+   */
   async generateDisclosureUrl(
     params?: DisclosureRequestParams,
     additionalParams?: Record<string, string>,
@@ -109,7 +137,15 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     return response as DisclosureResponse;
   }
 
-  /** Verifies and decodes the access token from a disclosure response. */
+  /**
+   * Verifies and decodes the access token from a disclosure response.
+   *
+   * @param disclosureResponse - The disclosure response containing the access token
+   * @param typeAssertFunc - The function to assert the token payload type
+   * @returns Typed JWT with typed payload
+   * @throws {OperationFailedError} When JWT verification fails
+   * @throws {InvalidAssertionError} When token payload doesn't match expected structure
+   */
   async decode<T extends JWTPayload>(
     disclosureResponse: DisclosureResponse,
     typeAssertFunc: (payload: unknown, name: string) => asserts payload is T,

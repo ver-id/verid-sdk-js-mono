@@ -32,7 +32,15 @@ export interface EmbeddedBootstrapContext {
   generateCodeChallenge(state?: string): Promise<FlowBasePkceResult>;
 }
 
-/** Generates PKCE credentials and returns the public bootstrap values for the browser. */
+/**
+ * Generates PKCE credentials and returns the public bootstrap values for the browser.
+ *
+ * @param context - The calling client's client_id, issuer URI, and PKCE challenge generator.
+ * @param params - The scopes to request, the backend's own webhook endpoint, and optionally the
+ *   gateway URI, an intent id, and a caller-supplied state.
+ * @returns The bootstrap the browser needs to mount the embedded component; the `code_verifier`
+ *   stays server-side and is never part of it.
+ */
 export async function buildEmbeddedSessionBootstrap(
   context: EmbeddedBootstrapContext,
   params: EmbeddedSessionParams,
