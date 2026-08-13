@@ -1,17 +1,14 @@
 ## Unreleased
 
-### 📦 Packaging
-
-- The shared core is now published as a separate `@ver-id/core` package instead of
-  being compiled into this bundle. It is declared as a regular dependency, so a
-  normal install pulls it in automatically.
-- Because core is no longer duplicated per package, `instanceof` checks and
-  TypeScript class identity now hold across SDK package boundaries.
-
 ### 🚀 Features
 
 - Export the `FlowAuthCodeDeliveryBinding` type, which selects how an authorization
   code is delivered (redirect or embedded).
+
+The shared core is now published as a separate `@ver-id/core` package instead of
+being compiled into this bundle. It is declared as a regular dependency, so a normal
+install pulls it in automatically, and core classes now have a single identity across
+SDK package boundaries.
 
 **No source changes are required.** Every export available in 0.15.2 is still
 exported under the same name. See [UPGRADING.md](../../UPGRADING.md) for details.
@@ -36,7 +33,7 @@ Version bump only.
 
 ## 0.13.0 (2026-03-11)
 
-### ⚠️ Breaking changes
+### ⚠️  Breaking Changes
 
 This release renamed public JWT payload exports. The change was not marked as
 breaking at the time and shipped under a `fix:` commit, so it is recorded here

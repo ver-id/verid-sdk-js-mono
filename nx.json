@@ -83,7 +83,8 @@
     "changelog": {
       "projectChangelogs": {
         "createRelease": "github",
-        "file": "{projectRoot}/CHANGELOG.md"
+        "file": "{projectRoot}/CHANGELOG.md",
+        "entryWhenNoChanges": "Version bump only."
       }
     }
   }
