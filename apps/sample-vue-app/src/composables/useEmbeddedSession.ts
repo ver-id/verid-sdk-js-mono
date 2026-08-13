@@ -1,6 +1,6 @@
 import { ref, shallowRef, onBeforeUnmount } from 'vue';
 import {
-  mountEmbeddedVeridComponent,
+  mountVeridEmbeddedComponent,
   type VeridEmbeddedComponent,
 } from '@ver-id/embedded-browser-client';
 import { formatError } from '../utils/errorHandler.js';
@@ -191,7 +191,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     try {
       terminated = false;
 
-      const embedded = mountEmbeddedVeridComponent({
+      const embedded = mountVeridEmbeddedComponent({
         container,
         ...bootstrap.value,
         iframe: {
@@ -352,9 +352,9 @@ const bootstrap = await fetch('/api/${scope}/embedded/start', {
 // No code_verifier, no authorization code — those never reach the browser.`,
 
   mount: `// BROWSER — mount the Ver.iD iframe
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: embedContainer.value,   // an HTMLElement, or an existing <iframe>
   ...bootstrap,
   iframe: {

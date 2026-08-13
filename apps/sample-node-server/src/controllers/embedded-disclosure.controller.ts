@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import {
-  EmbeddedDisclosureClient,
+  VeridEmbeddedDisclosureClient,
   verifyEmbeddedWebhook,
   assertDisclosureV1JwtPayload,
   type EmbeddedClientConfig,
@@ -43,7 +43,7 @@ export async function initializeEmbeddedDisclosureClient(
 
     const config: EmbeddedClientConfig = { issuerUri, clientId };
 
-    const disclosureClient = new EmbeddedDisclosureClient(config);
+    const disclosureClient = new VeridEmbeddedDisclosureClient(config);
     clientService.setEmbeddedDisclosureClient(disclosureClient);
 
     const codeSnippet = generateEmbeddedDisclosureInitSnippet(config);

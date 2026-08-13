@@ -5,9 +5,9 @@ Execute a verification flow to use decentralized identity apps to collect variou
 ### Create a Disclosure client
 
 ```ts
-import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({
+const disclosureClient = new VeridEmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
 });
@@ -21,11 +21,11 @@ The disclosure client caches flow context (state and code verifiers) using a cac
 
 ```ts
 import {
-  EmbeddedDisclosureClient,
+  VeridEmbeddedDisclosureClient,
   FileStorageCacheManager,
 } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({
+const disclosureClient = new VeridEmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   clientId: '<VERID_DISCLOSURE_FLOW_ID>',
   options: {
@@ -77,8 +77,8 @@ app.post('/api/verid/start', async (_req, res) => {
 `EmbeddedSessionParams`:
 
 - `scope` — the scopes to request (e.g. `'openid disclosure'`). Requested scopes must be registered in the disclosure flow.
-- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
-- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
+- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to. Must be a valid URL; anything else throws `InvalidArgumentError`.
+- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin. When supplied it must be a valid URL; anything else throws `InvalidArgumentError`.
 - `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
 - `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`); this is what binds a session to a pre-created intent. Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
 
@@ -114,10 +114,10 @@ Your frontend fetches the bootstrap and passes it straight into the browser clie
 
 ```ts
 // Frontend
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });

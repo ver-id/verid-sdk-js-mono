@@ -1,6 +1,6 @@
-export { EmbeddedDisclosureClient } from './disclosure.js';
-export { EmbeddedAuthenticationClient } from './authentication.js';
-export { EmbeddedIssuanceClient } from './issuance.js';
+export { VeridEmbeddedDisclosureClient } from './disclosure.js';
+export { VeridEmbeddedAuthenticationClient } from './authentication.js';
+export { VeridEmbeddedIssuanceClient } from './issuance.js';
 export type {
   EmbeddedIssuanceSessionParams,
   EmbeddedIssuanceSessionBootstrap,

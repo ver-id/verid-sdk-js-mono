@@ -5,9 +5,9 @@ Execute an authentication flow to use decentralized identity apps for shifting f
 ### Create an Authentication client
 
 ```ts
-import { EmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
 
-const authenticationClient = new EmbeddedAuthenticationClient({
+const authenticationClient = new VeridEmbeddedAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
 });
@@ -21,11 +21,11 @@ The authentication client caches flow context (state and code verifiers) using a
 
 ```ts
 import {
-  EmbeddedAuthenticationClient,
+  VeridEmbeddedAuthenticationClient,
   FileStorageCacheManager,
 } from '@ver-id/embedded-node-client';
 
-const authenticationClient = new EmbeddedAuthenticationClient({
+const authenticationClient = new VeridEmbeddedAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
   options: {
@@ -77,8 +77,8 @@ app.post('/api/verid/start', async (_req, res) => {
 `EmbeddedSessionParams`:
 
 - `scope` — the scopes to request (e.g. `'openid'`). Requested scopes must be registered in the authentication flow.
-- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
-- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
+- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to. Must be a valid URL; anything else throws `InvalidArgumentError`.
+- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin. When supplied it must be a valid URL; anything else throws `InvalidArgumentError`.
 - `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
 - `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`). Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
 - `intentId` — optional authentication intent created via `createAuthenticationIntent()`. Because the intent is created against a challenge, pass **both** the `state` and the `codeChallenge` it was created against alongside it, so the session reuses that pair instead of generating a new one.
@@ -102,10 +102,10 @@ Your frontend fetches the bootstrap and passes it straight into the browser clie
 
 ```ts
 // Frontend
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });

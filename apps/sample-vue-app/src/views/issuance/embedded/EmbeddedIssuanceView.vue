@@ -436,7 +436,7 @@
       <h2>How it Works</h2>
       <ol>
         <li>
-          <strong>[Server]</strong> Create an <code>EmbeddedIssuanceClient</code> — it sends no
+          <strong>[Server]</strong> Create an <code>VeridEmbeddedIssuanceClient</code> — it sends no
           redirect URI
         </li>
         <li>
@@ -450,7 +450,7 @@
           backend
         </li>
         <li>
-          <strong>[Browser]</strong> <code>mountEmbeddedVeridComponent()</code> mounts the Ver.iD iframe and
+          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> mounts the Ver.iD iframe and
           posts <code>ronan:init</code> to the pinned origin
         </li>
         <li>

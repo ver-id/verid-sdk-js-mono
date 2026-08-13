@@ -1,4 +1,9 @@
-import type { FlowBasePkceResult } from '@ver-id/core';
+import {
+  assertObject,
+  assertString,
+  assertUrlString,
+  type FlowBasePkceResult,
+} from '@ver-id/core';
 import { InvalidArgumentError } from '@ver-id/core/error';
 
 /** Parameters to start an embedded session (bootstrap for the browser). */
@@ -53,13 +58,28 @@ export interface EmbeddedBootstrapContext {
  *   gateway URI, an intent id, and a caller-supplied state/challenge.
  * @returns The bootstrap the browser needs to mount the embedded component; the `code_verifier`
  *   stays server-side and is never part of it.
- * @throws {InvalidArgumentError} When `codeChallenge` is supplied without the `state` it was
- *   cached under.
+ * @throws {InvalidArgumentError} When any input is invalid — a malformed `issuerUri`,
+ *   `webhookUri`, or `gatewayUri`, a missing `scope`, or a `codeChallenge` supplied without the
+ *   `state` it was cached under.
  */
 export async function buildEmbeddedSessionBootstrap(
   context: EmbeddedBootstrapContext,
   params: EmbeddedSessionParams,
 ): Promise<EmbeddedSessionBootstrap> {
+  assertUrlString(context.issuerUri, 'issuerUri', InvalidArgumentError);
+
+  assertObject(params, 'params', InvalidArgumentError);
+  assertString(params.scope, 'scope', InvalidArgumentError);
+  assertUrlString(params.webhookUri, 'webhookUri', InvalidArgumentError);
+  assertString(params.state, 'state', InvalidArgumentError, { allowUndefined: true });
+  assertString(params.codeChallenge, 'codeChallenge', InvalidArgumentError, {
+    allowUndefined: true,
+  });
+  assertString(params.intentId, 'intentId', InvalidArgumentError, { allowUndefined: true });
+  if (params.gatewayUri !== undefined) {
+    assertUrlString(params.gatewayUri, 'gatewayUri', InvalidArgumentError);
+  }
+
   if (params.codeChallenge && !params.state) {
     throw new InvalidArgumentError(
       'State must be provided when using an external code challenge.',

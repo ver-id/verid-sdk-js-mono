@@ -1,9 +1,9 @@
 import type { EmbeddedClientConfig } from '@ver-id/embedded-node-client';
 
 export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
-  return `import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+  return `import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({
+const disclosureClient = new VeridEmbeddedDisclosureClient({
   issuerUri: '${config.issuerUri}',
   clientId: '${config.clientId}',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.

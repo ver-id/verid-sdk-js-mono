@@ -1,7 +1,7 @@
 export {
-  EmbeddedDisclosureClient,
-  EmbeddedAuthenticationClient,
-  EmbeddedIssuanceClient,
+  VeridEmbeddedDisclosureClient,
+  VeridEmbeddedAuthenticationClient,
+  VeridEmbeddedIssuanceClient,
 } from './clients/index.js';
 export type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './clients/index.js';
 export type {

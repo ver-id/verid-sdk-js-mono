@@ -40,10 +40,10 @@ Fetch the embedded-session bootstrap from your backend, then mount the component
 attach lifecycle listeners:
 
 ```ts
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });
@@ -72,7 +72,7 @@ veridComponent.addEventListener('cancel',   () => veridComponent.destroy());
 
 ## Per-flow guides
 
-For other comprehensive configurations and examples, see the per-flow documents. The browser API (`mountEmbeddedVeridComponent`) is the same in all three — each guide frames it for that flow:
+For other comprehensive configurations and examples, see the per-flow documents. The browser API (`mountVeridEmbeddedComponent`) is the same in all three — each guide frames it for that flow:
 
 - [Authentication](./AUTHENTICATION.md) — mounting an embedded authentication session.
 - [Verification](./VERIFICATION.md) — mounting an embedded disclosure session.

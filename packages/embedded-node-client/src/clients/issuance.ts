@@ -46,7 +46,7 @@ export interface EmbeddedIssuanceSessionBootstrap extends EmbeddedSessionBootstr
  *
  * @public
  */
-export class EmbeddedIssuanceClient extends VeridIssuanceClient {
+export class VeridEmbeddedIssuanceClient extends VeridIssuanceClient {
   readonly #issuerUri: string;
 
   constructor(config: EmbeddedClientConfig) {

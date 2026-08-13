@@ -1,6 +1,6 @@
-import { EmbeddedDisclosureClient } from '../src/clients/disclosure.js';
+import { VeridEmbeddedDisclosureClient } from '../src/clients/disclosure.js';
 import {
-  EmbeddedIssuanceClient,
+  VeridEmbeddedIssuanceClient,
   type EmbeddedIssuanceSessionParams,
 } from '../src/clients/issuance.js';
 import { MemoryStorageCacheManager } from '../src/cache/index.js';
@@ -12,7 +12,7 @@ const CLIENT_ID = '11111111-1111-4111-8111-111111111111';
 describe('createEmbeddedSession', () => {
   it('returns a public bootstrap and persists the verifier (disclosure)', async () => {
     const cacheManager = new MemoryStorageCacheManager();
-    const client = new EmbeddedDisclosureClient({
+    const client = new VeridEmbeddedDisclosureClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager },
@@ -44,7 +44,7 @@ describe('createEmbeddedSession', () => {
 
   it('passes through explicit gatewayUri and intentId (issuance)', async () => {
     const cacheManager = new MemoryStorageCacheManager();
-    const client = new EmbeddedIssuanceClient({
+    const client = new VeridEmbeddedIssuanceClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager },
@@ -65,7 +65,7 @@ describe('createEmbeddedSession', () => {
   });
 
   it('rejects an issuance session without an intentId', async () => {
-    const client = new EmbeddedIssuanceClient({
+    const client = new VeridEmbeddedIssuanceClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager: new MemoryStorageCacheManager() },
@@ -81,7 +81,7 @@ describe('createEmbeddedSession', () => {
 
   it('reuses an existing state/codeChallenge pair so the session stays bound to its intent', async () => {
     const cacheManager = new MemoryStorageCacheManager();
-    const client = new EmbeddedIssuanceClient({
+    const client = new VeridEmbeddedIssuanceClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager },
@@ -105,7 +105,7 @@ describe('createEmbeddedSession', () => {
   });
 
   it('rejects a codeChallenge supplied without its state', async () => {
-    const client = new EmbeddedDisclosureClient({
+    const client = new VeridEmbeddedDisclosureClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager: new MemoryStorageCacheManager() },
@@ -118,5 +118,70 @@ describe('createEmbeddedSession', () => {
         codeChallenge: 'challenge-without-state',
       }),
     ).rejects.toThrow(InvalidArgumentError);
+  });
+
+  it('rejects a webhookUri that is not a valid url', async () => {
+    const client = new VeridEmbeddedDisclosureClient({
+      issuerUri: ISSUER,
+      clientId: CLIENT_ID,
+      options: { cacheManager: new MemoryStorageCacheManager() },
+    });
+
+    await expect(
+      client.createEmbeddedSession({
+        scope: 'disclosure',
+        webhookUri: 'not-a-url',
+      }),
+    ).rejects.toThrow(InvalidArgumentError);
+  });
+
+  it('rejects a gatewayUri that is not a valid url', async () => {
+    const client = new VeridEmbeddedDisclosureClient({
+      issuerUri: ISSUER,
+      clientId: CLIENT_ID,
+      options: { cacheManager: new MemoryStorageCacheManager() },
+    });
+
+    await expect(
+      client.createEmbeddedSession({
+        scope: 'disclosure',
+        webhookUri: 'https://app.example.com/api/verid/webhook',
+        gatewayUri: 'gateway.example.com',
+      }),
+    ).rejects.toThrow(InvalidArgumentError);
+  });
+
+  it('rejects an empty scope', async () => {
+    const client = new VeridEmbeddedDisclosureClient({
+      issuerUri: ISSUER,
+      clientId: CLIENT_ID,
+      options: { cacheManager: new MemoryStorageCacheManager() },
+    });
+
+    await expect(
+      client.createEmbeddedSession({
+        scope: '',
+        webhookUri: 'https://app.example.com/api/verid/webhook',
+      }),
+    ).rejects.toThrow(InvalidArgumentError);
+  });
+
+  it('does not cache a verifier when the input is invalid', async () => {
+    const cacheManager = new MemoryStorageCacheManager();
+    const client = new VeridEmbeddedDisclosureClient({
+      issuerUri: ISSUER,
+      clientId: CLIENT_ID,
+      options: { cacheManager },
+    });
+
+    await expect(
+      client.createEmbeddedSession({
+        scope: 'disclosure',
+        webhookUri: 'not-a-url',
+        state: 'state-123',
+      }),
+    ).rejects.toThrow(InvalidArgumentError);
+
+    expect(cacheManager.get('state-123')).toBeNull();
   });
 });

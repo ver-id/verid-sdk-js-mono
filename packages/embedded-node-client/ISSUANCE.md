@@ -5,9 +5,9 @@ Execute an issuance flow to issue verified credentials to users. This allows you
 ### Create an Issuance client
 
 ```ts
-import { EmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
 
-const issuanceClient = new EmbeddedIssuanceClient({
+const issuanceClient = new VeridEmbeddedIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
 });
@@ -21,11 +21,11 @@ The issuance client caches flow context (state and code verifiers) using a cache
 
 ```ts
 import {
-  EmbeddedIssuanceClient,
+  VeridEmbeddedIssuanceClient,
   FileStorageCacheManager,
 } from '@ver-id/embedded-node-client';
 
-const issuanceClient = new EmbeddedIssuanceClient({
+const issuanceClient = new VeridEmbeddedIssuanceClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   clientId: '<VERID_ISSUANCE_FLOW_ID>',
   options: {
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Issuance requires an intent
 
-**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so the embedded flow issues the right credential. `EmbeddedIssuanceClient.createEmbeddedSession()` enforces this: it throws `InvalidArgumentError` when `intentId` is missing or empty.
+**Important:** Unlike authentication and disclosure, issuance flows **require** intent creation. The intent carries the credential issuance payload (mapping or data). You create it on the backend, then forward its `intentId` in the embedded bootstrap so the embedded flow issues the right credential. `VeridEmbeddedIssuanceClient.createEmbeddedSession()` enforces this: it throws `InvalidArgumentError` when `intentId` is missing or empty.
 
 #### Step 1: Generate a code challenge
 
@@ -144,8 +144,8 @@ app.post('/api/verid/start', async (_req, res) => {
 `EmbeddedIssuanceSessionParams` (`EmbeddedSessionParams` plus a required `intentId`):
 
 - `scope` — the scopes to request (e.g. `'openid issuance'`). Requested scopes must be registered in the issuance flow.
-- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to.
-- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin.
+- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to. Must be a valid URL; anything else throws `InvalidArgumentError`.
+- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin. When supplied it must be a valid URL; anything else throws `InvalidArgumentError`.
 - `intentId` — **required**; the intent created in Step 2. Omitting it (or passing an empty string) throws `InvalidArgumentError` before any session is started.
 - `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
 - `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under — the pair returned by `generateCodeChallenge()` in Step 1 — so the session uses the same challenge the intent was created against. Supplying `codeChallenge` without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge."); supplying neither generates and caches a fresh pair.
@@ -158,10 +158,10 @@ Your frontend fetches the bootstrap and passes it straight into the browser clie
 
 ```ts
 // Frontend
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap, // includes intentId
 });

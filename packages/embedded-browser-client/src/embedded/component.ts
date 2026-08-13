@@ -15,11 +15,11 @@ export interface EmbeddedIframeOptions {
 }
 
 /**
- * Parameters for {@link mountEmbeddedVeridComponent}.
+ * Parameters for {@link mountVeridEmbeddedComponent}.
  *
  * @public
  */
-export interface MountEmbeddedVeridComponentParams {
+export interface VeridEmbeddedComponentParams {
   /** Where to render the iframe: a container to create one in, or an existing iframe. */
   container: HTMLElement | HTMLIFrameElement;
   /** Ver.iD gateway URL. */
@@ -55,7 +55,7 @@ export class VeridEmbeddedComponentImpl extends EventTarget implements VeridEmbe
   readonly #onLoad = (): void => this.#postInit();
   #destroyed = false;
 
-  constructor(params: MountEmbeddedVeridComponentParams) {
+  constructor(params: VeridEmbeddedComponentParams) {
     super();
 
     this.#gatewayOrigin = new URL(params.gatewayUri).origin;

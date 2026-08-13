@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { EmbeddedDisclosureClient } from '../src/clients/disclosure.js';
+import { VeridEmbeddedDisclosureClient } from '../src/clients/disclosure.js';
 import { MemoryStorageCacheManager } from '../src/cache/index.js';
 
 const ISSUER = 'https://issuer.example.com';
@@ -64,7 +64,7 @@ describe('finalizeEmbedded', () => {
 
   it('verifies the webhook and exchanges the code without redirect_uri', async () => {
     const cacheManager = new MemoryStorageCacheManager();
-    const client = new EmbeddedDisclosureClient({
+    const client = new VeridEmbeddedDisclosureClient({
       issuerUri: ISSUER,
       clientId: CLIENT_ID,
       options: { cacheManager },

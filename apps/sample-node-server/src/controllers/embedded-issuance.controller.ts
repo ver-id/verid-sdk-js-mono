@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import {
-  EmbeddedIssuanceClient,
+  VeridEmbeddedIssuanceClient,
   verifyEmbeddedWebhook,
   assertIssuanceV1JwtPayload,
   type EmbeddedClientConfig,
@@ -42,7 +42,7 @@ export async function initializeEmbeddedIssuanceClient(
 
     const config: EmbeddedClientConfig = { issuerUri, clientId };
 
-    const issuanceClient = new EmbeddedIssuanceClient(config);
+    const issuanceClient = new VeridEmbeddedIssuanceClient(config);
     clientService.setEmbeddedIssuanceClient(issuanceClient);
 
     const codeSnippet = generateEmbeddedIssuanceInitSnippet(config);

@@ -1,9 +1,9 @@
 import type { EmbeddedClientConfig } from '@ver-id/embedded-node-client';
 
 export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
-  return `import { EmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
+  return `import { VeridEmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
 
-const issuanceClient = new EmbeddedIssuanceClient({
+const issuanceClient = new VeridEmbeddedIssuanceClient({
   issuerUri: '${config.issuerUri}',
   clientId: '${config.clientId}',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.

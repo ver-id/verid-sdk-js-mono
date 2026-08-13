@@ -1,9 +1,9 @@
 import type { EmbeddedClientConfig } from '@ver-id/embedded-node-client';
 
 export function generateInitCodeSnippet(config: EmbeddedClientConfig): string {
-  return `import { EmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
+  return `import { VeridEmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
 
-const authClient = new EmbeddedAuthenticationClient({
+const authClient = new VeridEmbeddedAuthenticationClient({
   issuerUri: '${config.issuerUri}',
   clientId: '${config.clientId}',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE alone.

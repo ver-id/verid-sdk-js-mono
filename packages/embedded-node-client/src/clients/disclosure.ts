@@ -22,7 +22,7 @@ import type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './types.js';
  *
  * @public
  */
-export class EmbeddedDisclosureClient extends VeridDisclosureClient {
+export class VeridEmbeddedDisclosureClient extends VeridDisclosureClient {
   readonly #issuerUri: string;
 
   constructor(config: EmbeddedClientConfig) {

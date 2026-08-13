@@ -2,7 +2,7 @@
 
 Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. This package is the **browser half** of Ver.iD embedded mode: it mounts the Ver.iD iframe on your own page, performs the origin-pinned `postMessage` handshake, and surfaces the flow lifecycle as typed events. It holds **no secrets** — the PKCE `code_verifier` and the authorization `code` never touch the browser.
 
-The browser API is a single, flow-agnostic function, `mountEmbeddedVeridComponent(...)`. Whether a session runs an authentication, verification, or issuance flow is decided by the backend that created the **bootstrap** (here, an `EmbeddedDisclosureClient`) and by the `clientId`/`scope` it carries. This page frames the API for verification.
+The browser API is a single, flow-agnostic function, `mountVeridEmbeddedComponent(...)`. Whether a session runs an authentication, verification, or issuance flow is decided by the backend that created the **bootstrap** (here, a `VeridEmbeddedDisclosureClient`) and by the `clientId`/`scope` it carries. This page frames the API for verification.
 
 ### Prerequisite: a backend bootstrap
 
@@ -10,9 +10,9 @@ The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/
 
 ```ts
 // Backend — @ver-id/embedded-node-client
-import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({ issuerUri, clientId });
+const disclosureClient = new VeridEmbeddedDisclosureClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await disclosureClient.createEmbeddedSession({
@@ -28,20 +28,20 @@ The bootstrap contains only public values — the `code_verifier` stays on the s
 
 ### Mount the embedded component
 
-Fetch the bootstrap and pass it straight into `mountEmbeddedVeridComponent`. Everything except `container` (and optional `iframe`) comes directly from the bootstrap, so spreading it is the idiomatic call:
+Fetch the bootstrap and pass it straight into `mountVeridEmbeddedComponent`. Everything except `container` (and optional `iframe`) comes directly from the bootstrap, so spreading it is the idiomatic call:
 
 ```ts
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
 
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });
 ```
 
-`mountEmbeddedVeridComponent` returns **synchronously** so you can attach listeners before the iframe loads. `MountEmbeddedVeridComponentParams`:
+`mountVeridEmbeddedComponent` returns **synchronously** so you can attach listeners before the iframe loads. `VeridEmbeddedComponentParams`:
 
 | Field          | Source     | Description                                                              |
 | -------------- | ---------- | ----------------------------------------------------------------------- |
@@ -60,7 +60,7 @@ const veridComponent = mountEmbeddedVeridComponent({
 Pass `iframe` to override how the SDK creates the element (ignored if you supplied your own `HTMLIFrameElement` as the container):
 
 ```ts
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
   iframe: {

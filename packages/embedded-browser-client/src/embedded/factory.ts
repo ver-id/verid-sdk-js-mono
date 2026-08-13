@@ -1,6 +1,6 @@
 import {
   VeridEmbeddedComponentImpl,
-  type MountEmbeddedVeridComponentParams,
+  type VeridEmbeddedComponentParams,
 } from './component.js';
 import type { VeridEmbeddedComponent } from './types.js';
 
@@ -19,7 +19,7 @@ import type { VeridEmbeddedComponent } from './types.js';
  * @example
  * ```typescript
  * const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
- * const veridComponent = mountEmbeddedVeridComponent({
+ * const veridComponent = mountVeridEmbeddedComponent({
  *   container: document.getElementById('verid-embed')!,
  *   ...bootstrap,
  * });
@@ -31,8 +31,8 @@ import type { VeridEmbeddedComponent } from './types.js';
  *
  * @public
  */
-export function mountEmbeddedVeridComponent(
-  params: MountEmbeddedVeridComponentParams,
+export function mountVeridEmbeddedComponent(
+  params: VeridEmbeddedComponentParams,
 ): VeridEmbeddedComponent {
   return new VeridEmbeddedComponentImpl(params);
 }

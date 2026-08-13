@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import {
-  EmbeddedAuthenticationClient,
+  VeridEmbeddedAuthenticationClient,
   verifyEmbeddedWebhook,
   type EmbeddedClientConfig,
 } from '@ver-id/embedded-node-client';
@@ -42,7 +42,7 @@ export async function initializeEmbeddedAuthClient(
 
     const config: EmbeddedClientConfig = { issuerUri, clientId };
 
-    const authClient = new EmbeddedAuthenticationClient(config);
+    const authClient = new VeridEmbeddedAuthenticationClient(config);
     clientService.setEmbeddedAuthClient(authClient);
 
     const codeSnippet = generateEmbeddedAuthInitSnippet(config);

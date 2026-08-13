@@ -1,4 +1,4 @@
-import { mountEmbeddedVeridComponent } from '../src/index';
+import { mountVeridEmbeddedComponent } from '../src/index';
 import type {
   VeridEmbeddedError,
   VeridEmbeddedComponent,
@@ -23,7 +23,7 @@ function postFromGateway(source: Window | null, data: unknown, origin = GATEWAY_
   window.dispatchEvent(new MessageEvent('message', { data, origin, source }));
 }
 
-describe('mountEmbeddedVeridComponent', () => {
+describe('mountVeridEmbeddedComponent', () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('creates and appends an iframe pointed at the gateway URI', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     expect(component.iframe).toBeInstanceOf(HTMLIFrameElement);
     expect(container.contains(component.iframe)).toBe(true);
     expect(component.iframe.src).toBe(GATEWAY_URI);
@@ -44,7 +44,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('dispatches "complete" for a well-formed message from the pinned origin and source', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
@@ -55,7 +55,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('ignores messages from a foreign origin', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
@@ -66,7 +66,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('ignores messages whose source is not the component iframe', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
 
@@ -77,7 +77,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('surfaces a malformed message from the pinned origin as an error event', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const details: VeridEmbeddedError[] = [];
     component.addEventListener('error', (event) => details.push(event.detail));
 
@@ -89,7 +89,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('maps ronan:error to a typed error event with description', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const details: VeridEmbeddedError[] = [];
     component.addEventListener('error', (event) => details.push(event.detail));
 
@@ -104,7 +104,7 @@ describe('mountEmbeddedVeridComponent', () => {
   });
 
   it('destroy() removes the message listener and the created iframe', () => {
-    const component = mountEmbeddedVeridComponent(bootstrap(container));
+    const component = mountVeridEmbeddedComponent(bootstrap(container));
     const onComplete = jest.fn();
     component.addEventListener('complete', onComplete);
     const iframe = component.iframe;
@@ -119,7 +119,7 @@ describe('mountEmbeddedVeridComponent', () => {
   it('adopts an existing iframe without removing it on destroy', () => {
     const existing = document.createElement('iframe');
     container.appendChild(existing);
-    const component = mountEmbeddedVeridComponent(bootstrap(existing));
+    const component = mountVeridEmbeddedComponent(bootstrap(existing));
 
     expect(component.iframe).toBe(existing);
     component.destroy();

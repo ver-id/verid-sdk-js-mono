@@ -38,9 +38,9 @@ pnpm add @ver-id/embedded-node-client
 ## Usage
 
 ```ts
-import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const client = new EmbeddedDisclosureClient({ issuerUri, clientId });
+const client = new VeridEmbeddedDisclosureClient({ issuerUri, clientId });
 
 app.post('/api/verid/start', async (_req, res) => {
   const bootstrap = await client.createEmbeddedSession({
@@ -63,8 +63,8 @@ app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) =
 });
 ```
 
-The same shape applies to `EmbeddedAuthenticationClient` and
-`EmbeddedIssuanceClient`. For issuance, create an intent first and forward its
+The same shape applies to `VeridEmbeddedAuthenticationClient` and
+`VeridEmbeddedIssuanceClient`. For issuance, create an intent first and forward its
 `intentId` via `createEmbeddedSession` — it is required there and throws
 `InvalidArgumentError` if omitted.
 
@@ -84,9 +84,9 @@ The same shape applies to `EmbeddedAuthenticationClient` and
 
 For other comprehensive configurations and examples, see the per-flow documents:
 
-- [Authentication](./AUTHENTICATION.md) — server-side embedded authentication with `EmbeddedAuthenticationClient`.
-- [Verification](./VERIFICATION.md) — server-side embedded disclosure with `EmbeddedDisclosureClient`.
-- [Issuance](./ISSUANCE.md) — server-side embedded issuance with `EmbeddedIssuanceClient` (requires an intent).
+- [Authentication](./AUTHENTICATION.md) — server-side embedded authentication with `VeridEmbeddedAuthenticationClient`.
+- [Verification](./VERIFICATION.md) — server-side embedded disclosure with `VeridEmbeddedDisclosureClient`.
+- [Issuance](./ISSUANCE.md) — server-side embedded issuance with `VeridEmbeddedIssuanceClient` (requires an intent).
 
 ## License
 

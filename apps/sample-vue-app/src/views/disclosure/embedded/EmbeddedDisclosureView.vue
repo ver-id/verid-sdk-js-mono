@@ -388,7 +388,7 @@
       <h2>How it Works</h2>
       <ol>
         <li>
-          <strong>[Server]</strong> Create an <code>EmbeddedDisclosureClient</code> — it sends no
+          <strong>[Server]</strong> Create an <code>VeridEmbeddedDisclosureClient</code> — it sends no
           redirect URI
         </li>
         <li>
@@ -399,7 +399,7 @@
           <strong>[Browser]</strong> Fetch that bootstrap from your own backend
         </li>
         <li>
-          <strong>[Browser]</strong> <code>mountEmbeddedVeridComponent()</code> mounts the Ver.iD iframe and
+          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> mounts the Ver.iD iframe and
           posts <code>ronan:init</code> to the pinned origin
         </li>
         <li>

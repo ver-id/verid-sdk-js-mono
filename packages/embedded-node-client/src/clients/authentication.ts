@@ -22,7 +22,7 @@ import type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './types.js';
  *
  * @public
  */
-export class EmbeddedAuthenticationClient extends VeridAuthenticationClient {
+export class VeridEmbeddedAuthenticationClient extends VeridAuthenticationClient {
   readonly #issuerUri: string;
 
   constructor(config: EmbeddedClientConfig) {

@@ -1,8 +1,8 @@
 import { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient, AuthenticationResponse, DisclosureResponse, IssuanceResponse } from '@ver-id/node-client';
 import {
-  EmbeddedAuthenticationClient,
-  EmbeddedDisclosureClient,
-  EmbeddedIssuanceClient,
+  VeridEmbeddedAuthenticationClient,
+  VeridEmbeddedDisclosureClient,
+  VeridEmbeddedIssuanceClient,
 } from '@ver-id/embedded-node-client';
 
 /** Global in-memory storage for the SDK clients created by the demo endpoints. */
@@ -14,9 +14,9 @@ class ClientService {
   // Embedded clients are kept separate from the redirect-based clients above:
   // embedded flows have no callback URL, so they must never clear it out from
   // under an in-flight redirect flow.
-  private embeddedAuthClient: EmbeddedAuthenticationClient | null = null;
-  private embeddedDisclosureClient: EmbeddedDisclosureClient | null = null;
-  private embeddedIssuanceClient: EmbeddedIssuanceClient | null = null;
+  private embeddedAuthClient: VeridEmbeddedAuthenticationClient | null = null;
+  private embeddedDisclosureClient: VeridEmbeddedDisclosureClient | null = null;
+  private embeddedIssuanceClient: VeridEmbeddedIssuanceClient | null = null;
   private authResponse: AuthenticationResponse | null = null;
   private disclosureResponse: DisclosureResponse | null = null;
   private issuanceResponse: IssuanceResponse | null = null;
@@ -184,27 +184,27 @@ class ClientService {
   // data lives in `embeddedResultStore`, keyed by `state`, so re-initializing a
   // client does not disturb a session already running in the browser.
 
-  setEmbeddedAuthClient(client: EmbeddedAuthenticationClient): void {
+  setEmbeddedAuthClient(client: VeridEmbeddedAuthenticationClient): void {
     this.embeddedAuthClient = client;
   }
 
-  getEmbeddedAuthClient(): EmbeddedAuthenticationClient | null {
+  getEmbeddedAuthClient(): VeridEmbeddedAuthenticationClient | null {
     return this.embeddedAuthClient;
   }
 
-  setEmbeddedDisclosureClient(client: EmbeddedDisclosureClient): void {
+  setEmbeddedDisclosureClient(client: VeridEmbeddedDisclosureClient): void {
     this.embeddedDisclosureClient = client;
   }
 
-  getEmbeddedDisclosureClient(): EmbeddedDisclosureClient | null {
+  getEmbeddedDisclosureClient(): VeridEmbeddedDisclosureClient | null {
     return this.embeddedDisclosureClient;
   }
 
-  setEmbeddedIssuanceClient(client: EmbeddedIssuanceClient): void {
+  setEmbeddedIssuanceClient(client: VeridEmbeddedIssuanceClient): void {
     this.embeddedIssuanceClient = client;
   }
 
-  getEmbeddedIssuanceClient(): EmbeddedIssuanceClient | null {
+  getEmbeddedIssuanceClient(): VeridEmbeddedIssuanceClient | null {
     return this.embeddedIssuanceClient;
   }
 }

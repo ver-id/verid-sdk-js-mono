@@ -42,7 +42,7 @@ import { VeridAuthenticationClient } from '@ver-id/browser-client';
 // Create authentication client
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -91,7 +91,7 @@ import { VeridAuthenticationClient } from '@ver-id/node-client';
 // Create authentication client
 const authenticationClient = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
+  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 
@@ -137,11 +137,11 @@ A matched pair of SDKs that run a Ver.iD flow **inside an iframe on your own pag
 
 ```ts
 // ── SERVER ─────────────────────────────────────────────────────────────────
-import { EmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
 
-const disclosureClient = new EmbeddedDisclosureClient({
+const disclosureClient = new VeridEmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>',
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
   // No redirectUri in embedded mode — the code is bound to the client via PKCE.
 });
 
@@ -158,13 +158,13 @@ res.json(bootstrap);
 
 ```ts
 // ── BROWSER ────────────────────────────────────────────────────────────────
-import { mountEmbeddedVeridComponent } from '@ver-id/embedded-browser-client';
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const bootstrap = await fetch('/api/disclosure/embedded/start', { method: 'POST' }).then((r) =>
   r.json(),
 );
 
-const veridComponent = mountEmbeddedVeridComponent({
+const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed'),
   ...bootstrap,
 });

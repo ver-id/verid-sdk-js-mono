@@ -1,6 +1,6 @@
-export { mountEmbeddedVeridComponent } from './embedded/factory.js';
+export { mountVeridEmbeddedComponent } from './embedded/factory.js';
 export type {
-  MountEmbeddedVeridComponentParams,
+  VeridEmbeddedComponentParams,
   EmbeddedIframeOptions,
 } from './embedded/component.js';
 export type {
