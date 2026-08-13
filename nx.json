@@ -75,6 +75,7 @@
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
       "conventionalCommits": true,
+      "adjustSemverBumpsForZeroMajorVersion": true,
       "preserveLocalDependencyProtocols": false,
       "preserveMatchingDependencyRanges": false,
       "versionPrefix": "^"
