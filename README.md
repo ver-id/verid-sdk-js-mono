@@ -348,7 +348,8 @@ Each package keeps its own changelog, generated on release from conventional com
 - [@ver-id/embedded-browser-client](./packages/embedded-browser-client/CHANGELOG.md)
 - [@ver-id/embedded-node-client](./packages/embedded-node-client/CHANGELOG.md)
 
-Upgrading between versions is covered in [UPGRADING.md](./UPGRADING.md).
+Upgrading between versions is covered in [UPGRADING.md](./UPGRADING.md), and the
+release process in [RELEASING.md](./RELEASING.md).
 
 ## Contributing
 

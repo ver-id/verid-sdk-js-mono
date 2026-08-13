@@ -102,12 +102,26 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/) specifica
 - `test`: Adding missing tests or correcting existing tests
 - `chore`: Changes to the build process or auxiliary tools
 
+Releases are derived from these messages, so the format has real consequences:
+
+- **A scope must be an exact Nx project name** (`@ver-id/graphql-client`, not
+  `graphql-client`), or be omitted. Nx matches scopes against project names; a
+  non-matching scope is silently demoted to a patch bump and any breaking marker on
+  it is ignored. Run `yarn nx show projects` for the list.
+- **Only `feat`, `fix` and `perf` appear in changelogs.** Every other type is hidden,
+  so a user-facing change must not be committed as `refactor` or `chore`.
+- **Breaking changes need a `!` before the colon or a `BREAKING CHANGE:` block in the
+  body.** Prose in the subject is not detected.
+
 **Examples:**
 ```bash
-git commit -m "feat(graphql-client): add new query helper function"
-git commit -m "fix(browser-client): resolve cache cleanup issue"
+git commit -m "feat(@ver-id/graphql-client): add new query helper function"
+git commit -m "fix(@ver-id/browser-client): resolve cache cleanup issue"
+git commit -m "feat(@ver-id/browser-client,@ver-id/node-client): share cache contract"
 git commit -m "docs: update installation instructions"
 ```
+
+See [RELEASING.md](RELEASING.md) for the full release checklist.
 
 ### Pushing Your Changes
 
@@ -149,7 +163,8 @@ Before submitting, ensure:
 - [ ] Linting passes (`yarn nx affected -t lint`)
 - [ ] Type checking passes (`yarn nx affected -t typecheck`)
 - [ ] Build succeeds (`yarn nx affected -t build`)
-- [ ] Commit messages follow conventional commits format
+- [ ] Commit messages follow conventional commits format, with scopes that are exact project names
+- [ ] Breaking changes are marked with `!` or a `BREAKING CHANGE:` body block
 - [ ] Documentation is updated (if needed)
 - [ ] Changes are described in the PR description
 
