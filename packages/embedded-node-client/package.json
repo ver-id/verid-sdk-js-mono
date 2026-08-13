@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/embedded-node-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ver.iD embedded-mode Node.js SDK: PKCE bootstrap + signed webhook verification + token exchange for embedded flows",
   "license": "MIT",
   "author": "Ver.iD",
@@ -60,7 +60,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ver-id/core": "workspace:^"
+    "@ver-id/core": "^0.1.0"
   },
   "nx": {
     "targets": {

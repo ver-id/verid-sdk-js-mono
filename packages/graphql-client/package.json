@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/graphql-client",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "Ver.iD GraphQL client for querying the Ver.iD platform API",
   "license": "MIT",
   "author": "Ver.iD",
@@ -93,6 +93,6 @@
   "dependencies": {
     "@apollo/client": "^4.1.6",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@ver-id/core": "workspace:^"
+    "@ver-id/core": "^0.1.0"
   }
 }

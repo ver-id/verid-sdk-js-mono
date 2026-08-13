@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/embedded-browser-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ver.iD embedded-mode browser SDK: mounts the Ver.iD iframe and surfaces the flow lifecycle as typed events",
   "license": "MIT",
   "author": "Ver.iD",
@@ -60,7 +60,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ver-id/core": "workspace:^"
+    "@ver-id/core": "^0.1.0"
   },
   "nx": {
     "targets": {

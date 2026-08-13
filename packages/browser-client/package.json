@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/browser-client",
-  "version": "0.15.2",
+  "version": "0.15.3",
   "description": "Ver.iD Browser SDK for decentralized identity authentication, disclosure, and issuance flows",
   "license": "MIT",
   "author": "Ver.iD",
@@ -59,7 +59,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ver-id/core": "workspace:^"
+    "@ver-id/core": "^0.1.0"
   },
   "nx": {
     "targets": {
