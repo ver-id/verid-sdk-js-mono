@@ -33,10 +33,10 @@
             >
           </div>
           <div class="form-group">
-            <label for="client_id">Issuance Flow ID:</label>
+            <label for="clientId">Issuance Flow ID:</label>
             <input
-              id="client_id"
-              v-model="clientConfig.client_id"
+              id="clientId"
+              v-model="clientConfig.clientId"
               type="text"
               placeholder="issuance_flow_123"
             >
@@ -401,7 +401,7 @@ const error = ref('');
 
 const clientConfig = ref({
   issuerUri: '',
-  client_id: '',
+  clientId: '',
   redirectUri: '',
 });
 
@@ -648,7 +648,7 @@ const resetClient = () => {
   // Reset config to defaults
   clientConfig.value = {
     issuerUri: '',
-    client_id: '',
+    clientId: '',
     redirectUri: '',
   };
 };

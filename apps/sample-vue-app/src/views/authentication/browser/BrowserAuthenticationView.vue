@@ -25,10 +25,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Authentication Flow ID:</label>
+          <label for="clientId">Authentication Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             placeholder="authentication_flow_123"
           >
@@ -320,9 +320,9 @@ const getGenerateAuthUrlCode = computed(() => {
 const { authenticationUrl } = 
   await authenticationClient.generateAuthenticationUrl({
     scope: '${authOptions.scope}',
-    intent_id: '${intentId.value}',
+    intentId: '${intentId.value}',
     state: '${state.value}',
-    code_challenge: '${codeChallenge.value}',
+    codeChallenge: '${codeChallenge.value}',
   });`;
   } else {
     const optionsEntries = Object.entries(authOptions)

@@ -6,8 +6,13 @@
     </p>
 
     <div class="options-grid">
-      <div class="option-card" @click="navigateTo('browser')">
-        <div class="icon">🌐</div>
+      <div
+        class="option-card"
+        @click="navigateTo('browser')"
+      >
+        <div class="icon">
+          🌐
+        </div>
         <h2>Browser Execution</h2>
         <p>Run the authentication flow directly in the browser using @ver-id/browser-client</p>
         <ul>
@@ -15,11 +20,18 @@
           <li>Direct browser integration</li>
           <li>No backend required</li>
         </ul>
-        <button class="btn-primary">Start Browser Flow →</button>
+        <button class="btn-primary">
+          Start Browser Flow →
+        </button>
       </div>
 
-      <div class="option-card" @click="navigateTo('node')">
-        <div class="icon">🖥️</div>
+      <div
+        class="option-card"
+        @click="navigateTo('node')"
+      >
+        <div class="icon">
+          🖥️
+        </div>
         <h2>Node.js Execution</h2>
         <p>Run the authentication flow on the server using @ver-id/node-client via API calls</p>
         <ul>
@@ -27,7 +39,29 @@
           <li>Less exposed to client-side attacks</li>
           <li>More secured by client secret</li>
         </ul>
-        <button class="btn-primary">Start Node Flow →</button>
+        <button class="btn-primary">
+          Start Node Flow →
+        </button>
+      </div>
+
+      <div
+        class="option-card"
+        @click="navigateTo('embedded')"
+      >
+        <div class="icon">
+          🖼️
+        </div>
+        <h2>Embedded Execution</h2>
+        <p>Run the authentication flow inside an iframe on your own page using @ver-id/embedded-browser-client + @ver-id/embedded-node-client</p>
+        <ul>
+          <li>User never leaves your page</li>
+          <li>No callback route in your app</li>
+          <li>PKCE verifier and auth code stay on your server</li>
+          <li>Requires a publicly reachable webhook</li>
+        </ul>
+        <button class="btn-primary">
+          Start Embedded Flow →
+        </button>
       </div>
     </div>
   </div>
@@ -39,7 +73,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const navigateTo = (type: 'browser' | 'node') => {
+const navigateTo = (type: 'browser' | 'node' | 'embedded') => {
   router.push(`/authentication/${type}`);
 };
 </script>

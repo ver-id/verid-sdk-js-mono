@@ -1,7 +1,7 @@
-import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
-import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
-import { assertObject, assertFunction } from '@verid-sdk-js-mono/core/utils';
-import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
+import { BaseCacheManager } from '@ver-id/core/cache';
+import type { CacheManagerOptions } from '@ver-id/core/cache';
+import { assertObject, assertFunction } from '@ver-id/core/utils';
+import { InvalidArgumentError } from '@ver-id/core/error';
 
 /**
  * Configuration options for the Redis cache manager.
@@ -64,7 +64,7 @@ export interface RedisCompatibleClient {
  *
  * const authClient = new VeridAuthenticationClient({
  *   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
- *   client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+ *   clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
  *   redirectUri: 'REGISTERED_REDIRECT_URI',
  *   options: {
  *     cacheManager: new RedisCacheManager({ client: redisClient }),

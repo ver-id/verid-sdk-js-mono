@@ -6,21 +6,25 @@ import {
   DisclosureIntentPayload,
   ClientAuth,
   ICacheManager,
-} from '@verid-sdk-js-mono/core';
-import { FileStorageCacheManager } from '../cache/file-storage.js';
+  FlowAuthCodeDeliveryBinding,
+} from '@ver-id/core';
+import { FileStorageCacheManager } from '@ver-id/core/cache/node';
 
 // Re-export types from core
 export type {
   DisclosureIntentPayload,
   DisclosureClientConfig,
   DisclosureRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /**
- * Configuration for the Node.js Disclosure client.
- * `options` is optional — defaults to using FileStorageCacheManager for caching.
+ * Configuration for the Node.js disclosure client.
+ *
+ * `options` is optional and defaults to caching with a `FileStorageCacheManager`.
  */
 export type NodeDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -37,24 +41,31 @@ export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizePar
 }
 
 /**
- * Ver.iD Disclosure client for OpenID Connect disclosure flows.
- * Handles credential disclosure and retrieves access tokens with verified credentials.
+ * Node.js disclosure client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridDisclosureClient extends CoreDisclosureClient {
+  private readonly redirectUri: string;
+
   constructor(config: NodeDisclosureClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**
-   * Creates a new disclosure intent.
-   * Client authentication is mandatory for server-side disclosure intent creation.
-   * 
+   * Creates a disclosure intent; clientAuth is required server-side.
+   *
    * @param disclosureIntent - The intent payload
    * @param codeChallenge - The PKCE code challenge
    * @param clientAuth - The client authentication credentials (required)
@@ -69,11 +80,20 @@ export class VeridDisclosureClient extends CoreDisclosureClient {
   }
 
   /**
-   * Finalizes the disclosure flow and retrieves the disclosure response.
-   * Exchanges the authorization code for tokens including the ID token.
+   * Finalizes the disclosure flow using the provided callback params.
+   * Exchanges the authorization code for tokens including the access token.
    *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token, id_token, and token metadata
+   * @param params - Parameters for finalizing the disclosure flow, including the required client
+   * authentication credentials
+   * @returns The disclosure response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * const disclosureResponse = await client.finalize({
+   *   callbackParams: new URL(callbackUrl).searchParams,
+   *   clientAuth: { client_secret: clientSecret },
+   * });
+   * const jwt = await client.decode(disclosureResponse, assertDisclosureV1JwtPayload);
+   * ```
    */
   async finalize(params: DisclosureFinalizeParams): Promise<DisclosureResponse> {
     return this.finalizeDisclosure({ ...params, clientAuth: params.clientAuth });

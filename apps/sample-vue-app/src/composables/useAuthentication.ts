@@ -10,7 +10,7 @@ export function useAuthentication() {
   // Configuration - reactive so it can be updated from form
   const clientConfig = reactive({
     issuerUri: import.meta.env.VITE_VERID_AUTHENTICATION_API_URL || '',
-    client_id: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID || '',
+    clientId: import.meta.env.VITE_VERID_AUTHENTICATION_FLOW_ID || '',
     redirectUri: import.meta.env.VITE_VERID_AUTHENTICATION_REDIRECT_URI || 
       `${window.location.origin}/authentication/browser/callback`,
   });
@@ -122,7 +122,7 @@ export function useAuthentication() {
 
   /**
    * Generate authentication URL with PKCE
-   * If intent was created, uses intent_id and PKCE params
+   * If intent was created, uses intentId and PKCE params
    */
   const generateAuthUrl = async () => {
     if (!authenticationClient) return;
@@ -134,10 +134,10 @@ export function useAuthentication() {
       let authenticationUrl: string;
 
       if (useIntent.value && intentId.value && codeChallenge.value && state.value) {
-        // Intent-based flow: use intent_id and existing PKCE params
+        // Intent-based flow: use intentId and existing PKCE params
         const result = await authenticationClient.generateAuthenticationUrl({
           scope: authOptions.scope,
-          intent_id: intentId.value,
+          intentId: intentId.value,
           state: state.value,
           codeChallenge: codeChallenge.value,
         });

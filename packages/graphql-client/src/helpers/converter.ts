@@ -8,7 +8,7 @@ import {
   TrustAppEntity,
   TrustIssuerEntity,
   CredentialTrustIssuerEntity,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import {
   FindManyAttributesDeepQuery,
   FindManyAttributesQuery,

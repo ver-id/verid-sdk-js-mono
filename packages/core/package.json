@@ -1,0 +1,171 @@
+{
+  "name": "@ver-id/core",
+  "version": "0.0.0",
+  "description": "Shared core primitives (flow clients, OAuth, cache, errors, types) for the Ver.iD JS SDK packages",
+  "license": "MIT",
+  "author": "Ver.iD",
+  "homepage": "https://github.com/ver-id/verid-sdk-js-mono/tree/main/packages/core#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ver-id/verid-sdk-js-mono.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ver-id/verid-sdk-js-mono/issues"
+  },
+  "keywords": [
+    "verid",
+    "ver-id",
+    "decentralized-identity",
+    "did",
+    "verifiable-credentials",
+    "oauth2",
+    "sdk"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@verid-sdk-js-mono/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "default": "./dist/index.js"
+    },
+    "./cache": {
+      "@verid-sdk-js-mono/source": "./src/cache/index.ts",
+      "import": {
+        "types": "./dist/cache/index.d.ts",
+        "default": "./dist/cache/index.js"
+      },
+      "require": {
+        "types": "./dist/cache/index.d.cts",
+        "default": "./dist/cache/index.cjs"
+      },
+      "default": "./dist/cache/index.js"
+    },
+    "./cache/node": {
+      "@verid-sdk-js-mono/source": "./src/cache/node/index.ts",
+      "import": {
+        "types": "./dist/cache/node/index.d.ts",
+        "default": "./dist/cache/node/index.js"
+      },
+      "require": {
+        "types": "./dist/cache/node/index.d.cts",
+        "default": "./dist/cache/node/index.cjs"
+      },
+      "default": "./dist/cache/node/index.js"
+    },
+    "./embedded": {
+      "@verid-sdk-js-mono/source": "./src/embedded/index.ts",
+      "import": {
+        "types": "./dist/embedded/index.d.ts",
+        "default": "./dist/embedded/index.js"
+      },
+      "require": {
+        "types": "./dist/embedded/index.d.cts",
+        "default": "./dist/embedded/index.cjs"
+      },
+      "default": "./dist/embedded/index.js"
+    },
+    "./error": {
+      "@verid-sdk-js-mono/source": "./src/error/index.ts",
+      "import": {
+        "types": "./dist/error/index.d.ts",
+        "default": "./dist/error/index.js"
+      },
+      "require": {
+        "types": "./dist/error/index.d.cts",
+        "default": "./dist/error/index.cjs"
+      },
+      "default": "./dist/error/index.js"
+    },
+    "./flow": {
+      "@verid-sdk-js-mono/source": "./src/flow/index.ts",
+      "import": {
+        "types": "./dist/flow/index.d.ts",
+        "default": "./dist/flow/index.js"
+      },
+      "require": {
+        "types": "./dist/flow/index.d.cts",
+        "default": "./dist/flow/index.cjs"
+      },
+      "default": "./dist/flow/index.js"
+    },
+    "./oauth": {
+      "@verid-sdk-js-mono/source": "./src/oauth/index.ts",
+      "import": {
+        "types": "./dist/oauth/index.d.ts",
+        "default": "./dist/oauth/index.js"
+      },
+      "require": {
+        "types": "./dist/oauth/index.d.cts",
+        "default": "./dist/oauth/index.cjs"
+      },
+      "default": "./dist/oauth/index.js"
+    },
+    "./types": {
+      "@verid-sdk-js-mono/source": "./src/types/index.ts",
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/types/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.cts",
+        "default": "./dist/types/index.cjs"
+      },
+      "default": "./dist/types/index.js"
+    },
+    "./utils": {
+      "@verid-sdk-js-mono/source": "./src/utils/index.ts",
+      "import": {
+        "types": "./dist/utils/index.d.ts",
+        "default": "./dist/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/utils/index.d.cts",
+        "default": "./dist/utils/index.cjs"
+      },
+      "default": "./dist/utils/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "*.md",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "jose": "^6.2.1",
+    "oauth4webapi": "^3.8.5"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "options": {
+          "command": "tsup",
+          "cwd": "packages/core"
+        }
+      }
+    }
+  }
+}

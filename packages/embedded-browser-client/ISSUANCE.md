@@ -1,0 +1,130 @@
+## Issuance (embedded mode)
+
+Execute an issuance flow to issue verified credentials to users that they can store in their decentralized identity wallets. This package is the **browser half** of Ver.iD embedded mode: it mounts the Ver.iD iframe on your own page, performs the origin-pinned `postMessage` handshake, and surfaces the flow lifecycle as typed events. It holds **no secrets** — the PKCE `code_verifier` and the authorization `code` never touch the browser.
+
+The browser API is a single, flow-agnostic function, `mountVeridEmbeddedComponent(...)`. Whether a session runs an authentication, verification, or issuance flow is decided by the backend that created the **bootstrap** (here, a `VeridEmbeddedIssuanceClient`) and by the `clientId`/`scope` it carries. This page frames the API for issuance.
+
+> **Issuance requires an `intentId`.** Issuance flows always issue from an intent that carries the credential payload. The backend creates it and passes it to `createEmbeddedSession`, which **requires** `intentId` (`EmbeddedIssuanceSessionParams`) and throws `InvalidArgumentError` without it. The resulting `EmbeddedIssuanceSessionBootstrap` always carries `intentId`, so the browser simply forwards it to the embedded flow. If you spread the bootstrap into `mountVeridEmbeddedComponent`, `intentId` is carried through automatically — no extra work on the browser side.
+
+### Prerequisite: a backend bootstrap (with intent)
+
+The confidential half, [`@ver-id/embedded-node-client`](../embedded-node-client/ISSUANCE.md), creates the issuance intent and returns an `EmbeddedIssuanceSessionBootstrap` that always includes its `intentId`. Expose it from an endpoint your frontend can call:
+
+```ts
+// Backend — @ver-id/embedded-node-client
+import { VeridEmbeddedIssuanceClient } from '@ver-id/embedded-node-client';
+
+const issuanceClient = new VeridEmbeddedIssuanceClient({ issuerUri, clientId });
+
+app.post('/api/verid/start', async (_req, res) => {
+  const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
+
+  const intentId = await issuanceClient.createIssuanceIntent(
+    { payload: { mapping: { firstName: 'John', email: 'john.doe@example.com' } } },
+    codeChallenge,
+    { client_secret: process.env.VERID_CLIENT_SECRET! },
+  );
+
+  const bootstrap = await issuanceClient.createEmbeddedSession({
+    scope: 'openid issuance',
+    webhookUri: 'https://app.example.com/api/verid/webhook',
+    state,
+    codeChallenge, // reuse the pair the intent was created against
+    intentId,
+  });
+
+  res.json(bootstrap);
+  // { clientId, scope, state, codeChallenge, webhookUri, gatewayUri, intentId }
+});
+```
+
+The bootstrap contains only public values — the `code_verifier` stays on the server, keyed by `state`. Note that the backend passes **both** the `state` and the `codeChallenge` it created the intent against into `createEmbeddedSession`: the intent is bound to that challenge, so the session must reuse the same pair instead of generating a new one.
+
+### Mount the embedded component
+
+Fetch the bootstrap and pass it straight into `mountVeridEmbeddedComponent`. Everything except `container` (and optional `iframe`) comes directly from the bootstrap — including `intentId` — so spreading it is the idiomatic call:
+
+```ts
+import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
+
+const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
+
+const veridComponent = mountVeridEmbeddedComponent({
+  container: document.getElementById('verid-embed')!,
+  ...bootstrap, // includes intentId
+});
+```
+
+`mountVeridEmbeddedComponent` returns **synchronously** so you can attach listeners before the iframe loads. `VeridEmbeddedComponentParams`:
+
+| Field          | Source     | Description                                                              |
+| -------------- | ---------- | ----------------------------------------------------------------------- |
+| `container`    | you        | An `HTMLElement` to mount into, or an existing `HTMLIFrameElement`.     |
+| `gatewayUri`   | bootstrap  | Ver.iD gateway origin. Inbound messages are pinned to this origin.       |
+| `clientId`     | bootstrap  | The issuance flow id.                                                    |
+| `scope`        | bootstrap  | The requested scopes (e.g. `openid issuance`).                          |
+| `state`        | bootstrap  | PKCE state; correlate the backend result to this value.                 |
+| `codeChallenge`| bootstrap  | Public PKCE challenge. The verifier never reaches the browser.          |
+| `webhookUri`   | bootstrap  | The backend endpoint Ver.iD posts the signed result to.                  |
+| `intentId`     | bootstrap  | **Required for issuance** — the intent the credential is issued from.   |
+| `iframe`       | you        | Optional presentation overrides (see below).                            |
+
+#### Customizing the iframe
+
+Pass `iframe` to override how the SDK creates the element (ignored if you supplied your own `HTMLIFrameElement` as the container):
+
+```ts
+const veridComponent = mountVeridEmbeddedComponent({
+  container: document.getElementById('verid-embed')!,
+  ...bootstrap,
+  iframe: {
+    className: 'verid-frame',
+    style: { width: '100%', height: '640px', border: '0' },
+    allow: 'camera; microphone', // default
+    sandbox: 'allow-scripts allow-same-origin', // default
+    title: 'Ver.iD embedded flow', // default
+  },
+});
+```
+
+### Handle lifecycle events
+
+`VeridEmbeddedComponent` extends `EventTarget` with a typed `addEventListener`. The event map is:
+
+| Event      | Detail                | Meaning                                                          |
+| ---------- | --------------------- | --------------------------------------------------------------- |
+| `ready`    | `void`                | The Ver.iD iframe finished loading and is interactive.           |
+| `complete` | `void`                | The flow finished. **Lifecycle only — carries no code.**        |
+| `error`    | `VeridEmbeddedError`  | `{ error: string; error_description?: string }`.                |
+| `cancel`   | `void`                | The user cancelled the flow.                                    |
+
+```ts
+veridComponent.addEventListener('ready', () => setLoading(false));
+
+veridComponent.addEventListener('complete', async () => {
+  // `complete` means "start awaiting the backend result" — NOT "the result is ready".
+  // The backend finalizes the flow from the signed webhook; correlate via bootstrap.state.
+  const credential = await pollBackend(bootstrap.state);
+  onIssued(credential);
+  veridComponent.destroy();
+});
+
+veridComponent.addEventListener('error', (e) => {
+  showError(e.detail.error);
+  veridComponent.destroy();
+});
+
+veridComponent.addEventListener('cancel', () => veridComponent.destroy());
+```
+
+Call `veridComponent.destroy()` to detach the message listener and remove the iframe (if the SDK created it). The readonly `veridComponent.iframe` gives you the underlying `HTMLIFrameElement` if you need it.
+
+### How the result actually arrives
+
+The authorization `code` is **never** delivered to the browser. When the flow completes, it triggers a signed server-to-server webhook to your backend's `webhookUri`; the backend verifies the HMAC signature and exchanges the code for tokens (see the [backend issuance guide](../embedded-node-client/ISSUANCE.md)). The webhook payload's `intent_id` echoes the intent used to start the flow. The browser only learns that the flow finished, via `complete`, and then fetches the finalized result from your own backend — correlated by `state`.
+
+### Security & ordering
+
+- **No secrets in the browser.** No PKCE verifier or authorization code ever touches the browser. The backend generates the `state`/`codeChallenge`, keeps the verifier server-side, and receives the code on its webhook.
+- **`complete` is a lifecycle signal, not a result.** It means "start awaiting the backend result" (poll/SSE) — not "the result is ready".
+- **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin` fixed to `gatewayUri`; inbound messages are accepted only from that origin and from the component's own iframe. A malformed message from the pinned origin is surfaced as an `error` event.

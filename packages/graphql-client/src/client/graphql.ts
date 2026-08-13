@@ -6,7 +6,7 @@ import {
   assertUUID,
   InvalidArgumentError,
   UUID,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import { createAuthLink, createHttpLink, errorLink } from '../plugins/index.js';
 
 /**

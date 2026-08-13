@@ -20,16 +20,16 @@ export async function initializeIssuanceClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_ISSUANCE_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_ISSUANCE_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_ISSUANCE_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_ISSUANCE_REDIRECT_URI;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Issuance Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Issuance Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: NodeIssuanceClientConfig = {
       issuerUri,
-      client_id: client_id,
+      clientId: clientId,
       redirectUri,
     };
 
@@ -210,7 +210,7 @@ export async function generateIssuanceUrl(
 
     // Generate URL with intent
     const result = await issuanceClient.generateIssuanceUrl({
-      intent_id: intentId,
+      intentId: intentId,
       state: state,
       codeChallenge: codeChallenge,
     });

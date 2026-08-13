@@ -7,21 +7,25 @@ import {
   IntentResponse,
   ClientAuth,
   ICacheManager,
-} from '@verid-sdk-js-mono/core';
-import { FileStorageCacheManager } from '../cache/file-storage.js';
+  FlowAuthCodeDeliveryBinding,
+} from '@ver-id/core';
+import { FileStorageCacheManager } from '@ver-id/core/cache/node';
 
 // Re-export types from core
 export type {
   IssuanceIntentPayload,
   IssuanceClientConfig,
   IssuanceRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /**
- * Configuration for the Node.js Issuance client.
- * `options` is optional — defaults to using FileStorageCacheManager for caching.
+ * Configuration for the Node.js issuance client.
+ *
+ * `options` is optional and defaults to caching with a `FileStorageCacheManager`.
  */
 export type NodeIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -38,28 +42,35 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
 }
 
 /**
- * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles credential issuance and retrieves access tokens for credential storage.
+ * Node.js issuance client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
+  private readonly redirectUri: string;
+
   constructor(config: NodeIssuanceClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**
-   * Creates a new issuance intent.
-   * Client authentication is mandatory for server-side issuance intent creation.
-   * 
+   * Creates an issuance intent; clientAuth is required server-side.
+   *
    * @param issuanceIntent - The intent payload
    * @param codeChallenge - The PKCE code challenge
    * @param clientAuth - The client authentication credentials (required)
-   * @returns The ID of the created intent
+   * @returns The created intent, containing the intent ID and optional issuance run UUID
    */
   override async createIssuanceIntent(
     issuanceIntent: IssuanceIntentPayload,
@@ -70,11 +81,19 @@ export class VeridIssuanceClient extends CoreIssuanceClient {
   }
 
   /**
-   * Finalizes the issuance flow and retrieves the issuance response.
-   * Exchanges the authorization code for tokens including the ID token.
+   * Finalizes the issuance flow using the provided callback params.
+   * Exchanges the authorization code for tokens including the access token.
    *
-   * @param params - Parameters for finalizing the issuance flow
-   * @returns The issuance response containing access_token, id_token, and token metadata
+   * @param params - Parameters for finalizing the issuance flow, including the required client
+   * authentication credentials
+   * @returns The issuance response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * const issuanceResponse = await client.finalize({
+   *   callbackParams: new URL(callbackUrl).searchParams,
+   *   clientAuth: { client_secret: clientSecret },
+   * });
+   * ```
    */
   async finalize(params: IssuanceFinalizeParams): Promise<IssuanceResponse> {
     return this.finalizeIssuance({ ...params, clientAuth: params.clientAuth });

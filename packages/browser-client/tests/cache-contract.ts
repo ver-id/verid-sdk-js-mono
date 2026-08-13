@@ -1,6 +1,6 @@
-import type { ICacheManager } from '@verid-sdk-js-mono/core';
-import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
-import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
+import type { ICacheManager } from '@ver-id/core';
+import type { CacheManagerOptions } from '@ver-id/core/cache';
+import { InvalidArgumentError } from '@ver-id/core/error';
 
 /**
  * Factory for the cache manager under test. Managers built by the same factory must

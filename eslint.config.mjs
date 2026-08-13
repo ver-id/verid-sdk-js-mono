@@ -20,7 +20,10 @@ export default [
           enforceBuildableLibDependency: true,
           allow: [
             '^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$',
-            '@verid-sdk-js-mono/core',
+            // Test-only: the cache manager contract lives next to the managers it was
+            // written for, in @ver-id/core, and is shared by the packages that add their
+            // own stores. It is not part of any published entry point.
+            '^.*/core/tests/cache-contract$',
           ],
           depConstraints: [
             {

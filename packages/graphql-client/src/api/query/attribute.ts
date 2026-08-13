@@ -8,7 +8,7 @@ import {
   InvalidArgumentError,
   OperationFailedError,
   UUID,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import {
   FindAttributeDocument,
   FindManyAttributesDeepDocument,

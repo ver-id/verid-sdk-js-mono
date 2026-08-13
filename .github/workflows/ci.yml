@@ -204,16 +204,14 @@ jobs:
 
           echo "Affected projects: $AFFECTED"
 
-          # Check for first release (packages without version in package.json)
+          # Check for first release: a project has never been released when no release
+          # tag exists for it. Tags follow nx.json's releaseTagPattern, "{projectName}@{version}".
+          # (checkout uses fetch-depth: 0, so all tags are present.)
           FIRST_RELEASE=""
           for project in ${AFFECTED//,/ }; do
-            PKG_PATH="packages/${project##*js-mono/}/package.json"
-            if [ -f "$PKG_PATH" ]; then
-              VERSION=$(node -p "require('./$PKG_PATH').version || ''")
-              if [ -z "$VERSION" ] || [ "$VERSION" = "0.0.0" ]; then
-                echo "First release detected for $project"
-                FIRST_RELEASE="$FIRST_RELEASE,$project"
-              fi
+            if [ -z "$(git tag --list "$project@*")" ]; then
+              echo "First release detected for $project (no existing release tag)"
+              FIRST_RELEASE="$FIRST_RELEASE,$project"
             fi
           done
 
@@ -225,12 +223,14 @@ jobs:
             echo "Running first release for: $FIRST_RELEASE"
             yarn nx release -y --projects="$FIRST_RELEASE" --first-release --verbose
 
-            # Remove first release projects from affected list
+            # Remove first release projects from affected list (exact match on the
+            # comma-delimited list, so one project name cannot shadow a longer one)
             REMAINING_AFFECTED=""
             for project in ${AFFECTED//,/ }; do
-              if [[ ! "$FIRST_RELEASE" =~ "$project" ]]; then
-                REMAINING_AFFECTED="$REMAINING_AFFECTED,$project"
-              fi
+              case ",$FIRST_RELEASE," in
+                *",$project,"*) ;;
+                *) REMAINING_AFFECTED="$REMAINING_AFFECTED,$project" ;;
+              esac
             done
             REMAINING_AFFECTED="${REMAINING_AFFECTED#,}"
 
@@ -245,14 +245,13 @@ jobs:
             yarn nx release -y --projects="$AFFECTED" --verbose
           fi
 
-      # Publish to GitHub Packages as a secondary registry
+      # Publish to GitHub Packages as a secondary registry. Non-blocking: npm is the
+      # primary registry, so a failure here must not fail the release.
       - name: Publish to GitHub Packages
+        continue-on-error: true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Switch registry to GitHub Packages
-          yarn config set npmRegistryServer https://npm.pkg.github.com
-
           AFFECTED="$(yarn nx show projects --affected \
             --base=${{ needs.setup.outputs.base }} \
             --head=${{ needs.setup.outputs.head }} \
@@ -264,16 +263,17 @@ jobs:
             exit 0
           fi
 
+          # setup-node only wrote an auth line for registry.npmjs.org; add one for
+          # GitHub Packages so the publish can authenticate against it.
+          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN" >> "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+
+          # Publishes the versions the release step just committed. Nx resolves each
+          # project's directory itself and skips versions already on the registry.
           echo "Publishing to GitHub Packages: $AFFECTED"
-          for project in ${AFFECTED//,/ }; do
-            PKG_DIR="packages/${project##*js-mono/}"
-            if [ -d "$PKG_DIR/dist" ]; then
-              echo "Publishing $project to GitHub Packages..."
-              cd "$PKG_DIR"
-              yarn npm publish --registry=https://npm.pkg.github.com || echo "⚠️ GitHub Packages publish failed for $project (non-blocking)"
-              cd "$GITHUB_WORKSPACE"
-            fi
-          done
+          yarn nx release publish \
+            --projects="$AFFECTED" \
+            --registry=https://npm.pkg.github.com \
+            --verbose
 
   # Stage 7: Nx self-healing (optional)
   nx-cloud-fix:

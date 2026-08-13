@@ -1,7 +1,7 @@
 import { ErrorLink } from '@apollo/client/link/error';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { Observable } from '@apollo/client';
-import { OperationFailedError, UnknownError } from '@verid-sdk-js-mono/core';
+import { OperationFailedError, UnknownError } from '@ver-id/core';
 
 /**
  * Error link for handling and transforming GraphQL and network errors.

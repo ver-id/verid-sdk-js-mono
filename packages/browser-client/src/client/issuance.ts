@@ -4,7 +4,8 @@ import {
   IssuanceFinalizeParams as CoreIssuanceFinalizeParams,
   IssuanceResponse,
   ICacheManager,
-} from '@verid-sdk-js-mono/core';
+  FlowAuthCodeDeliveryBinding,
+} from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 // Re-export types from core
@@ -12,13 +13,16 @@ export type {
   IssuanceIntentPayload,
   IssuanceClientConfig,
   IssuanceRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /**
- * Configuration for the Browser Issuance client.
- * `options` is optional — defaults to using SessionStorageCacheManager for caching.
+ * Configuration for the browser issuance client.
+ *
+ * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
  */
 export type BrowserIssuanceClientConfig = Omit<IssuanceClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -32,32 +36,43 @@ export interface IssuanceFinalizeParams extends Omit<CoreIssuanceFinalizeParams,
 }
 
 /**
- * Ver.iD Issuance client for OpenID Connect issuance flows.
- * Handles user issuance and retrieves access tokens with verified credentials.
+ * Browser issuance client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridIssuanceClient extends CoreIssuanceClient {
+  private readonly redirectUri: string;
+
   constructor(config: BrowserIssuanceClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**
-   * Finalizes the issuance flow and retrieves the issuance response.
+   * Finalizes the issuance flow, defaulting to window.location if no params are provided.
    * Exchanges the authorization code for tokens including the access token.
    *
    * @param params - Parameters for finalizing the issuance flow
    * @returns The issuance response containing access_token and token metadata
+   * @example
+   * ```typescript
+   * // Reads the callback params from window.location by default
+   * const issuanceResponse = await client.finalize();
+   * ```
    */
   async finalize(params?: IssuanceFinalizeParams): Promise<IssuanceResponse> {
-    // Assign callbackParams from params
     let callbackParams = params?.callbackParams;
 
-    // If not provided, use current window location
     if (!callbackParams) {
       callbackParams = window.location.href;
     }

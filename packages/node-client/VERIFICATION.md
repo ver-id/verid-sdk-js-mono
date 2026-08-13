@@ -9,7 +9,7 @@ import { VeridDisclosureClient } from '@ver-id/node-client';
 
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
   redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
 });
 ```
@@ -25,7 +25,7 @@ import { VeridDisclosureClient, FileStorageCacheManager } from '@ver-id/node-cli
 
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>',
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
@@ -87,7 +87,7 @@ const CustomMemoryCache = {
 
 const disclosureClient = new VeridDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  client_id: '<VERID_DISCLOSURE_FLOW_ID>',
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
   redirectUri: 'REGISTERED_REDIRECT_URI',
   options: {
     cacheManager: CustomMemoryCache // use custom store for caching
@@ -150,7 +150,7 @@ Generate the disclosure URL using the created intent:
 const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl({
   state: state, // Use the state from Step 1
   codeChallenge: codeChallenge, // Use the code challenge from Step 1
-  intent_id: intentId, // Pass the intent ID from Step 2
+  intentId, // Pass the intent ID from Step 2
 });
 ```
 

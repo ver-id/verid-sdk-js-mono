@@ -3,9 +3,9 @@ export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient }
 
 // // Cache exports (browser-specific)
 export { SessionStorageCacheManager, LocalStorageCacheManager, WebStorageCacheManager } from './cache/index.js';
-export type { ICacheManager } from '@verid-sdk-js-mono/core';
-export { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
-export type { CacheManagerOptions, CacheEntry } from '@verid-sdk-js-mono/core/cache';
+export type { ICacheManager } from '@ver-id/core';
+export { BaseCacheManager } from '@ver-id/core/cache';
+export type { CacheManagerOptions, CacheEntry } from '@ver-id/core/cache';
 
 export type {
   AuthenticationClientConfig,
@@ -43,19 +43,20 @@ export {
   TokenGrantError,
   OperationFailedError,
   UnknownError,
-} from '@verid-sdk-js-mono/core/error';
+} from '@ver-id/core/error';
 
 /**
  * Export core oauth client
  */
-export { VeridOAuthClient, OAuth4WebApiProvider } from '@verid-sdk-js-mono/core/oauth';
+export { VeridOAuthClient, OAuth4WebApiProvider } from '@ver-id/core/oauth';
 export type {
   OAuthClientConfig,
   OAuthRequestParams,
   OAuthAuthorizationCodeGrantParams,
   OAuthClientCredentialsGrantParams,
   IOAuthProvider,
-} from '@verid-sdk-js-mono/core/oauth';
+  FlowAuthCodeDeliveryBinding,
+} from '@ver-id/core/oauth';
 
 /**
  * Export core utilities
@@ -83,7 +84,7 @@ export {
   assertDisclosureV1JwtPayload,
   assertSignatureV1JwtPayload,
   assertIssuanceV1JwtPayload,
-} from '@verid-sdk-js-mono/core/utils';
+} from '@ver-id/core/utils';
 
 /**
  * Export core types
@@ -118,4 +119,4 @@ export type {
   DisclosureResponse,
   IssuanceResponse,
   GrantResponse
-} from '@verid-sdk-js-mono/core/types';
+} from '@ver-id/core/types';

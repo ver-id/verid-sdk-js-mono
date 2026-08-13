@@ -27,16 +27,6 @@
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }
-      },
-      "exclude": ["libs/core/*"]
-    },
-    {
-      "plugin": "@nx/js/typescript",
-      "include": ["libs/core/*"],
-      "options": {
-        "typecheck": {
-          "targetName": "typecheck"
-        }
       }
     },
     {
@@ -67,6 +57,9 @@
     }
   ],
   "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"]
+    },
     "test": {
       "dependsOn": ["^build"]
     },
@@ -79,28 +72,19 @@
   "release": {
     "projects": ["packages/*"],
     "projectsRelationship": "independent",
-    "releaseTagPattern": "{projectName}@{version}",
-    "git": {
-      "commit": true,
-      "commitMessage": "chore(release): publish {version}",
-      "tag": true,
-      "push": true
-    },
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
       "conventionalCommits": true,
-      "fallbackCurrentVersionResolver": "disk"
+      "adjustSemverBumpsForZeroMajorVersion": true,
+      "preserveLocalDependencyProtocols": false,
+      "preserveMatchingDependencyRanges": false,
+      "versionPrefix": "^"
     },
     "changelog": {
-      "automaticFromRef": true,
       "projectChangelogs": {
         "createRelease": "github",
-        "file": false,
-        "renderOptions": {
-          "authors": true,
-          "commitReferences": true,
-          "versionTitleDate": true
-        }
+        "file": "{projectRoot}/CHANGELOG.md",
+        "entryWhenNoChanges": "Version bump only."
       }
     }
   }

@@ -1,7 +1,7 @@
-import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
-import type { CacheManagerOptions } from '@verid-sdk-js-mono/core/cache';
-import { assertObject, assertString, assertFunction } from '@verid-sdk-js-mono/core/utils';
-import { InvalidArgumentError } from '@verid-sdk-js-mono/core/error';
+import { BaseCacheManager } from '@ver-id/core/cache';
+import type { CacheManagerOptions } from '@ver-id/core/cache';
+import { assertObject, assertString, assertFunction } from '@ver-id/core/utils';
+import { InvalidArgumentError } from '@ver-id/core/error';
 
 /**
  * Lazily loaded DynamoDB command classes from `@aws-sdk/lib-dynamodb`.
@@ -92,7 +92,7 @@ export interface DynamoDBCompatibleClient {
  *
  * const authClient = new VeridAuthenticationClient({
  *   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
- *   client_id: '<VERID_AUTHENTICATION_FLOW_ID>',
+ *   clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
  *   redirectUri: 'REGISTERED_REDIRECT_URI',
  *   options: {
  *     cacheManager: new DynamoDBCacheManager({

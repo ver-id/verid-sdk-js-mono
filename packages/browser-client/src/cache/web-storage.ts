@@ -1,4 +1,4 @@
-import { BaseCacheManager } from '@verid-sdk-js-mono/core/cache';
+import { BaseCacheManager } from '@ver-id/core/cache';
 
 /**
  * Shared implementation for the browser `Storage` backed caches.

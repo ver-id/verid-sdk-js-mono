@@ -4,7 +4,8 @@ import {
   AuthenticationClientConfig,
   AuthenticationFinalizeParams as CoreAuthenticationFinalizeParams,
   ICacheManager,
-} from '@verid-sdk-js-mono/core';
+  FlowAuthCodeDeliveryBinding,
+} from '@ver-id/core';
 import { SessionStorageCacheManager } from '../cache/session-storage.js';
 
 // Re-export types from core
@@ -12,13 +13,16 @@ export type {
   AuthenticationIntentPayload,
   AuthenticationClientConfig,
   AuthenticationRequestParams,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 
 /**
- * Configuration for the Browser Authentication client.
- * `options` is optional — defaults to using SessionStorageCacheManager for caching.
+ * Configuration for the browser authentication client.
+ *
+ * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
  */
 export type BrowserAuthenticationClientConfig = Omit<AuthenticationClientConfig, 'options'> & {
+  /** The registered redirect URI for the flow. */
+  redirectUri: string;
   options?: {
     cacheManager?: ICacheManager;
   };
@@ -32,32 +36,44 @@ export interface AuthenticationFinalizeParams extends Omit<CoreAuthenticationFin
 }
 
 /**
- * Ver.iD Authentication client for OpenID Connect authentication flows.
- * Handles user authentication and retrieves ID tokens with user identity information.
+ * Browser authentication client for OpenID Connect flows.
+ *
  * @public
  */
 export class VeridAuthenticationClient extends CoreAuthenticationClient {
+  private readonly redirectUri: string;
+
   constructor(config: BrowserAuthenticationClientConfig) {
     super({
-      ...config,
+      issuerUri: config.issuerUri,
+      clientId: config.clientId,
       options: {
         cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
       },
     });
+    this.redirectUri = config.redirectUri;
+  }
+
+  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
+    return { kind: 'redirect', redirectUri: this.redirectUri };
   }
 
   /**
-   * Finalizes the authentication flow and retrieves the authentication response.
+   * Finalizes the authentication flow, defaulting to window.location if no params are provided.
    * Exchanges the authorization code for tokens including the ID token.
    *
    * @param params - Parameters for finalizing the authentication flow
    * @returns The authentication response containing access_token, id_token, and token metadata
+   * @example
+   * ```typescript
+   * // Reads the callback params from window.location by default
+   * const authenticationResponse = await client.finalize();
+   * const idToken = await client.decode(authenticationResponse);
+   * ```
    */
   async finalize(params?: AuthenticationFinalizeParams): Promise<AuthenticationResponse> {
-    // Assign callbackParams from params
     let callbackParams = params?.callbackParams;
 
-    // If not provided, use current window location
     if (!callbackParams) {
       callbackParams = window.location.href;
     }

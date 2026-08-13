@@ -4,10 +4,13 @@
   "files": [],
   "references": [
     {
-      "path": "./libs/core"
+      "path": "./packages/core"
     },
     {
       "path": "./packages/browser-client"
+    },
+    {
+      "path": "./packages/embedded-browser-client"
     },
     {
       "path": "./packages/graphql-client"
@@ -17,6 +20,9 @@
     },
     {
       "path": "./packages/node-client"
+    },
+    {
+      "path": "./packages/embedded-node-client"
     },
     {
       "path": "./apps/sample-node-server"

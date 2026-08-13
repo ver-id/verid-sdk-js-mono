@@ -8,7 +8,7 @@ import {
   LocaleEntity,
   OperationFailedError,
   UUID,
-} from '@verid-sdk-js-mono/core';
+} from '@ver-id/core';
 import {
   TrustFilteringField,
   FilteringType,

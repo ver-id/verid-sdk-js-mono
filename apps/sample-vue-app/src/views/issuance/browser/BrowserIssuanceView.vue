@@ -32,10 +32,10 @@
           >
         </div>
         <div class="form-group">
-          <label for="client_id">Issuance Flow ID:</label>
+          <label for="clientId">Issuance Flow ID:</label>
           <input
-            id="client_id"
-            v-model="clientConfig.client_id"
+            id="clientId"
+            v-model="clientConfig.clientId"
             type="text"
             placeholder="issuance_flow_123"
           >
@@ -422,7 +422,7 @@ const getInitCode = computed(() => {
 
 const issuanceClient = new VeridIssuanceClient({
   issuerUri: '${clientConfig.issuerUri}',
-  client_id: '${clientConfig.client_id}',
+  clientId: '${clientConfig.clientId}',
   redirectUri: '${clientConfig.redirectUri}',
 });`;
 });
@@ -471,7 +471,7 @@ const getCreateIntentCode = computed(() => {
 
 const getGenerateUrlCode = computed(() => {
   return `const { issuanceUrl } = await issuanceClient.generateIssuanceUrl({
-  intent_id: '${intentId.value || 'YOUR_INTENT_ID'}',
+  intentId: '${intentId.value || 'YOUR_INTENT_ID'}',
   state: '${state.value || 'YOUR_STATE'}',
   codeChallenge: '${codeChallenge.value || 'YOUR_CODE_CHALLENGE'}',
 });

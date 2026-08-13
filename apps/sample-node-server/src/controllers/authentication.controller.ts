@@ -21,16 +21,16 @@ export async function initializeAuthClient(
 ): Promise<Response> {
   try {
     const issuerUri = req.body.issuerUri || process.env.VERID_AUTHENTICATION_API_URL;
-    const client_id = req.body.client_id || process.env.VERID_AUTHENTICATION_FLOW_ID;
+    const clientId = req.body.clientId || process.env.VERID_AUTHENTICATION_FLOW_ID;
     const redirectUri = req.body.redirectUri || process.env.VERID_AUTHENTICATION_REDIRECT_URI;
 
     assert(issuerUri, 'API URL is required', InvalidArgumentError);
-    assert(client_id, 'Authentication Flow ID is required', InvalidArgumentError);
+    assert(clientId, 'Authentication Flow ID is required', InvalidArgumentError);
     assert(redirectUri, 'Redirect URI is required', InvalidArgumentError);
 
     const config: NodeAuthenticationClientConfig = {
       issuerUri,
-      client_id: client_id,
+      clientId: clientId,
       redirectUri,
     };
 
@@ -199,7 +199,7 @@ export async function generateAuthUrl(
       // Intent-based flow
       result = await authClient.generateAuthenticationUrl({
         scope: scopeValue,
-        intent_id: intentId,
+        intentId: intentId,
         state: state,
         codeChallenge: codeChallenge,
       });

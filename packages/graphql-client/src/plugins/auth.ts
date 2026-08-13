@@ -1,4 +1,4 @@
-import { VeridOAuthClient } from '@verid-sdk-js-mono/core';
+import { VeridOAuthClient } from '@ver-id/core';
 import { ApolloLink, Observable } from '@apollo/client/core';
 
 /**
@@ -11,7 +11,7 @@ async function getAuthorizationToken(
 ): Promise<string | undefined> {
   const oauthClient = new VeridOAuthClient({
     issuer,
-    client_id: clientId,
+    clientId,
   });
 
   const tokenResponse = await oauthClient.clientCredentialGrant({

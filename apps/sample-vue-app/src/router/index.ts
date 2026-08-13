@@ -35,6 +35,11 @@ const router = createRouter({
       component: () => import('../views/authentication/server/NodeCallbackView.vue'),
     },
     {
+      path: '/authentication/embedded',
+      name: 'authentication-embedded',
+      component: () => import('../views/authentication/embedded/EmbeddedAuthenticationView.vue'),
+    },
+    {
       path: '/disclosure',
       name: 'disclosure',
       component: () => import('../views/disclosure/DisclosureSelectionView.vue'),
@@ -60,6 +65,11 @@ const router = createRouter({
       component: () => import('../views/disclosure/server/NodeCallbackView.vue'),
     },
     {
+      path: '/disclosure/embedded',
+      name: 'disclosure-embedded',
+      component: () => import('../views/disclosure/embedded/EmbeddedDisclosureView.vue'),
+    },
+    {
       path: '/issuance',
       name: 'issuance',
       component: () => import('../views/issuance/IssuanceSelectionView.vue'),
@@ -83,6 +93,11 @@ const router = createRouter({
       path: '/issuance/server/callback',
       name: 'issuance-server-callback',
       component: () => import('../views/issuance/server/NodeCallbackView.vue'),
+    },
+    {
+      path: '/issuance/embedded',
+      name: 'issuance-embedded',
+      component: () => import('../views/issuance/embedded/EmbeddedIssuanceView.vue'),
     },
     {
       path: '/graphql',

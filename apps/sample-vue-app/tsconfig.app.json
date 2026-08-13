@@ -40,6 +40,9 @@
     },
     {
       "path": "../../packages/browser-client/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/embedded-browser-client/tsconfig.lib.json"
     }
   ]
 }

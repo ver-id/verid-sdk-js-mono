@@ -21,6 +21,13 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
+  // Resolve @ver-id/core to its sources rather than its bundled dist. The cache manager
+  // contract in ../core/tests asserts on error classes thrown inside core, and those only
+  // match `instanceof` when both sides come from the same module graph.
+  moduleNameMapper: {
+    '^@ver-id/core$': '<rootDir>/../core/src/index.ts',
+    '^@ver-id/core/(.+)$': '<rootDir>/../core/src/$1/index.ts',
+  },
   coverageDirectory: 'test-output/jest/coverage',
   passWithNoTests: true,
 };
