@@ -7,7 +7,7 @@
 </p>
 
 > [!WARNING]
-> **Pre-release software** · This SDK has not yet reached version 1.0. Public APIs, configuration options, and behavior may change between minor releases without prior deprecation. We recommend pinning to an exact version and reviewing the changelog before upgrading.
+> **Pre-release software** · This SDK has not yet reached version 1.0. Public APIs, configuration options, and behavior may change between minor releases without prior deprecation. We recommend pinning to an exact version and reviewing the [changelog](#changelogs) before upgrading.
 
 # Ver.iD SDK for TypeScript
 
@@ -336,6 +336,19 @@ VITE_VERID_EMBEDDED_DISCLOSURE_FLOW_ID=<flow id>
 
 Set `VERID_GATEWAY_URI` when the Ver.iD flow UI is hosted separately from the OAuth issuer; it otherwise defaults to the issuer origin. Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
 
+
+## Changelogs
+
+Each package keeps its own changelog, generated on release from conventional commits:
+
+- [@ver-id/browser-client](./packages/browser-client/CHANGELOG.md)
+- [@ver-id/node-client](./packages/node-client/CHANGELOG.md)
+- [@ver-id/graphql-client](./packages/graphql-client/CHANGELOG.md)
+- [@ver-id/core](./packages/core/CHANGELOG.md)
+- [@ver-id/embedded-browser-client](./packages/embedded-browser-client/CHANGELOG.md)
+- [@ver-id/embedded-node-client](./packages/embedded-node-client/CHANGELOG.md)
+
+Upgrading between versions is covered in [UPGRADING.md](./UPGRADING.md).
 
 ## Contributing
 
