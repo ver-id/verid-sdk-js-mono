@@ -245,6 +245,43 @@ jobs:
             yarn nx release -y --projects="$AFFECTED" --verbose
           fi
 
+      # Safety net: publish any tagged-but-unpublished versions to npm. The release
+      # step above only publishes when it versioned something, so a release whose
+      # publish phase failed (e.g. bad token) stays unpublished on re-runs. nx
+      # skips versions that already exist on the registry, making this a no-op
+      # for healthy releases.
+      - name: Ensure npm publish (backfill)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          AFFECTED="$(yarn nx show projects --affected \
+            --base=${{ needs.setup.outputs.base }} \
+            --head=${{ needs.setup.outputs.head }} \
+            --projects="packages/*" \
+            --sep=",")"
+
+          if [ -z "$AFFECTED" ]; then
+            echo "No affected projects. Skipping npm backfill."
+            exit 0
+          fi
+
+          echo "Ensuring npm publish for: $AFFECTED"
+          yarn nx release publish \
+            --projects="$AFFECTED" \
+            --verbose
+
+      # Repoint npm auth at GitHub Packages. This regenerates the npmrc that
+      # setup-node manages (NPM_CONFIG_USERCONFIG) with a correct auth entry for
+      # npm.pkg.github.com — appending to that file by hand is fragile and
+      # previously produced ENEEDAUTH. Runs after the npm publish, which no
+      # longer needs the registry.npmjs.org auth this step replaces.
+      - name: Setup Node for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://npm.pkg.github.com'
+          always-auth: true
+
       # Publish to GitHub Packages as a secondary registry. Non-blocking: npm is the
       # primary registry, so a failure here must not fail the release.
       - name: Publish to GitHub Packages
@@ -262,10 +299,6 @@ jobs:
             echo "No affected projects. Skipping GitHub Packages publish."
             exit 0
           fi
-
-          # setup-node only wrote an auth line for registry.npmjs.org; add one for
-          # GitHub Packages so the publish can authenticate against it.
-          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN" >> "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
 
           # Publishes the versions the release step just committed. Nx resolves each
           # project's directory itself and skips versions already on the registry.
