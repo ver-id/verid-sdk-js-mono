@@ -29,17 +29,6 @@ yarn nx release --dry-run --skip-publish --projects=@ver-id/node-client
 Packages with no release tag yet **error** unless you add
 `--first-release --projects=<them>`. CI detects this on its own.
 
-## After it lands
-
-No manual changelog work — `nx release` writes, commits and pushes `CHANGELOG.md`
-itself. (This is why we keep no `## Unreleased` sections; a new package has no
-changelog file until its first release.)
-
-- [ ] Packages on npm at the expected versions.
-- [ ] GitHub Releases and `{projectName}@{version}` tags created.
-- [ ] The GitHub Packages step is `continue-on-error` — a failure there does not
-      invalidate the npm release.
-
 ## Version bumps
 
 Every package is `0.x`, and `adjustSemverBumpsForZeroMajorVersion` keeps it that way:
