@@ -1,11 +1,3 @@
-## Unreleased
-
-Build and bundling were realigned with the rest of the SDK now that the shared core
-is published as a separate `@ver-id/core` package.
-
-**No source changes are required.** Every export available in 0.11.2 is still
-exported under the same name. See [UPGRADING.md](../../UPGRADING.md) for details.
-
 ## 0.11.2 (2026-08-07)
 
 Version bump only.

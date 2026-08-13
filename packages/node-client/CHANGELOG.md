@@ -1,22 +1,3 @@
-## Unreleased
-
-### 🚀 Features
-
-- Export the `FlowAuthCodeDeliveryBinding` type, which selects how an authorization
-  code is delivered (redirect or embedded).
-
-The shared core is now published as a separate `@ver-id/core` package instead of
-being compiled into this bundle. It is declared as a regular dependency, so a normal
-install pulls it in automatically, and core classes now have a single identity across
-SDK package boundaries.
-
-`FileStorageCacheManager` and `MemoryStorageCacheManager` now live in `@ver-id/core`
-so this package and `@ver-id/embedded-node-client` share one implementation. Both are
-still re-exported from `@ver-id/node-client` under the same names.
-
-**No source changes are required.** Every export available in 0.13.2 is still
-exported under the same name. See [UPGRADING.md](../../UPGRADING.md) for details.
-
 ## 0.13.2 (2026-08-07)
 
 ### 🩹 Fixes

@@ -339,14 +339,13 @@ Set `VERID_GATEWAY_URI` when the Ver.iD flow UI is hosted separately from the OA
 
 ## Changelogs
 
-Each package keeps its own changelog, generated on release from conventional commits:
+Each package keeps its own changelog, written automatically on release from
+conventional commits. A package's changelog appears once it has shipped its first
+release.
 
 - [@ver-id/browser-client](./packages/browser-client/CHANGELOG.md)
 - [@ver-id/node-client](./packages/node-client/CHANGELOG.md)
 - [@ver-id/graphql-client](./packages/graphql-client/CHANGELOG.md)
-- [@ver-id/core](./packages/core/CHANGELOG.md)
-- [@ver-id/embedded-browser-client](./packages/embedded-browser-client/CHANGELOG.md)
-- [@ver-id/embedded-node-client](./packages/embedded-node-client/CHANGELOG.md)
 
 Upgrading between versions is covered in [UPGRADING.md](./UPGRADING.md), and the
 release process in [RELEASING.md](./RELEASING.md).

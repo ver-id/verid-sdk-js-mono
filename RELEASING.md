@@ -92,16 +92,27 @@ Merge to `main`. CI does the rest. Watch the `build-and-publish` job.
 
 ## 4. After the release lands
 
-- [ ] **Delete the `## Unreleased` block** from any `CHANGELOG.md` whose contents the
-      release just superseded. Nx prepends new entries to the **top** of the file, so
-      a stale `## Unreleased` section otherwise sits below the release that shipped
-      it. This is the only routine manual changelog step.
-- [ ] Verify the packages are on [npm](https://www.npmjs.com/org/ver-id) at the
-      expected versions.
-- [ ] Verify the GitHub Releases and `{projectName}@{version}` tags were created.
+There are no manual changelog steps. `nx release` writes each `CHANGELOG.md`,
+commits it as part of `chore(release): publish`, and pushes that commit and its tags
+to `main` itself, so the changelog is never left for a follow-up PR.
+
+We deliberately do **not** keep `## Unreleased` sections. That convention suits
+projects that batch up changes and cut a release by hand; here a merge to `main` is
+the release, so there is no window in which changes are merged but unreleased.
+Anything you would have written under `## Unreleased` belongs in the commit message,
+which is where Nx reads it from.
+
+All that is left is verification:
+
+- [ ] The packages are on [npm](https://www.npmjs.com/org/ver-id) at the expected
+      versions.
+- [ ] The GitHub Releases and `{projectName}@{version}` tags were created.
 - [ ] If the **Publish to GitHub Packages** step failed, note that it is
       `continue-on-error` by design — npm is the primary registry, so the release
       itself is still valid. Re-run manually if the mirror matters.
+
+A package's `CHANGELOG.md` is created by its first release, so a brand new package
+has no changelog file until it has shipped once.
 
 ## 5. How versions are derived
 
