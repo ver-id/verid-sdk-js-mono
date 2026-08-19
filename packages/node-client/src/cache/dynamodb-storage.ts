@@ -3,29 +3,35 @@ import type { CacheManagerOptions } from '@ver-id/core/cache';
 import { assertObject, assertString, assertFunction } from '@ver-id/core/utils';
 import { InvalidArgumentError } from '@ver-id/core/error';
 
-/**
- * Lazily loaded DynamoDB command classes from `@aws-sdk/lib-dynamodb`.
- * Cached after first import to avoid repeated dynamic imports.
- */
-let commandsCache: {
+type Commands = {
   PutCommand: new (input: unknown) => unknown;
   GetCommand: new (input: unknown) => unknown;
   DeleteCommand: new (input: unknown) => unknown;
   ScanCommand: new (input: unknown) => unknown;
-} | null = null;
+};
+/**
+ * Lazily loaded DynamoDB command classes from `@aws-sdk/lib-dynamodb`.
+ * Cached after first import to avoid repeated dynamic imports.
+ */
+let commandsCache: Commands | 'Dynamo DB Not Availible' | null = null;
 
-async function loadCommands() {
+async function loadCommands(): Promise<Commands> {
   if (!commandsCache) {
     try {
       // @ts-expect-error — @aws-sdk/lib-dynamodb is an optional peer dependency resolved at runtime
       const { PutCommand, GetCommand, DeleteCommand, ScanCommand } = await import('@aws-sdk/lib-dynamodb');
       commandsCache = { PutCommand, GetCommand, DeleteCommand, ScanCommand };
+      return commandsCache
     } catch {
-      throw new InvalidArgumentError(
-        '@aws-sdk/lib-dynamodb is required to use DynamoDBCacheManager. ' +
-          'Install it with: npm install @aws-sdk/lib-dynamodb @aws-sdk/client-dynamodb',
-      );
+      commandsCache = 'Dynamo DB Not Availible';
     }
+  }
+
+  if (commandsCache === 'Dynamo DB Not Availible') {
+    throw new InvalidArgumentError(
+      '@aws-sdk/lib-dynamodb is required to use DynamoDBCacheManager. ' +
+        'Install it with: npm install @aws-sdk/lib-dynamodb @aws-sdk/client-dynamodb',
+    );
   }
   return commandsCache;
 }
