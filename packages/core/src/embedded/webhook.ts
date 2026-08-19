@@ -9,7 +9,7 @@ export interface EmbeddedWebhookPayload {
   /** Correlates to the backend's cached code_verifier. */
   readonly state: string;
   /** "" when the flow used no intent. */
-  readonly intent_id: string;
+  readonly intent_id: string | null;
 }
 
 /** Result of parsing a raw webhook body against {@link EmbeddedWebhookPayload}. */
@@ -40,8 +40,13 @@ export function parseEmbeddedWebhookPayload(data: unknown): ParseEmbeddedWebhook
   if (!('state' in data) || typeof data.state !== 'string') {
     return { ok: false, reason: 'payload.state must be a string' };
   }
-  if (!('intent_id' in data) || typeof data.intent_id !== 'string') {
-    return { ok: false, reason: 'payload.intent_id must be a string' };
+  let intent_id: string | null = null;
+  if (('intent_id' in data)) {
+    if (typeof data.intent_id === 'string') {
+      intent_id = data.intent_id;
+    } else {
+      return {ok: false, reason: 'payload.intent_id must be string if given'}
+    }
   }
   return {
     ok: true,
@@ -50,7 +55,7 @@ export function parseEmbeddedWebhookPayload(data: unknown): ParseEmbeddedWebhook
       version: data.version,
       code: data.code,
       state: data.state,
-      intent_id: data.intent_id,
+      intent_id
     },
   };
 }
