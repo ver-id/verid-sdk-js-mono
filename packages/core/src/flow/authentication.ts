@@ -1,10 +1,11 @@
 import { Jwt } from '../types/jwt/index.js';
 import { assertAuthenticationResponse } from '../utils/assert.js';
-import { assertOpenIdJwtPayload } from '../utils/assert.js';
+import { assertOpenIdJwtPayload, assertString } from '../utils/assert.js';
 import { AuthenticationResponse } from '../types/response/index.js';
 import { OpenIdJwtPayload } from '../types/jwt/payload/index.js';
 import { VerificationIntent } from '../types/intent/verification.js';
 import { FlowBaseAuthorizationRequestParams, FlowBaseClientConfig, FlowBaseFinalizeParams, VeridFlowBaseClient } from './base.js';
+import { InvalidArgumentError } from '../error/index.js';
 import { ClientAuth } from '../types/oauth/index.js';
 
 /**
@@ -74,6 +75,8 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<string> {
+    assertString(codeChallenge, 'codeChallenge', InvalidArgumentError);
+
     const intent: VerificationIntent = {
       scope: 'openid',
       client_id: this.oauthClient.clientId(),

@@ -21,6 +21,9 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
+  // `jose` and `oauth4webapi` ship as ESM ("type": "module"); the default preset skips
+  // node_modules, so let @swc/jest transpile them (the OAuth client pulls both transitively).
+  transformIgnorePatterns: ['node_modules/(?!(?:jose|oauth4webapi)/)'],
   // Resolve @ver-id/core to its sources rather than its bundled dist. The cache manager
   // contract in ../core/tests asserts on error classes thrown inside core, and those only
   // match `instanceof` when both sides come from the same module graph.

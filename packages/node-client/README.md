@@ -176,6 +176,58 @@ const issuanceDecodedToken = await issuanceClient.decode(issuanceResponse);
 
 For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISSUANCE.md) document.
 
+### Business-wallet issuance
+
+Business-wallet issuance is a headless, machine-to-machine variant of issuance: instead of redirecting a
+person through a browser, your server triggers issuance directly and the credential is delivered
+asynchronously to a recipient organization's wallet (for example over QERDS). There is no PKCE and no
+redirect — every call authenticates as a confidential `issuance` client with a `client_secret`. Delivery
+status is **poll-only**; there is no callback.
+
+```ts
+import { VeridBusinessWalletIssuanceClient } from '@ver-id/node-client';
+
+const client = new VeridBusinessWalletIssuanceClient({
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
+  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
+});
+
+const clientAuth = { client_secret: '<YOUR_CLIENT_SECRET>' };
+
+// Step 1: Create an issuance intent (confidential client — no code challenge).
+// Pass either payload.mapping or payload.data, not both.
+const { intent_id } = await client.createIssuanceIntent(
+  { payload: { data: [{ attributeUuid: '<ATTRIBUTE_UUID>', value: 'John Doe' }] } },
+  clientAuth,
+);
+
+// Step 2: Trigger issuance for a recipient under a handler app (wallet); the delivery
+// method and envelope come from that handler app's config.
+const { deliveryId } = await client.issue(
+  { intentId: intent_id, recipient: '<RECIPIENT_ADDRESS>', handlerAppUuid: '<HANDLER_APP_UUID>' },
+  clientAuth,
+);
+
+// Step 3a: Read delivery status on demand.
+const status = await client.getDelivery(deliveryId, clientAuth);
+
+// Step 3b: …or poll until the delivery reaches a terminal state (REDEEMED or FAILED).
+const terminal = await client.pollUntilTerminal(deliveryId, clientAuth, {
+  intervalMs: 2000,
+  timeoutMs: 300000,
+});
+if (terminal.state === 'FAILED') {
+  console.error('Delivery failed:', terminal.failureReason);
+}
+```
+
+**Note:** `pollUntilTerminal` does not treat `FAILED` as an error — it resolves with the terminal status
+either way; inspect `status.state` and `status.failureReason`. It throws only if the timeout elapses
+before a terminal state is reached.
+
+For the delivery state reference and error handling, see the
+[BUSINESS-WALLET.md](./BUSINESS-WALLET.md) document.
+
 ## Examples
 
 See the [apps/sample-node-server](../../apps/sample-node-server) directory for a complete Express.js server implementation demonstrating authentication and verification flows.

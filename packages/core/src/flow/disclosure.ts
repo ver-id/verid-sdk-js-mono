@@ -1,8 +1,9 @@
 import { Jwt, JWTPayload } from '../types/jwt/index.js';
-import { assertDisclosureResponse } from '../utils/assert.js';
+import { assertDisclosureResponse, assertString } from '../utils/assert.js';
 import { DisclosureResponse } from '../types/response/index.js';
 import { VerificationIntent } from '../types/intent/verification.js';
 import { VeridFlowBaseClient, FlowBaseAuthorizationRequestParams, FlowBaseFinalizeParams, FlowBaseClientConfig } from './base.js';
+import { InvalidArgumentError } from '../error/index.js';
 import { ClientAuth } from '../types/oauth/index.js';
 
 /**
@@ -77,6 +78,8 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<string> {
+    assertString(codeChallenge, 'codeChallenge', InvalidArgumentError);
+
     const intent: VerificationIntent = {
       scope: 'disclosure',
       client_id: this.oauthClient.clientId(),

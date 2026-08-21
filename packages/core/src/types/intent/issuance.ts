@@ -1,6 +1,7 @@
 import { BaseIntent } from "../intent/base.js";
 
-export interface IssuanceIntent extends BaseIntent {
+/** Fields shared by every issuance intent, interactive or headless. */
+export interface IssuanceIntentBase extends BaseIntent {
   scope: 'issuance';
   payload: {
     mapping: Record<string, unknown>;
@@ -13,3 +14,14 @@ export interface IssuanceIntent extends BaseIntent {
   brandUuid?: string;
   requireExplicitConsent?: boolean;
 }
+
+/** Interactive issuance intent — carries the mandatory PKCE code challenge. */
+export interface IssuanceIntent extends IssuanceIntentBase {
+  code_challenge: string;
+}
+
+/**
+ * Headless (machine-to-machine) business-wallet issuance intent. Authenticates as a confidential
+ * client, so it has no PKCE code challenge.
+ */
+export type BusinessWalletIssuanceIntent = IssuanceIntentBase;

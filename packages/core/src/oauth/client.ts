@@ -424,4 +424,75 @@ export class VeridOAuthClient {
       protectedHeader,
     } as Jwt<T>;
   }
+
+  /**
+   * Issues an HTTP Basic-authenticated JSON request as a confidential client and maps the OAuth
+   * `{ error, error_description }` error envelope to an {@link OperationFailedError} on failure.
+   *
+   * This is the shared transport primitive for headless, machine-to-machine flows: the caller
+   * builds the target URL, and this method attaches `clientId:client_secret` Basic credentials,
+   * performs the request, and normalises errors. It does not discover endpoints — pass a full URL.
+   *
+   * @param method - The HTTP method.
+   * @param url - The fully-resolved endpoint URL.
+   * @param clientAuth - The confidential client credentials (`client_secret` required).
+   * @param body - An optional JSON request body.
+   * @returns The parsed JSON response body.
+   * @throws {OperationFailedError} When the request fails to send or the response is not `ok`.
+   */
+  async authenticatedRequest<T>(
+    method: 'GET' | 'POST',
+    url: URL,
+    clientAuth: ClientAuth,
+    body?: Record<string, unknown>,
+  ): Promise<T> {
+    assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
+    assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
+
+    const credentials = btoa(`${this._clientId}:${clientAuth.client_secret}`);
+    const headers: Record<string, string> = { Authorization: `Basic ${credentials}` };
+    if (body) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(url.toString(), {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (error) {
+      throw new OperationFailedError(`Request to ${url.pathname} failed`, error);
+    }
+
+    const text = await response.text();
+    const parsed = text ? this._parseJson(text) : undefined;
+
+    if (!response.ok) {
+      throw this._toError(response.status, parsed);
+    }
+
+    assertObject(parsed, 'response body', OperationFailedError);
+    return parsed as T;
+  }
+
+  /** Parses a JSON body, returning `undefined` rather than throwing on malformed JSON. */
+  private _parseJson(text: string): Record<string, unknown> | undefined {
+    try {
+      return JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Builds an {@link OperationFailedError} from the OAuth error envelope, when present. */
+  private _toError(status: number, body: Record<string, unknown> | undefined): OperationFailedError {
+    const code = typeof body?.error === 'string' ? body.error : undefined;
+    const description =
+      typeof body?.error_description === 'string'
+        ? body.error_description
+        : `Request failed with status ${status}`;
+    return new OperationFailedError(description, undefined, code);
+  }
 }

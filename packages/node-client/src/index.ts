@@ -1,5 +1,10 @@
 // client exports
-export { VeridAuthenticationClient, VeridDisclosureClient, VeridIssuanceClient } from './client/index.js';
+export {
+  VeridAuthenticationClient,
+  VeridDisclosureClient,
+  VeridIssuanceClient,
+  VeridBusinessWalletIssuanceClient,
+} from './client/index.js';
 
 // Cache exports
 export {
@@ -41,6 +46,18 @@ export type {
   IssuanceRequestParams,
   IssuanceFinalizeParams,
 } from './client/issuance.js';
+
+export type {
+  NodeBusinessWalletIssuanceClientConfig,
+  PollUntilTerminalOptions,
+  BusinessWalletIssueParams,
+  BusinessWalletIssueResponse,
+  BusinessWalletDeliveryStatus,
+} from './client/business-wallet.js';
+export {
+  BusinessWalletDeliveryState,
+  BusinessWalletDeliveryMethod,
+} from './client/business-wallet.js';
 
 /**
  * Export core errors
