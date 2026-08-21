@@ -1,5 +1,5 @@
 import { Jwt, JWTPayload } from '../types/jwt/index.js';
-import { assert, assertArray, assertIssuanceResponse, assertObject } from '../utils/assert.js';
+import { assert, assertArray, assertIssuanceResponse, assertObject, assertString } from '../utils/assert.js';
 import { IssuanceResponse } from '../types/response/index.js';
 import { VeridFlowBaseClient, FlowBaseAuthorizationRequestParams, FlowBaseFinalizeParams, FlowBaseClientConfig } from './base.js';
 import { IssuanceIntent, IntentResponse } from '../types/intent/index.js';
@@ -96,6 +96,8 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
     codeChallenge: string,
     clientAuth?: ClientAuth,
   ): Promise<IntentResponse> {
+    assertString(codeChallenge, 'codeChallenge', InvalidArgumentError);
+
     const hasData = Array.isArray(issuanceIntent.payload.data) && issuanceIntent.payload.data.length > 0;
     const hasMapping = issuanceIntent.payload.mapping && Object.keys(issuanceIntent.payload.mapping).length > 0;
 

@@ -341,3 +341,5 @@ const issuanceDecodedToken = await issuanceClient.decode(
 ```
 
 **Note:** The token verification happens on the server side, ensuring that the token has not been tampered with and was issued by Ver.iD. The decoded token contains the issued credential information based on your issuance flow configuration.
+
+For headless, machine-to-machine issuance to a recipient organization's wallet, see the [BUSINESS-WALLET.md](./BUSINESS-WALLET.md) document.
