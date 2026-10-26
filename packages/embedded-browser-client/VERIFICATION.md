@@ -1,6 +1,6 @@
 ## Verification (embedded mode)
 
-Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. This package is the **browser half** of Ver.iD embedded mode: it mounts the Ver.iD iframe on your own page, performs the origin-pinned `postMessage` handshake, and surfaces the flow lifecycle as typed events. It holds **no secrets** — the PKCE `code_verifier` and the authorization `code` never touch the browser.
+Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. This package is the **browser half** of Ver.iD embedded mode: it loads Ver.iD's embedded card into your own page and surfaces the flow lifecycle as typed events. It holds **no secrets** — the PKCE `code_verifier` and the authorization `code` never touch the browser.
 
 The browser API is a single, flow-agnostic function, `mountVeridEmbeddedComponent(...)`. Whether a session runs an authentication, verification, or issuance flow is decided by the backend that created the **bootstrap** (here, a `VeridEmbeddedDisclosureClient`) and by the `clientId`/`scope` it carries. This page frames the API for verification.
 
@@ -20,7 +20,7 @@ app.post('/api/verid/start', async (_req, res) => {
     webhookUri: 'https://app.example.com/api/verid/webhook',
   });
   res.json(bootstrap);
-  // { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+  // { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 });
 ```
 
@@ -28,7 +28,14 @@ The bootstrap contains only public values — the `code_verifier` stays on the s
 
 ### Mount the embedded component
 
-Fetch the bootstrap and pass it straight into `mountVeridEmbeddedComponent`. Everything except `container` (and optional `iframe`) comes directly from the bootstrap, so spreading it is the idiomatic call:
+Your page needs a container for the card, and whatever starts the flow: usually your own button.
+
+```html
+<button id="verid-continue">Continue with Ver.iD</button>
+<div id="verid-embed"></div>
+```
+
+Fetch the bootstrap and pass it straight into `mountVeridEmbeddedComponent`. Everything except `container` comes directly from the bootstrap, so spreading it is the idiomatic call:
 
 ```ts
 import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
@@ -39,53 +46,40 @@ const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed')!,
   ...bootstrap,
 });
+
+document.getElementById('verid-continue')!.addEventListener('click', () => veridComponent.open());
 ```
 
-`mountVeridEmbeddedComponent` returns **synchronously** so you can attach listeners before the iframe loads. `VeridEmbeddedComponentParams`:
+`mountVeridEmbeddedComponent` returns **synchronously** so you can attach listeners before anything happens. It adds a host element carrying the flow's parameters inside `container` and loads Ver.iD's loader, `embedded.js`, from the bootstrap's `loaderUri` (once per page). The loader preloads the Ver.iD iframe, hidden; nothing starts until you call `veridComponent.open()`. Call it from your button, from your own step, or straight after mounting to start on page load. On a phone, calling it again reopens the drawer the person closed. The card then appears inline, as wide as the container and as tall as its content, or as a full-screen drawer on phones; its look is the flow's embedded appearance from Ver.iD Studio. Mount as early as you can, so the iframe is preloaded by the time you call `open()`, and one component at a time: destroy the previous one before mounting the next. **A bootstrap starts one flow.** For a new attempt (after `cancel` or `error`, after a page reload, or after you removed the card) fetch a new bootstrap from your backend, with a new intent where the flow uses one. Mounting an old bootstrap again fails: Ver.iD starts one flow per intent, and a finished flow's code verifier is gone. Ver.iD's own Try again and reopening the phone drawer stay within the flow and need nothing from you.
 
-| Field          | Source     | Description                                                              |
-| -------------- | ---------- | ----------------------------------------------------------------------- |
-| `container`    | you        | An `HTMLElement` to mount into, or an existing `HTMLIFrameElement`.     |
-| `gatewayUri`   | bootstrap  | Ver.iD gateway origin. Inbound messages are pinned to this origin.       |
-| `clientId`     | bootstrap  | The disclosure flow id.                                                 |
-| `scope`        | bootstrap  | The requested scopes (e.g. `openid disclosure`).                        |
-| `state`        | bootstrap  | PKCE state; correlate the backend result to this value.                 |
-| `codeChallenge`| bootstrap  | Public PKCE challenge. The verifier never reaches the browser.          |
-| `webhookUri`   | bootstrap  | The backend endpoint Ver.iD posts the signed result to.                  |
-| `intentId`     | bootstrap  | Optional; only present if the backend used a disclosure intent.         |
-| `iframe`       | you        | Optional presentation overrides (see below).                            |
+`VeridEmbeddedComponentParams`:
 
-#### Customizing the iframe
-
-Pass `iframe` to override how the SDK creates the element (ignored if you supplied your own `HTMLIFrameElement` as the container):
-
-```ts
-const veridComponent = mountVeridEmbeddedComponent({
-  container: document.getElementById('verid-embed')!,
-  ...bootstrap,
-  iframe: {
-    className: 'verid-frame',
-    style: { width: '100%', height: '640px', border: '0' },
-    allow: 'camera; microphone', // default
-    sandbox: 'allow-scripts allow-same-origin', // default
-    title: 'Ver.iD embedded flow', // default
-  },
-});
-```
+| Field          | Source     | Description                                                                          |
+| -------------- | ---------- | ------------------------------------------------------------------------------------ |
+| `container`    | you        | An `HTMLElement` the card renders in. Size its width; the height follows the card.   |
+| `loaderUri`    | bootstrap  | Ver.iD's loader script (`embedded.js`), as the issuer advertises it. |
+| `clientId`     | bootstrap  | The disclosure flow id.                                                              |
+| `scope`        | bootstrap  | The requested scopes (e.g. `openid disclosure`).                                     |
+| `state`        | bootstrap  | PKCE state; correlate the backend result to this value.                              |
+| `codeChallenge`| bootstrap  | Public PKCE challenge. The verifier never reaches the browser.                       |
+| `webhookUri`   | bootstrap  | The backend endpoint Ver.iD posts the signed result to.                              |
+| `intentId`     | bootstrap  | Optional; only present if the backend used a disclosure intent.                      |
 
 ### Handle lifecycle events
 
 `VeridEmbeddedComponent` extends `EventTarget` with a typed `addEventListener`. The event map is:
 
-| Event      | Detail                | Meaning                                                          |
-| ---------- | --------------------- | --------------------------------------------------------------- |
-| `ready`    | `void`                | The Ver.iD iframe finished loading and is interactive.           |
-| `complete` | `void`                | The flow finished. **Lifecycle only — carries no code.**        |
-| `error`    | `VeridEmbeddedError`  | `{ error: string; error_description?: string }`.                |
-| `cancel`   | `void`                | The user cancelled the flow.                                    |
+| Event      | Detail                | Meaning                                                                              |
+| ---------- | --------------------- | ------------------------------------------------------------------------------------ |
+| `ready`    | `void`                | `open()` started the flow; the card is shown.                                        |
+| `complete` | `void`                | The flow finished. **Lifecycle only — carries no code.**                             |
+| `error`    | `VeridEmbeddedError`  | `{ error: string; error_description?: string }` — `loader_unavailable` when `embedded.js` could not be loaded, otherwise Ver.iD's code for logging and support (see below). |
+| `cancel`   | `void`                | The person cancelled the flow.                                                       |
+
+After `open()` the page hears **either** `ready` (the flow started and the card is shown) **or** `error` (the flow could not start; the card shows why). After `ready` comes **at most one** of `complete`, `error` and `cancel`, and possibly none: a person who leaves the page ends the flow silently, and a wallet-side cancel or an expired request is not an ending (the card offers to try again). If your page's origin is not one of the flow's allowed embed origins in Studio, the page hears **nothing at all**: Ver.iD reports nothing to a site it has not verified, and the card shows the error. Do not wait on any event; the backend's webhook is the result.
 
 ```ts
-veridComponent.addEventListener('ready', () => setLoading(false));
+veridComponent.addEventListener('ready', () => setStarted(true));
 
 veridComponent.addEventListener('complete', async () => {
   // `complete` means "start awaiting the backend result" — NOT "the result is ready".
@@ -96,14 +90,19 @@ veridComponent.addEventListener('complete', async () => {
 });
 
 veridComponent.addEventListener('error', (e) => {
-  showError(e.detail.error);
-  veridComponent.destroy();
+  logError(e.detail); // for your logs and Ver.iD support
+  if (e.detail.error === 'loader_unavailable') {
+    showFallback(); // there is no card: Ver.iD could not be loaded
+  }
+  // Otherwise the card shows the person what went wrong; keep it until you remove it.
 });
 
 veridComponent.addEventListener('cancel', () => veridComponent.destroy());
 ```
 
-Call `veridComponent.destroy()` to detach the message listener and remove the iframe (if the SDK created it). The readonly `veridComponent.iframe` gives you the underlying `HTMLIFrameElement` if you need it.
+**Error codes.** `error` is for your logs and for Ver.iD support, not for branching. Only `loader_unavailable` is fixed: `open()` could not load `embedded.js` (network, or a blocked script), so there is no card and your page should say what to do next. Every other code is Ver.iD's own; the set is not fixed and can change without a new SDK release. The card already shows the person what went wrong, so leave it in place rather than destroying it on `error`.
+
+Call `veridComponent.destroy()` to detach the event listeners and remove the host element, and with it the card. The readonly `veridComponent.host` is that element if you need it. The loader script stays on the page.
 
 ### How the result actually arrives
 
@@ -113,4 +112,5 @@ The authorization `code` is **never** delivered to the browser. When the flow co
 
 - **No secrets in the browser.** No PKCE verifier or authorization code ever touches the browser. The backend generates the `state`/`codeChallenge`, keeps the verifier server-side, and receives the code on its webhook.
 - **`complete` is a lifecycle signal, not a result.** It means "start awaiting the backend result" (poll/SSE) — not "the result is ready".
-- **Origin-pinned messaging.** Outbound `ronan:init` is posted with `targetOrigin` fixed to `gatewayUri`; inbound messages are accepted only from that origin and from the component's own iframe. A malformed message from the pinned origin is surfaced as an `error` event.
+- **Content Security Policy.** If your page sends a CSP, allow the origin of `loaderUri` (Ver.iD's gateway) in `script-src`, for `embedded.js`, and in `frame-src`, for the card's iframe. A blocked script surfaces as an `error` with `loader_unavailable` when you call `open()`; a blocked iframe never appears and the page hears nothing.
+- **Origin-pinned lifecycle.** Ver.iD's loader accepts the iframe's messages only from its own origin and its own iframe, and fires the `verid:` events on the host element only for those. Ver.iD posts the lifecycle to your page only if its origin is one of the flow's allowed embed origins in Studio.
