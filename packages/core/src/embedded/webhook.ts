@@ -1,6 +1,6 @@
 /** Signed server-to-server webhook payload delivered to the relying-party backend. */
 export interface EmbeddedWebhookPayload {
-  /** Event type, e.g. "verification.completed". */
+  /** Event type; the platform sends "v1.flow.completed". */
   readonly type: string;
   /** Payload schema version. */
   readonly version: number;
