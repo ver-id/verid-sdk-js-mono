@@ -20,7 +20,7 @@ export interface EmbeddedBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  gatewayUri: string;
+  loaderUri: string;
   intentId?: string;
 }
 
@@ -180,7 +180,8 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
   };
 
   /**
-   * Steps 3-5 (BROWSER) — mount the Ver.iD iframe and wire the lifecycle.
+   * Steps 3-5 (BROWSER) — mount the embedded component and wire the lifecycle. The
+   * flow starts on `openSession()`.
    */
   const mountSession = (container: HTMLElement) => {
     if (!bootstrap.value) {
@@ -194,9 +195,6 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
       const embedded = mountVeridEmbeddedComponent({
         container,
         ...bootstrap.value,
-        iframe: {
-          style: { width: '100%', height: '640px', border: '0' },
-        },
       });
 
       embedded.addEventListener('ready', () => {
@@ -233,6 +231,11 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     } catch (err) {
       handleError(err);
     }
+  };
+
+  /** Starts the flow; on a phone, a second call reopens the closed drawer. */
+  const openSession = () => {
+    session.value?.open();
   };
 
   /**
@@ -278,7 +281,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     }
   };
 
-  /** Detach the message listener and remove the iframe. */
+  /** Detach the message listener and remove the card. */
   const destroySession = () => {
     session.value?.destroy();
     session.value = null;
@@ -330,6 +333,7 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
     initializeClient,
     startSession,
     mountSession,
+    openSession,
     awaitResult,
     destroySession,
     startOver,
@@ -348,25 +352,27 @@ const bootstrap = await fetch('/api/${scope}/embedded/start', {
   method: 'POST',
 }).then((r) => r.json());
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 // No code_verifier, no authorization code — those never reach the browser.`,
 
-  mount: `// BROWSER — mount the Ver.iD iframe
+  mount: `// BROWSER — mount the embedded component
+// The page has a container for the card, and a button that starts the flow:
+//   <button id="verid-continue">Continue with Ver.iD</button>
+//   <div id="verid-embed"></div>
 import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
 const veridComponent = mountVeridEmbeddedComponent({
-  container: embedContainer.value,   // an HTMLElement, or an existing <iframe>
+  container: embedContainer.value,   // an HTMLElement; the card is as wide as it
   ...bootstrap,
-  iframe: {
-    style: { width: '100%', height: '640px', border: '0' },
-    // defaults: allow="camera; microphone"
-    //           sandbox="allow-scripts allow-same-origin"
-  },
-});`,
+});
+// Ver.iD's embedded.js is loaded from the bootstrap's loaderUri. It preloads the card,
+// hidden; nothing starts until open(). Call it from your button, your own step,
+// or straight after mounting to start on page load.
+document.getElementById('verid-continue').addEventListener('click', () => veridComponent.open());`,
 
   listeners: `// BROWSER — attach the lifecycle listeners
 veridComponent.addEventListener('ready', () => {
-  // The iframe has loaded and is interactive.
+  // open() started the flow; the card is shown.
   loading.value = false;
 });
 
@@ -378,8 +384,10 @@ veridComponent.addEventListener('complete', () => {
 });
 
 veridComponent.addEventListener('error', (event) => {
+  // For logs and Ver.iD support; only loader_unavailable is a fixed code.
   error.value = event.detail.error_description ?? event.detail.error;
-  // Leave the component mounted: the iframe is showing the Ver.iD error screen.
+  // loader_unavailable: embedded.js did not load, so there is no card to show.
+  // Otherwise leave the component mounted: the card is showing the Ver.iD error screen.
 });
 
 veridComponent.addEventListener('cancel', () => {
@@ -387,8 +395,8 @@ veridComponent.addEventListener('cancel', () => {
   veridComponent.destroy();
 });
 
-// Always destroy on unmount so the window message listener is detached and the
-// iframe is removed.
+// Always destroy on unmount so the event listeners are detached and the card is
+// removed.
 onBeforeUnmount(() => veridComponent.destroy());`,
 
   poll: (scope: EmbeddedScope) => `// BROWSER — poll your backend for the finalized result

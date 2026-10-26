@@ -290,12 +290,12 @@
       v-if="bootstrap"
       class="section step-browser"
     >
-      <h2><span class="step-badge browser">Browser</span>4. Mount the Ver.iD iframe</h2>
+      <h2><span class="step-badge browser">Browser</span>4. Mount the embedded component</h2>
 
       <p v-if="status === 'starting'">
-        Mount the session to render the flow inline. The iframe origin is pinned as the trust
-        anchor for all postMessage traffic. The <code>intentId</code> travels along in the
-        <code>ronan:init</code> message.
+        Mount the component in the page. Ver.iD's loader preloads the card, hidden, and the
+        flow starts when the page calls <code>open()</code>, here from its own button. The <code>intentId</code> travels along as
+        <code>data-intent-id</code> on the host element.
       </p>
 
       <button
@@ -313,6 +313,15 @@
         />
         <span>{{ statusLabel }}</span>
       </div>
+
+      <button
+        v-if="status === 'mounted' || status === 'ready'"
+        type="button"
+        class="btn-primary"
+        @click="openSession"
+      >
+        Continue with Ver.iD
+      </button>
 
       <div
         ref="embedContainer"
@@ -450,8 +459,9 @@
           backend
         </li>
         <li>
-          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> mounts the Ver.iD iframe and
-          posts <code>ronan:init</code> to the pinned origin
+          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> adds the host element and loads
+          Ver.iD's <code>embedded.js</code>; the flow starts when the page calls
+          <code>open()</code>, from its own button or on page load
         </li>
         <li>
           <strong>[Browser]</strong> Lifecycle events arrive as <code>ready</code> /
@@ -513,6 +523,7 @@ const {
   initializeClient,
   startSession,
   mountSession,
+  openSession,
   startOver,
 } = useEmbeddedSession('issuance');
 
@@ -579,7 +590,7 @@ const statusLabel = computed(() => {
     case 'starting':
       return 'Session created — not mounted yet';
     case 'mounted':
-      return 'Iframe mounted, waiting for the Ver.iD component to become ready…';
+      return 'Mounted — click Continue with Ver.iD to start the flow';
     case 'ready':
       return 'Ready — the user is completing the flow';
     case 'awaitingResult':

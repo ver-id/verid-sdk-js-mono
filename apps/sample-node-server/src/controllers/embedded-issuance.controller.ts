@@ -15,7 +15,6 @@ import {
   generateEmbeddedIssuanceResultSnippet,
 } from '../services/index.js';
 import {
-  EMBEDDED_CONFIG,
   embeddedScopeFor,
   embeddedWebhookUri,
   isWebhookPubliclyReachable,
@@ -145,7 +144,6 @@ export async function startEmbeddedIssuanceSession(
       state,
       codeChallenge,
       intentId: intentResponse.intent_id,
-      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
     });
 
     const codeSnippet = generateEmbeddedIssuanceStartSnippet(scope, webhookUri, {
@@ -201,6 +199,14 @@ export async function handleEmbeddedIssuanceWebhook(
   }
 
   const { state } = verification.payload;
+
+  // A redelivery of a webhook this server already finalized: the result is stored,
+  // so acknowledge it and Ver.iD stops delivering. The SDK removed the verifier on
+  // success, so finalizing again would fail.
+  if (embeddedResultStore.get(state)?.status === 'ready') {
+    return res.json({ received: true });
+  }
+
   const issuanceClient = clientService.getEmbeddedIssuanceClient();
 
   if (!issuanceClient) {

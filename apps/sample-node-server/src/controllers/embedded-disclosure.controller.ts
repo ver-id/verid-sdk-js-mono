@@ -16,7 +16,6 @@ import {
   generateEmbeddedDisclosureResultSnippet,
 } from '../services/index.js';
 import {
-  EMBEDDED_CONFIG,
   embeddedScopeFor,
   embeddedWebhookUri,
   isWebhookPubliclyReachable,
@@ -92,7 +91,6 @@ export async function startEmbeddedDisclosureSession(
     const bootstrap = await disclosureClient.createEmbeddedSession({
       scope,
       webhookUri,
-      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
     });
 
     let codeSnippet: string;
@@ -181,6 +179,14 @@ export async function handleEmbeddedDisclosureWebhook(
   }
 
   const { state } = verification.payload;
+
+  // A redelivery of a webhook this server already finalized: the result is stored,
+  // so acknowledge it and Ver.iD stops delivering. The SDK removed the verifier on
+  // success, so finalizing again would fail.
+  if (embeddedResultStore.get(state)?.status === 'ready') {
+    return res.json({ received: true });
+  }
+
   const disclosureClient = clientService.getEmbeddedDisclosureClient();
 
   if (!disclosureClient) {
