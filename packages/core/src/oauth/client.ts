@@ -149,6 +149,23 @@ export class VeridOAuthClient {
   }
 
   /**
+   * Reads where the authorization server serves its embedded loader script (`embedded.js`),
+   * advertised as `embedded_loader_uri` in its metadata.
+   *
+   * @returns The loader script's URL
+   * @throws {InvalidAssertionError} When the authorization server metadata has no embedded loader
+   */
+  async embeddedLoaderUri(): Promise<string> {
+    const authorizationServer = await this.provider.discover(this.issuer);
+    assertUrlString(
+      authorizationServer.embedded_loader_uri,
+      'embedded_loader_uri in authorization server metadata',
+      InvalidAssertionError
+    );
+    return authorizationServer.embedded_loader_uri;
+  }
+
+  /**
    * Creates a new intent at the authorization server's intent endpoint.
    *
    * @param intent - The intent to create
