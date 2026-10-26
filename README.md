@@ -151,7 +151,7 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
   webhookUri: 'https://your-public-host/api/disclosure/embedded/webhook',
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 // The code_verifier stays server-side, cached under bootstrap.state.
 res.json(bootstrap);
 ```
@@ -334,7 +334,7 @@ VERID_EMBEDDED_DISCLOSURE_SCOPES=disclosure
 VITE_VERID_EMBEDDED_DISCLOSURE_FLOW_ID=<flow id>
 ```
 
-Set `VERID_GATEWAY_URI` when the Ver.iD flow UI is hosted separately from the OAuth issuer; it otherwise defaults to the issuer origin. Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
+Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
 
 
 ## Changelogs
