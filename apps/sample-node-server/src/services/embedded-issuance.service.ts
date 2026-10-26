@@ -22,7 +22,6 @@ export function generateStartSnippet(
   intent: {
     challenge?: string;
     brandUuid?: string;
-    requireExplicitConsent?: boolean;
     payload: unknown;
   }
 ): string {
@@ -37,9 +36,6 @@ export function generateStartSnippet(
   }
   if (intent.brandUuid) {
     params.push(`    brandUuid: '${intent.brandUuid}'`);
-  }
-  if (intent.requireExplicitConsent !== undefined) {
-    params.push(`    requireExplicitConsent: ${intent.requireExplicitConsent}`);
   }
 
   return `// SERVER — POST /api/issuance/embedded/start

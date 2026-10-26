@@ -30,7 +30,6 @@ export interface EmbeddedStartRequest {
   useIntent?: boolean;
   challenge?: string;
   brandUuid?: string;
-  requireExplicitConsent?: boolean;
   /**
    * Issuance only, and mandatory there: what is being issued.
    *

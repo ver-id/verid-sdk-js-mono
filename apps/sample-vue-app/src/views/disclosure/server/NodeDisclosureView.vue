@@ -90,7 +90,7 @@
     >
       <h3>Optional: Use Intent-based Flow</h3>
       <p style="color: #666; margin-bottom: 15px;">
-        You can optionally create a disclosure intent first for advanced customization (custom challenge, brandUuid, requireExplicitConsent).
+        You can optionally create a disclosure intent first for advanced customization (custom challenge, brandUuid).
         Otherwise, continue below to generate the disclosure URL directly.
       </p>
       <button
@@ -154,7 +154,7 @@
       <h2>3. Create Disclosure Intent</h2>
 
       <p>
-        Now create a disclosure intent on the server using the code challenge. You can optionally provide a custom challenge, brandUuid, and requireExplicitConsent:
+        Now create a disclosure intent on the server using the code challenge. You can optionally provide a custom challenge and brandUuid:
       </p>
 
       <div class="config-form">
@@ -178,28 +178,6 @@
             placeholder="brand-uuid-123"
           >
           <small style="color: #666;">Brand-specific customization</small>
-        </div>
-        <div class="form-group">
-          <label>Require Explicit Consent (Optional):</label>
-          <div>
-            <label style="margin-right: 15px; font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="true"
-              >
-              True
-            </label>
-            <label style="font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="false"
-              >
-              False
-            </label>
-          </div>
-          <small style="color: #666;">Force the user to explicitly consent to the disclosure (true) or not (false)</small>
         </div>
       </div>
 
@@ -370,7 +348,6 @@ const loading = ref(false);
 const intentOptions = ref({
   challenge: '',
   brandUuid: '',
-  requireExplicitConsent: undefined,
 });
 
 const initCodeSnippet = ref('');
@@ -459,9 +436,6 @@ const createIntent = async () => {
     if (intentOptions.value.brandUuid) {
       payload.brandUuid = intentOptions.value.brandUuid;
     }
-    if (intentOptions.value.requireExplicitConsent !== undefined) {
-      payload.requireExplicitConsent = intentOptions.value.requireExplicitConsent;
-    }
 
     const response = await fetch(`${API_URL}/disclosure/create-intent`, {
       method: 'POST',
@@ -545,7 +519,6 @@ const resetClient = () => {
   intentOptions.value = {
     challenge: '',
     brandUuid: '',
-    requireExplicitConsent: undefined,
   };
   
   // Reset config to defaults

@@ -44,7 +44,6 @@ export interface EmbeddedIntentOptions {
   useIntent: boolean;
   challenge: string;
   brandUuid: string;
-  requireExplicitConsent: boolean | undefined;
   /**
    * Issuance only: what is being issued. Exactly one of `mapping` or `data`.
    */
@@ -151,9 +150,6 @@ export function useEmbeddedSession(scope: EmbeddedScope) {
         body.useIntent = true;
         if (intent.challenge) body.challenge = intent.challenge;
         if (intent.brandUuid) body.brandUuid = intent.brandUuid;
-        if (intent.requireExplicitConsent !== undefined) {
-          body.requireExplicitConsent = intent.requireExplicitConsent;
-        }
         if (intent.payload) body.payload = intent.payload;
       }
 

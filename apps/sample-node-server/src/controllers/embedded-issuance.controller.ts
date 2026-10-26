@@ -84,7 +84,7 @@ export async function startEmbeddedIssuanceSession(
       });
     }
 
-    const { challenge, brandUuid, requireExplicitConsent } = req.body;
+    const { challenge, brandUuid } = req.body;
     const intentPayload = (req.body.payload ?? {}) as IssuanceIntentPayload['payload'];
 
     // Issuance has no intent-less variant — the intent carries what is issued.
@@ -128,9 +128,6 @@ export async function startEmbeddedIssuanceSession(
 
     if (challenge) intent.challenge = challenge;
     if (brandUuid) intent.brandUuid = brandUuid;
-    if (requireExplicitConsent !== undefined) {
-      intent.requireExplicitConsent = requireExplicitConsent;
-    }
 
     const intentResponse = await issuanceClient.createIssuanceIntent(
       intent,
@@ -149,7 +146,6 @@ export async function startEmbeddedIssuanceSession(
     const codeSnippet = generateEmbeddedIssuanceStartSnippet(scope, webhookUri, {
       ...(challenge ? { challenge } : {}),
       ...(brandUuid ? { brandUuid } : {}),
-      ...(requireExplicitConsent !== undefined ? { requireExplicitConsent } : {}),
       payload: intent.payload,
     });
 

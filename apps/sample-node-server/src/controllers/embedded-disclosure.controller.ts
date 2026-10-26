@@ -97,18 +97,14 @@ export async function startEmbeddedDisclosureSession(
     let intentId: string | undefined;
 
     if (req.body.useIntent) {
-      const { challenge, brandUuid, requireExplicitConsent } = req.body;
+      const { challenge, brandUuid } = req.body;
       const payload: {
         challenge?: string;
         brandUuid?: string;
-        requireExplicitConsent?: boolean;
       } = {};
 
       if (challenge) payload.challenge = challenge;
       if (brandUuid) payload.brandUuid = brandUuid;
-      if (requireExplicitConsent !== undefined) {
-        payload.requireExplicitConsent = requireExplicitConsent;
-      }
 
       const clientSecret = process.env.VERID_CLIENT_SECRET;
       assert(

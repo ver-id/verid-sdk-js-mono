@@ -105,7 +105,7 @@ export async function generateDisclosureCodeChallenge(
  * Create disclosure intent
  */
 export async function createDisclosureIntent(
-  req: Request<object, object, { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean }>,
+  req: Request<object, object, { challenge?: string; brandUuid?: string }>,
   res: Response
 ): Promise<Response> {
   try {
@@ -126,12 +126,11 @@ export async function createDisclosureIntent(
       });
     }
 
-    const { challenge, brandUuid, requireExplicitConsent } = req.body;
-    const payload: { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean } = {};
+    const { challenge, brandUuid } = req.body;
+    const payload: { challenge?: string; brandUuid?: string } = {};
     
     if (challenge) payload.challenge = challenge;
     if (brandUuid) payload.brandUuid = brandUuid;
-    if (requireExplicitConsent !== undefined) payload.requireExplicitConsent = requireExplicitConsent;
 
     // Get client secret from environment
     const clientSecret = process.env.VERID_CLIENT_SECRET;

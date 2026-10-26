@@ -19,7 +19,6 @@ export function useIssuance() {
   const intentOptions = reactive({
     challenge: '',
     brandUuid: '',
-    requireExplicitConsent: undefined,
     payload: {
       mapping: {} as Record<string, unknown>,
       data: [] as Array<{
@@ -112,7 +111,6 @@ export function useIssuance() {
         payload: typeof payloadObj;
         challenge?: string; 
         brandUuid?: string;
-        requireExplicitConsent?: boolean;
       } = {
         payload: payloadObj,
       };
@@ -120,7 +118,6 @@ export function useIssuance() {
       // Add optional parameters if provided
       if (intentOptions.challenge) payload.challenge = intentOptions.challenge;
       if (intentOptions.brandUuid) payload.brandUuid = intentOptions.brandUuid;
-      if (intentOptions.requireExplicitConsent !== undefined) payload.requireExplicitConsent = intentOptions.requireExplicitConsent;
 
       const response = await issuanceClient.createIssuanceIntent(payload, codeChallenge.value);
 

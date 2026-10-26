@@ -214,25 +214,6 @@
             placeholder="brand-uuid-123"
           >
         </div>
-        <div class="form-group">
-          <label>Require explicit consent (optional):</label>
-          <div>
-            <label style="margin-right: 15px; font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="true"
-              > True
-            </label>
-            <label style="font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="false"
-              > False
-            </label>
-          </div>
-        </div>
       </div>
 
       <div
@@ -532,7 +513,6 @@ const embedContainer = ref<HTMLElement | null>(null);
 const intentOptions = reactive({
   challenge: '',
   brandUuid: '',
-  requireExplicitConsent: undefined as boolean | undefined,
 });
 
 const payloadType = ref<'mapping' | 'data'>('mapping');
@@ -582,7 +562,6 @@ const reset = () => {
   payloadDataJson.value = '[]';
   intentOptions.challenge = '';
   intentOptions.brandUuid = '';
-  intentOptions.requireExplicitConsent = undefined;
 };
 
 const statusLabel = computed(() => {

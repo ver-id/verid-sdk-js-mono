@@ -140,9 +140,6 @@ export async function createIssuanceIntent(
     if (req.body.brandUuid) {
       intentPayload.brandUuid = req.body.brandUuid;
     }
-    if (req.body.requireExplicitConsent) {
-      intentPayload.requireExplicitConsent = req.body.requireExplicitConsent;
-    }
 
     // Create intent with client authentication
     const intentResponse = await issuanceClient.createIssuanceIntent(
@@ -159,7 +156,6 @@ export async function createIssuanceIntent(
       {
         challenge: req.body.challenge,
         brandUuid: req.body.brandUuid,
-        requireExplicitConsent: req.body.requireExplicitConsent,
         payload: req.body.payload,
       },
       codeChallenge

@@ -62,7 +62,7 @@
     <div v-if="clientInitialized && !useIntent && !disclosureUrl" class="section">
       <h3>Optional: Use Intent-based Flow</h3>
       <p style="color: #666; margin-bottom: 15px;">
-        You can optionally create a disclosure intent first for advanced customization (custom challenge, brandUuid, requireExplicitConsent).
+        You can optionally create a disclosure intent first for advanced customization (custom challenge, brandUuid).
         Otherwise, continue below to generate the disclosure URL directly.
       </p>
       <button type="button" @click="enableIntentFlow" class="secondary-btn">
@@ -105,7 +105,7 @@
       <h2>3. Create Disclosure Intent</h2>
 
       <p>
-        Now create a disclosure intent using the code challenge. You can optionally provide a custom challenge, brandUuid, and requireExplicitConsent:
+        Now create a disclosure intent using the code challenge. You can optionally provide a custom challenge and brandUuid:
       </p>
 
       <div class="config-form">
@@ -129,20 +129,6 @@
             placeholder="brand-uuid-123"
           >
           <small style="color: #666;">Brand-specific customization</small>
-        </div>
-        <div class="form-group">
-          <label>Require Explicit Consent (Optional):</label>
-          <div>
-            <label style="margin-right: 15px; font-weight: normal;">
-              <input type="radio" :value="true" v-model="intentOptions.requireExplicitConsent">
-              True
-            </label>
-            <label style="font-weight: normal;">
-              <input type="radio" :value="false" v-model="intentOptions.requireExplicitConsent">
-              False
-            </label>
-          </div>
-          <small style="color: #666;">Force the user to explicitly consent to the disclosure (true) or not (false)</small>
         </div>
       </div>
 
@@ -215,7 +201,7 @@ class="start-over-btn" @click="startOver">Try Again</button>
           <strong>Initialize:</strong> Create a VeridDisclosureClient with your configuration
         </li>
         <li>
-          <strong>Intent (Optional):</strong> Generate code challenge and create a disclosure intent with custom challenge/brandUuid/requireExplicitConsent for advanced flows
+          <strong>Intent (Optional):</strong> Generate code challenge and create a disclosure intent with custom challenge/brandUuid for advanced flows
         </li>
         <li>
           <strong>Disclose:</strong> Generate a disclosure URL with PKCE (with or without intent) and redirect the user
@@ -290,9 +276,6 @@ const getCreateIntentCode = computed(() => {
   }
   if (intentOptions.brandUuid) {
     intentParams.push(`  brandUuid: '${intentOptions.brandUuid}'`);
-  }
-  if (intentOptions.requireExplicitConsent !== undefined) {
-    intentParams.push(`  requireExplicitConsent: ${intentOptions.requireExplicitConsent}`);
   }
 
   const payloadStr = intentParams.length > 0 

@@ -148,7 +148,7 @@
             Create a disclosure intent
           </label>
           <small>
-            Intents allow a custom challenge, brand, and explicit consent. The intent is created on
+            Intents allow a custom challenge and brand. The intent is created on
             the server <strong>after</strong> the session, so it can be bound to that session's code
             challenge.
           </small>
@@ -172,25 +172,6 @@
               type="text"
               placeholder="brand-uuid-123"
             >
-          </div>
-          <div class="form-group">
-            <label>Require explicit consent (optional):</label>
-            <div>
-              <label style="margin-right: 15px; font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="true"
-                > True
-              </label>
-              <label style="font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="false"
-                > False
-              </label>
-            </div>
           </div>
         </template>
       </div>
@@ -481,7 +462,6 @@ const intentOptions = reactive({
   useIntent: false,
   challenge: '',
   brandUuid: '',
-  requireExplicitConsent: undefined as boolean | undefined,
 });
 
 const mount = () => {

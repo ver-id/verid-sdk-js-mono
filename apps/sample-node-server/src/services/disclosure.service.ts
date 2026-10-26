@@ -25,7 +25,7 @@ const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
  * Generate code snippet for creating disclosure intent
  */
 export function generateCreateIntentSnippet(
-  payload: { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean },
+  payload: { challenge?: string; brandUuid?: string },
   codeChallenge: string
 ): string {
   const params: string[] = [];
@@ -35,9 +35,6 @@ export function generateCreateIntentSnippet(
   }
   if (payload.brandUuid) {
     params.push(`  brandUuid: '${payload.brandUuid}'`);
-  }
-  if (payload.requireExplicitConsent !== undefined) {
-    params.push(`  requireExplicitConsent: ${payload.requireExplicitConsent}`);
   }
 
   const payloadStr = params.length > 0 ? `{\n${params.join(',\n')}\n}` : '{}';
