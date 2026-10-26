@@ -1,9 +1,4 @@
-import {
-  assertObject,
-  assertString,
-  assertUrlString,
-  type FlowBasePkceResult,
-} from '@ver-id/core';
+import { assertObject, assertString, assertUrlString, type FlowBasePkceResult } from '@ver-id/core';
 import { InvalidArgumentError } from '@ver-id/core/error';
 
 /** Parameters to start an embedded session (bootstrap for the browser). */
@@ -12,8 +7,6 @@ export interface EmbeddedSessionParams {
   scope: string;
   /** The backend's own webhook endpoint Ver.iD will call. */
   webhookUri: string;
-  /** You probably don't need to set this, used to override the frame URL to another gateway compatible URI. */
-  gatewayUri?: string;
   /** An intent created via `createDisclosureIntent()` / `createAuthenticationIntent()`. */
   intentId?: string;
   /** Optional caller-supplied state; otherwise generated. */
@@ -35,14 +28,16 @@ export interface EmbeddedSessionBootstrap {
   state: string;
   codeChallenge: string;
   webhookUri: string;
-  gatewayUri: string;
+  /** Ver.iD's loader script, as the issuer advertises it; the browser adds it to the page. */
+  loaderUri: string;
   intentId?: string;
 }
 
 /** The per-client dependencies the bootstrap builder needs. */
 export interface EmbeddedBootstrapContext {
   clientId: string;
-  issuerUri: string;
+  /** Reads the loader script's URL from the issuer's metadata (`embedded_loader_uri`). */
+  embeddedLoaderUri(): Promise<string>;
   generateCodeChallenge(state?: string): Promise<FlowBasePkceResult>;
 }
 
@@ -53,21 +48,20 @@ export interface EmbeddedBootstrapContext {
  * verifier is already cached under that state); otherwise a fresh challenge is generated and
  * cached. Reuse is what keeps a session bound to an intent created against the same challenge.
  *
- * @param context - The calling client's flow id, issuer URI, and PKCE challenge generator.
- * @param params - The scopes to request, the backend's own webhook endpoint, and optionally the
- *   gateway URI, an intent id, and a caller-supplied state/challenge.
+ * @param context - The calling client's flow id, the issuer's loader URI, and PKCE challenge
+ *   generator.
+ * @param params - The scopes to request, the backend's own webhook endpoint, and optionally an
+ *   intent id and a caller-supplied state/challenge.
  * @returns The bootstrap the browser needs to mount the embedded component; the `code_verifier`
  *   stays server-side and is never part of it.
- * @throws {InvalidArgumentError} When any input is invalid — a malformed `issuerUri`,
- *   `webhookUri`, or `gatewayUri`, a missing `scope`, or a `codeChallenge` supplied without the
- *   `state` it was cached under.
+ * @throws {InvalidArgumentError} When any input is invalid — a malformed `webhookUri`, a missing
+ *   `scope`, or a `codeChallenge` supplied without the `state` it was cached under.
+ * @throws {InvalidAssertionError} When the issuer's metadata has no `embedded_loader_uri`.
  */
 export async function buildEmbeddedSessionBootstrap(
   context: EmbeddedBootstrapContext,
   params: EmbeddedSessionParams,
 ): Promise<EmbeddedSessionBootstrap> {
-  assertUrlString(context.issuerUri, 'issuerUri', InvalidArgumentError);
-
   assertObject(params, 'params', InvalidArgumentError);
   assertString(params.scope, 'scope', InvalidArgumentError);
   assertUrlString(params.webhookUri, 'webhookUri', InvalidArgumentError);
@@ -76,22 +70,18 @@ export async function buildEmbeddedSessionBootstrap(
     allowUndefined: true,
   });
   assertString(params.intentId, 'intentId', InvalidArgumentError, { allowUndefined: true });
-  if (params.gatewayUri !== undefined) {
-    assertUrlString(params.gatewayUri, 'gatewayUri', InvalidArgumentError);
-  }
 
   if (params.codeChallenge && !params.state) {
-    throw new InvalidArgumentError(
-      'State must be provided when using an external code challenge.',
-    );
+    throw new InvalidArgumentError('State must be provided when using an external code challenge.');
   }
+
+  // Before the challenge is generated, so a failed lookup caches no verifier.
+  const loaderUri = await context.embeddedLoaderUri();
 
   const { codeChallenge, state } =
     params.codeChallenge && params.state
       ? { codeChallenge: params.codeChallenge, state: params.state }
       : await context.generateCodeChallenge(params.state);
-
-  const gatewayUri = params.gatewayUri ?? new URL(context.issuerUri).origin;
 
   const bootstrap: EmbeddedSessionBootstrap = {
     clientId: context.clientId,
@@ -99,7 +89,7 @@ export async function buildEmbeddedSessionBootstrap(
     state,
     codeChallenge,
     webhookUri: params.webhookUri,
-    gatewayUri,
+    loaderUri,
   };
 
   if (params.intentId !== undefined) {

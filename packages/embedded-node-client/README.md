@@ -47,7 +47,7 @@ app.post('/api/verid/start', async (_req, res) => {
     scope: 'openid disclosure',
     webhookUri: 'https://app.example.com/api/verid/webhook',
   });
-  res.json(bootstrap); // { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+  res.json(bootstrap); // { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 });
 
 app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) => {

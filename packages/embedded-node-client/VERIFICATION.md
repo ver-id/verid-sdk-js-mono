@@ -1,6 +1,6 @@
 ## Verification (embedded mode)
 
-Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. In **embedded mode** the Ver.iD flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) mounts the iframe, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
+Execute a verification flow to use decentralized identity apps to collect various types of customer information for verification purposes, such as for Know-Your-Customer (KYC) or Know-Your-Business (KYB) processes. In **embedded mode** the Ver.iD flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) loads Ver.iD's embedded card into your page, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
 
 ### Create a Disclosure client
 
@@ -57,7 +57,7 @@ The client can be configured to use a custom cache store implemented by your app
 
 ### Start an embedded session
 
-The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the iframe. By default `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier). If you supply an existing `state`/`codeChallenge` pair, that pair is reused as-is and the already-cached verifier is left untouched.
+The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the embedded card. By default `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier). If you supply an existing `state`/`codeChallenge` pair, that pair is reused as-is and the already-cached verifier is left untouched.
 
 Expose this from an endpoint your frontend calls:
 
@@ -70,15 +70,16 @@ app.post('/api/verid/start', async (_req, res) => {
   });
 
   res.json(bootstrap);
-  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 });
 ```
+
+**Once per attempt.** Call `createEmbeddedSession` (and create the intent, where you use one) for every attempt: a bootstrap starts one flow, and Ver.iD refuses a second flow on the same intent. When the person starts again after a `cancel`, an `error` or a page reload, your frontend asks for a new bootstrap.
 
 `EmbeddedSessionParams`:
 
 - `scope` — the scopes to request (e.g. `'openid disclosure'`). Requested scopes must be registered in the disclosure flow.
 - `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to. Must be a valid URL; anything else throws `InvalidArgumentError`.
-- `gatewayUri` — optional Ver.iD gateway URL to hand the browser. Defaults to the `issuerUri` origin. When supplied it must be a valid URL; anything else throws `InvalidArgumentError`.
 - `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
 - `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`); this is what binds a session to a pre-created intent. Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
 
@@ -110,7 +111,7 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
 
 ### Hand the bootstrap to the browser
 
-Your frontend fetches the bootstrap and passes it straight into the browser client, which mounts the Ver.iD iframe and performs the origin-pinned `postMessage` handshake. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/VERIFICATION.md) for the browser side.
+Your frontend fetches the bootstrap and passes it straight into the browser client, which loads Ver.iD's embedded card into your page and surfaces the flow lifecycle as events. The flow starts when the page calls the component's `open()`, from its own button or on page load. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/VERIFICATION.md) for the browser side.
 
 ```ts
 // Frontend
@@ -156,6 +157,29 @@ app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) =
 
 If the signature is missing, malformed, or does not match an HMAC-SHA256 of the raw body computed with your webhook secret, `finalizeEmbedded` throws before any token exchange happens.
 
+#### Retries and redelivery
+
+Ver.iD redelivers the webhook when your endpoint does not answer with a 2xx. What a redelivery meets depends on how the first delivery went:
+
+- **The token exchange failed.** The verifier stays cached, so answer with a 5xx and the redelivery can still finalize.
+- **The flow already finalized.** The verifier was removed when the exchange succeeded, so finalizing again throws `OperationFailedError`. Check your own record of results first: if you already stored a result for the payload's `state`, answer with a 2xx and Ver.iD stops delivering.
+
+```ts
+const verification = client.verifyEmbeddedWebhook({ rawBody, signature, secret });
+if (!verification.ok) return res.status(400).json({ error: verification.reason });
+
+const { state } = verification.payload;
+if (await hasResult(state)) return res.json({ received: true }); // a redelivery
+
+try {
+  const result = await client.finalizeEmbedded({ rawBody, signature, secret, clientAuth });
+  await store(state, result);
+  return res.json({ received: true });
+} catch (error) {
+  return res.status(500).json({ error: 'finalize failed' });
+}
+```
+
 #### Verify without finalizing
 
 If you want to inspect the payload before exchanging the code (for example to route by `type`), verify separately:
@@ -173,6 +197,7 @@ if (!verification.ok) {
 }
 
 // verification.payload = { type, version, code, state, intent_id }
+// intent_id is null when the flow was started without an intent
 ```
 
 ### Correlate `complete` with the finalized result

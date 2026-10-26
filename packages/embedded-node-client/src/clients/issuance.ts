@@ -47,8 +47,6 @@ export interface EmbeddedIssuanceSessionBootstrap extends EmbeddedSessionBootstr
  * @public
  */
 export class VeridEmbeddedIssuanceClient extends VeridIssuanceClient {
-  readonly #issuerUri: string;
-
   constructor(config: EmbeddedClientConfig) {
     super({
       issuerUri: config.issuerUri,
@@ -57,7 +55,6 @@ export class VeridEmbeddedIssuanceClient extends VeridIssuanceClient {
         cacheManager: config.options?.cacheManager ?? new FileStorageCacheManager(),
       },
     });
-    this.#issuerUri = config.issuerUri;
   }
 
   protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
@@ -68,8 +65,7 @@ export class VeridEmbeddedIssuanceClient extends VeridIssuanceClient {
    * Starts an embedded issuance session and returns the browser bootstrap (no code_verifier).
    *
    * @param params - The scopes to request, the backend's own webhook endpoint, the intent id
-   *   created via `createIssuanceIntent()`, and optionally the gateway URI and a caller-supplied
-   *   state.
+   *   created via `createIssuanceIntent()`, and optionally a caller-supplied state.
    * @returns The public bootstrap values to hand to `@ver-id/embedded-browser-client`.
    * @throws {InvalidArgumentError} When `intentId` is missing or empty.
    */
@@ -81,7 +77,7 @@ export class VeridEmbeddedIssuanceClient extends VeridIssuanceClient {
     const bootstrap = await buildEmbeddedSessionBootstrap(
       {
         clientId: this.oauthClient.clientId(),
-        issuerUri: this.#issuerUri,
+        embeddedLoaderUri: () => this.oauthClient.embeddedLoaderUri(),
         generateCodeChallenge: (state) => this.generateCodeChallenge(state),
       },
       params,
