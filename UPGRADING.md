@@ -10,8 +10,8 @@ Migration notes for the Ver.iD JS SDK. Each package also keeps its own
 | `@ver-id/embedded-browser-client` | 0.2.0 | 0.3.0 |
 | `@ver-id/embedded-node-client` | 0.2.0 | 0.3.0 |
 | `@ver-id/core` | 0.1.0 | 0.2.0 |
-| `@ver-id/node-client` | 0.14.0 | 0.14.1 |
-| `@ver-id/browser-client` | 0.16.0 | 0.16.1 |
+| `@ver-id/node-client` | 0.14.0 | 0.15.0 |
+| `@ver-id/browser-client` | 0.16.0 | 0.17.0 |
 
 ### `@ver-id/embedded-browser-client`: Ver.iD's loader renders the card
 
@@ -81,6 +81,14 @@ exchange could never succeed. It is now removed only once the exchange succeeds,
 retry, such as a redelivered webhook after a 5xx, can still finalize. Finalizing a flow
 that already succeeded still throws `OperationFailedError`, as before; for webhooks,
 check your own stored results for the `state` first and answer a redelivery with a 2xx.
+
+### Intents: `requireExplicitConsent` removed
+
+Ver.iD no longer shows a consent screen, so the option had no effect.
+`requireExplicitConsent` is gone from `DisclosureIntentPayload` and
+`IssuanceIntentPayload` (`createDisclosureIntent` and `createIssuanceIntent` in every
+client) and from the `VerificationIntent` and `IssuanceIntent` types in `@ver-id/core`.
+Remove it from your calls; TypeScript reports any that remain.
 
 ### `@ver-id/core`: the embedded `postMessage` types removed
 
