@@ -11,5 +11,4 @@ export interface IssuanceIntent extends BaseIntent {
   },
   challenge?: string
   brandUuid?: string;
-  requireExplicitConsent?: boolean;
 }

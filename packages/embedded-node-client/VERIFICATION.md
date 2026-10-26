@@ -85,7 +85,7 @@ app.post('/api/verid/start', async (_req, res) => {
 
 #### Optional: intent-based disclosure
 
-For more control (custom challenge, brand-specific settings, or explicit consent) create a disclosure intent first, then forward its `intentId`. Generate the PKCE material yourself and pass **both** `state` and `codeChallenge` to `createEmbeddedSession`: the intent is created against that challenge, so the session must reuse the same pair rather than generating a new one — otherwise the bootstrap's `codeChallenge` will not match the one the intent was bound to.
+For more control (custom challenge or brand-specific settings) create a disclosure intent first, then forward its `intentId`. Generate the PKCE material yourself and pass **both** `state` and `codeChallenge` to `createEmbeddedSession`: the intent is created against that challenge, so the session must reuse the same pair rather than generating a new one — otherwise the bootstrap's `codeChallenge` will not match the one the intent was bound to.
 
 ```ts
 const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
@@ -94,7 +94,6 @@ const intentId = await disclosureClient.createDisclosureIntent(
   {
     challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-    requireExplicitConsent: true, // Optional: default is false
   },
   codeChallenge,
   { client_secret: process.env.VERID_CLIENT_SECRET! }, // Client authentication required for Node.js

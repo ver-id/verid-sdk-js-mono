@@ -25,7 +25,6 @@ export interface IssuanceIntentPayload {
   };
   challenge?: string;
   brandUuid?: string;
-  requireExplicitConsent?: boolean;
 }
 
 /**
@@ -87,7 +86,6 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
    *   },
    *   challenge: 'your-challenge-string',
    *   brandUuid: 'your-brand-uuid',
-   *   requireExplicitConsent: true,
    * }, codeChallenge);
    * ```
    */

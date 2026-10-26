@@ -86,7 +86,6 @@ const intentId = await issuanceClient.createIssuanceIntent(
     },
     challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-    requireExplicitConsent: true, // Optional: default is false
   },
   codeChallenge,
   { client_secret: process.env.VERID_CLIENT_SECRET! }, // Client authentication required for Node.js
@@ -106,7 +105,6 @@ const intentId = await issuanceClient.createIssuanceIntent(
     },
     challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-    requireExplicitConsent: true, // Optional: default is false
   },
   codeChallenge,
   { client_secret: process.env.VERID_CLIENT_SECRET! }, // Client authentication required for Node.js

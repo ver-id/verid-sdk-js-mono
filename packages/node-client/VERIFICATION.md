@@ -114,7 +114,7 @@ const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();
 
 #### Option 2: Intent-based Flow (Advanced)
 
-For more control over the disclosure flow, you can create an intent first and then generate the disclosure URL. This is useful when you need to customize the disclosure experience with challenges, brand-specific settings, or explicit consent requirements.
+For more control over the disclosure flow, you can create an intent first and then generate the disclosure URL. This is useful when you need to customize the disclosure experience with a challenge or brand-specific settings.
 
 ##### Step 1: Generate Code Challenge
 
@@ -133,14 +133,13 @@ const intentId = await disclosureClient.createDisclosureIntent(
   {
     challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional: Custom challenge for the disclosure
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
-    requireExplicitConsent: true, // Optional: Require explicit user consent (default: false)
   },
   codeChallenge,
   { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
 );
 ```
 
-**Note:** All parameters (`challenge`, `brandUuid`, and `requireExplicitConsent`) are optional. If not provided, the default disclosure experience will be used. The `client_secret` is required for server-side intent creation.
+**Note:** Both parameters (`challenge` and `brandUuid`) are optional. If not provided, the default disclosure experience will be used. The `client_secret` is required for server-side intent creation.
 
 ##### Step 3: Generate Disclosure URL with Intent
 

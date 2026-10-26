@@ -17,7 +17,6 @@ const DISCLOSURE_SCOPE = 'disclosure';
 export interface DisclosureIntentPayload {
   challenge?: string;
   brandUuid?: string;
-  requireExplicitConsent?: boolean;
 }
 
 /**
@@ -68,7 +67,6 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
    * const intentId = await client.createDisclosureIntent({
    *   challenge: 'your-challenge-string',
    *   brandUuid: 'your-brand-uuid',
-   *   requireExplicitConsent: true,
    * }, codeChallenge);
    * ```
    */
