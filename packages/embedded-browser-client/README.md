@@ -76,7 +76,9 @@ veridComponent.addEventListener('cancel',   () => veridComponent.destroy());
 
 `mountVeridEmbeddedComponent` adds a host element carrying the flow's parameters inside
 `container` and loads Ver.iD's loader, `embedded.js`, from the bootstrap's `loaderUri`,
-once per page. The loader preloads the Ver.iD iframe, hidden, inside the host element; nothing
+once per page. The loader preloads the Ver.iD iframe, hidden: inside the host element, or on
+phones in a closed full-screen `<dialog>` under `<body>`, so your page's CSS and stacking
+cannot affect the drawer, and removing the host element removes the drawer too. Nothing
 starts until you call `open()`: from your button, from your own step, or straight after
 mounting to start on page load. Then the flow starts and the card appears: inline, as wide as the container and as tall as its content, or as a
 full-screen drawer on phones. Its look is the flow's embedded appearance from Ver.iD
@@ -128,7 +130,8 @@ reopening the phone drawer stay within the flow and need nothing from you.
 - **Origin-pinned lifecycle.** Ver.iD's loader accepts the iframe's messages only from
   its own origin and its own iframe, and fires the `verid:` events only for
   those. Ver.iD reports the lifecycle to your page only if its origin is one of the flow's
-  allowed embed origins in Studio.
+  allowed embed origins in Studio; any other origin hears only `error` with
+  `origin_not_allowed`.
 
 ## Per-flow guides
 
