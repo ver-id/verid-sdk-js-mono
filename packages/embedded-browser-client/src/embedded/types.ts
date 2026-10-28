@@ -20,7 +20,7 @@ export interface VeridEmbeddedError {
  * After `open()` comes either `ready` or `error` (the flow could not start). After `ready`, at
  * most one of `complete`, `error` and `cancel` follows, and possibly none: a person who leaves
  * the page ends the flow silently. A page whose origin is not one of the flow's allowed embed
- * origins hears nothing at all.
+ * origins hears only `error` (code `origin_not_allowed`).
  *
  * @public
  */

@@ -158,9 +158,9 @@ describe('mountVeridEmbeddedComponent', () => {
     const details: VeridEmbeddedError[] = [];
     component.addEventListener('error', (event) => details.push(event.detail));
 
-    loaderFires(component, 'verid:error', { error: 'techFail' });
+    loaderFires(component, 'verid:error', { error: 'server_error' });
 
-    expect(details).toEqual([{ error: 'techFail' }]);
+    expect(details).toEqual([{ error: 'server_error' }]);
     component.destroy();
   });
 

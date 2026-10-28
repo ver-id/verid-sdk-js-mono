@@ -88,7 +88,11 @@ after `verid:ready` at most one of `verid:complete`, `verid:error` (detail `{ er
 and `verid:cancel`. The component re-dispatches them as
 `ready`, `complete`, `error` and `cancel`. A page that loads `embedded.js` without the SDK
 starts the flow with `document.dispatchEvent(new Event('verid:open'))` and listens for the
-same `verid:` events.
+same `verid:` events. To have focus return to your own button when the phone drawer closes,
+send it from that button instead, with
+`new Event('verid:open', { bubbles: true, composed: true })`: `composed` lets it leave a
+web component's shadow root. The `data-verid-embed` element itself must be in the page's
+main document, not inside a shadow root.
 
 Mount as early as you can, so the iframe is preloaded by the time you call `open()`, and
 one component at a time: destroy the previous one before mounting the next.
@@ -111,8 +115,8 @@ reopening the phone drawer stay within the flow and need nothing from you.
   `ready` (the card is shown) or `error` (the flow could not start). After `ready` comes
   at most one of `complete`, `error` and `cancel`, and possibly none: a person who leaves
   the page ends the flow silently. If your page's origin is not one of the flow's allowed
-  embed origins in Studio, the page hears nothing at all and the card shows the error. Do
-  not wait on any event; the webhook is the result.
+  embed origins in Studio, the page hears only `error` (code `origin_not_allowed`) and the
+  card shows the error. Do not wait on any event; the webhook is the result.
 - **Error codes are for logging.** Only `loader_unavailable` is fixed (`embedded.js` could
   not be loaded, so there is no card). Every other `error` code is Ver.iD's own, for your
   logs and Ver.iD support; the set is not fixed. The card shows the person what went
