@@ -44,8 +44,9 @@ call is unchanged, `mountVeridEmbeddedComponent({ container, ...bootstrap })`, b
 6. After `open()` the page hears either `ready` or `error` (the flow could not start).
    After `ready` comes at most one of `complete`, `error` and `cancel`, and possibly none:
    a person who leaves the page ends the flow silently. A page whose origin is not one of
-   the flow's allowed embed origins hears only `error` (code `origin_not_allowed`). Do
-   not wait on any event; the webhook is the result.
+   the flow's allowed embed origins hears only `error` (`origin_not_allowed`, or the error
+   that stopped the flow before its origin was checked). Do not wait on any event; the
+   webhook is the result.
 7. `embedded.js` and the card's iframe come from the origin of `loaderUri`. If your page sends a
    Content Security Policy, allow that origin in `script-src` and `frame-src`.
 8. A bootstrap starts one flow. For a new attempt (after `cancel` or `error`, a page reload,
