@@ -33,6 +33,10 @@ export interface IssuanceV1JwtPayload extends JWTPayload {
   handlerAppUuid: UUID;
   /** App name — human-readable name of the app */
   appName: string;
-  /** UUID of the credential batch (RFC 0013) */
-  credentialBatchUuid: UUID;
+  /** UUID of the issuance run that produced this token */
+  issuanceRunUuid: UUID;
+  /**
+   * @deprecated Never sent by the platform; read {@link IssuanceV1JwtPayload.issuanceRunUuid}.
+   */
+  credentialBatchUuid?: UUID;
 }

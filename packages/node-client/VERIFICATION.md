@@ -131,7 +131,7 @@ Create a disclosure intent with optional customization:
 ```ts
 const intentId = await disclosureClient.createDisclosureIntent(
   {
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional: Custom challenge for the disclosure
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional: Custom challenge for the disclosure
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
   },
   codeChallenge,

@@ -15,6 +15,7 @@ const DISCLOSURE_SCOPE = 'disclosure';
  * Payload for creating a disclosure intent.
  */
 export interface DisclosureIntentPayload {
+  /** Echoed back in the result token's `parameter.challenge`; must be a UUID. */
   challenge?: string;
   brandUuid?: string;
 }
@@ -65,7 +66,7 @@ export abstract class VeridDisclosureClient extends VeridFlowBaseClient {
    * ```typescript
    * const { codeChallenge } = await client.generateCodeChallenge();
    * const intentId = await client.createDisclosureIntent({
-   *   challenge: 'your-challenge-string',
+   *   challenge: crypto.randomUUID(),
    *   brandUuid: 'your-brand-uuid',
    * }, codeChallenge);
    * ```

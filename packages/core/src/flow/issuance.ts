@@ -23,6 +23,7 @@ export interface IssuanceIntentPayload {
       value: unknown;
     }[];
   };
+  /** Echoed back in the result token's `parameter.challenge`; must be a UUID. */
   challenge?: string;
   brandUuid?: string;
 }
@@ -84,7 +85,7 @@ export abstract class VeridIssuanceClient extends VeridFlowBaseClient {
    *   payload: {
    *     data: [{ attributeUuid: 'your-attribute-uuid', value: 'some-value' }],
    *   },
-   *   challenge: 'your-challenge-string',
+   *   challenge: crypto.randomUUID(),
    *   brandUuid: 'your-brand-uuid',
    * }, codeChallenge);
    * ```

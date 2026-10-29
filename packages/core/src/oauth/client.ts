@@ -8,7 +8,7 @@ import {
   assertUrlString,
   assertUUID,
 } from '../utils/assert.js';
-import { InvalidArgumentError, InvalidAssertionError, OperationFailedError } from '../error/index.js';
+import { InvalidArgumentError, InvalidAssertionError, OperationFailedError, VeridError } from '../error/index.js';
 import { OAuth4WebApiProvider } from './provider/index.js';
 import { GrantResponse } from '../types/response/index.js';
 import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
@@ -171,6 +171,7 @@ export class VeridOAuthClient {
    * @param intent - The intent to create
    * @param clientAuth - Optional client authentication for server-side requests
    * @returns The created intent, including its intent identifier
+   * @throws {InvalidArgumentError} When the intent's optional `challenge` is not a UUID
    * @throws {InvalidAssertionError} When the authorization server metadata has no intent endpoint
    * @throws {OperationFailedError} When the intent endpoint returns an error or is unreachable
    * @example
@@ -183,6 +184,10 @@ export class VeridOAuthClient {
    * ```
    */
   async createIntent(intent: BaseIntent, clientAuth?: ClientAuth): Promise<IntentResponse> {
+    if (intent.challenge !== undefined) {
+      assertUUID(intent.challenge, 'challenge', InvalidArgumentError);
+    }
+
     const authorizationServer = await this.provider.discover(this.issuer);
     assertUrlString(
       authorizationServer.intent_endpoint,
@@ -216,6 +221,9 @@ export class VeridOAuthClient {
     const intentData = await intentResponse.json() as IntentResponse;
     return intentData;
   } catch (error) {
+    if (error instanceof VeridError) {
+      throw error;
+    }
     throw new OperationFailedError('Unknown error occurred while creating intent', error);
   }
   }

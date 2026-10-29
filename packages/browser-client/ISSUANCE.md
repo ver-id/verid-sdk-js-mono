@@ -125,7 +125,7 @@ const intentId = await issuanceClient.createIssuanceIntent(
         // ... other attribute mappings
       },
     },
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
   },
   codeChallenge,
@@ -145,7 +145,7 @@ const intentId = await issuanceClient.createIssuanceIntent(
         value: 'John',
       }],
     },
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
   },
   codeChallenge,

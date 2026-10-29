@@ -40,8 +40,8 @@ export interface IssuanceOutputItem {
   meta: Record<string, JSONValue>;
   /** Array of data items */
   data: IssuanceOutputData[];
-  /** Mapping information for field transformations or aliases */
-  mapping: Record<string, JSONValue>;
+  /** @deprecated Never sent by the platform on issuance output items. */
+  mapping?: Record<string, JSONValue>;
 }
 
 /**
@@ -55,6 +55,10 @@ export interface IssuanceOutputItem {
 export interface IssuanceFlatV1JwtPayload extends JWTPayload {
   /** Array of output items containing issuance data */
   output: IssuanceOutputItem[];
-  /** UUID of the credential batch (RFC 0013) */
-  credentialBatchUuid: UUID;
+  /** UUID of the issuance run that produced this token */
+  issuanceRunUuid: UUID;
+  /**
+   * @deprecated Never sent by the platform; read {@link IssuanceFlatV1JwtPayload.issuanceRunUuid}.
+   */
+  credentialBatchUuid?: UUID;
 }

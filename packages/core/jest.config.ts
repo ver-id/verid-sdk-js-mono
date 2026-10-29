@@ -20,6 +20,8 @@ export default {
       },
     ],
   },
+  // The OAuth client imports the ESM-only `jose` and `oauth4webapi` packages. Let swc transform them.
+  transformIgnorePatterns: ['node_modules/(?!(?:.pnpm/)?(?:jose|oauth4webapi))'],
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: 'test-output/jest/coverage',
 };

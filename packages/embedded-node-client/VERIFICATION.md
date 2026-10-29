@@ -92,7 +92,7 @@ const { codeChallenge, state } = await disclosureClient.generateCodeChallenge();
 
 const intentId = await disclosureClient.createDisclosureIntent(
   {
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
   },
   codeChallenge,
