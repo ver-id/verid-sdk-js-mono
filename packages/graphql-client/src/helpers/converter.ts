@@ -84,19 +84,18 @@ export function convertConnectionToAttributeArray(
 
 /**
  * Converts a GraphQL connection object to an array of credentials.
+ * Credentials without a live version are skipped.
  */
 export function convertConnectionToCredentialArray(
   data: FindManyCredentialsQuery,
 ): CredentialEntity[] {
   const credentials = convertConnectionToArray(data.findManyCredentials);
 
-  return credentials.map((credential) => {
-    return {
-      uuid: credential.uuid,
-      name: credential.name,
-      locales: convertConnectionToArray<LocaleEntity>(credential.locales),
-    };
-  });
+  return credentials.flatMap(({ uuid, live }) =>
+    live
+      ? [{ uuid, name: live.name, locales: convertConnectionToArray<LocaleEntity>(live.locales) }]
+      : [],
+  );
 }
 
 /**
