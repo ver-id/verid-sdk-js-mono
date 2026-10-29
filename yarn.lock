@@ -4997,8 +4997,6 @@ __metadata:
 "@ver-id/embedded-browser-client@workspace:*, @ver-id/embedded-browser-client@workspace:packages/embedded-browser-client":
   version: 0.0.0-use.local
   resolution: "@ver-id/embedded-browser-client@workspace:packages/embedded-browser-client"
-  dependencies:
-    "@ver-id/core": "npm:^0.1.0"
   languageName: unknown
   linkType: soft
 
