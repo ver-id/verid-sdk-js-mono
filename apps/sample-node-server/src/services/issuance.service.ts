@@ -28,7 +28,6 @@ export function generateCreateIntentSnippet(
   payload: { 
     challenge?: string; 
     brandUuid?: string;
-    requireExplicitConsent?: boolean;
     payload?: {
       mapping?: Record<string, unknown>;
       data?: Array<{
@@ -61,9 +60,6 @@ export function generateCreateIntentSnippet(
   }
   if (payload.brandUuid) {
     optionalParams.push(`  brandUuid: '${payload.brandUuid}'`);
-  }
-  if (payload.requireExplicitConsent) {
-    optionalParams.push(`  requireExplicitConsent: ${payload.requireExplicitConsent}`);
   }
 
   const params = optionalParams.length > 0

@@ -11,6 +11,7 @@ import { ClientAuth } from '../types/oauth/index.js';
  * Payload for creating an authentication intent.
  */
 export interface AuthenticationIntentPayload {
+  /** Echoed back in the result token's `parameter.challenge`; must be a UUID. */
   challenge?: string;
   brandUuid?: string;
 }
@@ -64,7 +65,7 @@ export abstract class VeridAuthenticationClient extends VeridFlowBaseClient {
    * ```typescript
    * const { codeChallenge } = await client.generateCodeChallenge();
    * const intentId = await client.createAuthenticationIntent({
-   *   challenge: 'your-challenge-string',
+   *   challenge: crypto.randomUUID(),
    *   brandUuid: 'your-brand-uuid',
    * }, codeChallenge);
    * ```

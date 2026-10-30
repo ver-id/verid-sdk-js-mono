@@ -29,7 +29,7 @@ import {
  * @param uuid Credential UUID.
  * @returns Credential object.
  * @throws {InvalidArgumentError} When uuid is not a valid UUID.
- * @throws {OperationFailedError} When the GraphQL operation fails or credential is not found.
+ * @throws {OperationFailedError} When the GraphQL operation fails, or the credential is not found or has no live version.
  * @category Credential Queries
  */
 export const getCredential = async (
@@ -49,10 +49,13 @@ export const getCredential = async (
     OperationFailedError,
   );
 
+  const { live } = response.data.findCredential;
+  assert(live, `Credential ${uuid} has no live version`, OperationFailedError);
+
   return {
     uuid: response.data.findCredential.uuid,
-    name: response.data.findCredential.name,
-    locales: convertConnectionToArray<LocaleEntity>(response.data.findCredential.locales),
+    name: live.name,
+    locales: convertConnectionToArray<LocaleEntity>(live.locales),
   };
 };
 
@@ -60,7 +63,7 @@ export const getCredential = async (
  * Get many credentials by their UUIDs.
  * @param client Apollo client
  * @param credentialUuids Array of credential UUIDs.
- * @returns Array of credential objects.
+ * @returns Array of credential objects. Credentials without a live version are left out.
  * @throws {InvalidArgumentError} When credentialUuids is not an array or contains invalid UUIDs.
  * @throws {OperationFailedError} When the GraphQL operation fails.
  */

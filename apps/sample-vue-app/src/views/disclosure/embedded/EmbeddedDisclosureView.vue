@@ -148,7 +148,7 @@
             Create a disclosure intent
           </label>
           <small>
-            Intents allow a custom challenge, brand, and explicit consent. The intent is created on
+            Intents allow a custom challenge and brand. The intent is created on
             the server <strong>after</strong> the session, so it can be bound to that session's code
             challenge.
           </small>
@@ -172,25 +172,6 @@
               type="text"
               placeholder="brand-uuid-123"
             >
-          </div>
-          <div class="form-group">
-            <label>Require explicit consent (optional):</label>
-            <div>
-              <label style="margin-right: 15px; font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="true"
-                > True
-              </label>
-              <label style="font-weight: normal;">
-                <input
-                  v-model="intentOptions.requireExplicitConsent"
-                  type="radio"
-                  :value="false"
-                > False
-              </label>
-            </div>
           </div>
         </template>
       </div>
@@ -243,11 +224,11 @@
       v-if="bootstrap"
       class="section step-browser"
     >
-      <h2><span class="step-badge browser">Browser</span>4. Mount the Ver.iD iframe</h2>
+      <h2><span class="step-badge browser">Browser</span>4. Mount the embedded component</h2>
 
       <p v-if="status === 'starting'">
-        Mount the session to render the flow inline. The iframe origin is pinned as the trust
-        anchor for all postMessage traffic.
+        Mount the component in the page. Ver.iD's loader preloads the card, hidden, and the
+        flow starts when the page calls <code>open()</code>, here from its own button.
       </p>
 
       <button
@@ -265,6 +246,15 @@
         />
         <span>{{ statusLabel }}</span>
       </div>
+
+      <button
+        v-if="status === 'mounted' || status === 'ready'"
+        type="button"
+        class="btn-primary"
+        @click="openSession"
+      >
+        Continue with Ver.iD
+      </button>
 
       <div
         ref="embedContainer"
@@ -399,8 +389,9 @@
           <strong>[Browser]</strong> Fetch that bootstrap from your own backend
         </li>
         <li>
-          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> mounts the Ver.iD iframe and
-          posts <code>ronan:init</code> to the pinned origin
+          <strong>[Browser]</strong> <code>mountVeridEmbeddedComponent()</code> adds the host element and loads
+          Ver.iD's <code>embedded.js</code>; the flow starts when the page calls
+          <code>open()</code>, from its own button or on page load
         </li>
         <li>
           <strong>[Browser]</strong> Lifecycle events arrive as <code>ready</code> /
@@ -461,6 +452,7 @@ const {
   initializeClient,
   startSession,
   mountSession,
+  openSession,
   startOver,
 } = useEmbeddedSession('disclosure');
 
@@ -470,7 +462,6 @@ const intentOptions = reactive({
   useIntent: false,
   challenge: '',
   brandUuid: '',
-  requireExplicitConsent: undefined as boolean | undefined,
 });
 
 const mount = () => {
@@ -484,7 +475,7 @@ const statusLabel = computed(() => {
     case 'starting':
       return 'Session created — not mounted yet';
     case 'mounted':
-      return 'Iframe mounted, waiting for the Ver.iD component to become ready…';
+      return 'Mounted — click Continue with Ver.iD to start the flow';
     case 'ready':
       return 'Ready — the user is completing the flow';
     case 'awaitingResult':

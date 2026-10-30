@@ -87,6 +87,12 @@ export type ActionAppInput = {
   action: Action;
 };
 
+/** ActionAuthenticationHandlerInput */
+export type ActionAuthenticationHandlerInput = {
+  /** The action */
+  action: AuthenticationHandlerAction;
+};
+
 /** Update state Input */
 export type ActionAuthenticationInput = {
   /** The transition of the flow authentication. */
@@ -128,6 +134,12 @@ export type ActionCredentialRecordInput = {
   reason?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** ActionDisclosureHandlerInput */
+export type ActionDisclosureHandlerInput = {
+  /** The action */
+  action: DisclosureHandlerAction;
+};
+
 /** ActionDisclosureInput */
 export type ActionDisclosureInput = {
   /** The action */
@@ -138,6 +150,12 @@ export type ActionDisclosureInput = {
 export type ActionHandlerInput = {
   /** The action */
   action: Action;
+};
+
+/** ActionIssuanceHandlerInput */
+export type ActionIssuanceHandlerInput = {
+  /** The action */
+  action: IssuanceHandlerAction;
 };
 
 /** Action Input */
@@ -152,6 +170,15 @@ export type ActionIssuanceRunInput = {
   action: IssuanceRunAction;
   /** Optional reason for the action. */
   reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** The input for actioning an issuer. */
+export type ActionIssuerInput = {
+  /**
+   * The action. DEACTIVATE stops the issuer from being configured on or signing
+   * issuance, across every trust it is attached to.
+   */
+  action: Action;
 };
 
 /** ActionMaintenanceInput */
@@ -214,6 +241,28 @@ export type ActionOrganizationDomainInput = {
   reject?: InputMaybe<OrganizationDomainActionRejectInput>;
 };
 
+/** Action input */
+export type ActionOrganizationIdentityReviewInput = {
+  /** The action. */
+  action: OrganizationIdentityReviewAction;
+  /** Reject */
+  reject?: InputMaybe<ActionOrganizationIdentityReviewRejectInput>;
+  /** Revoke */
+  revoke?: InputMaybe<ActionOrganizationIdentityReviewRevokeInput>;
+};
+
+/** Reject input */
+export type ActionOrganizationIdentityReviewRejectInput = {
+  /** The reject reason */
+  reason: Scalars['NonEmpty']['input'];
+};
+
+/** Revoke input */
+export type ActionOrganizationIdentityReviewRevokeInput = {
+  /** The revoke reason */
+  reason: Scalars['NonEmpty']['input'];
+};
+
 /** Do action Input */
 export type ActionOrganizationInput = {
   /** An action */
@@ -224,6 +273,33 @@ export type ActionOrganizationInput = {
 export type ActionOrganizationNotificationInput = {
   /** The transition */
   action: OrganizationNotificationAction;
+};
+
+/** Action Input */
+export type ActionOrganizationTrustInput = {
+  /** The action */
+  action: OrganizationTrustAction;
+  /** Reject */
+  reject?: InputMaybe<ActionOrganizationTrustRejectInput>;
+  /** Revoke */
+  revoke?: InputMaybe<ActionOrganizationTrustRevokeInput>;
+  /**
+   * The role. Required for ACTIVATE and DEACTIVATE, which act on one role;
+   * omitted for APPROVE, REJECT and REVOKE, which act on the enrolment as a whole.
+   */
+  role?: InputMaybe<TrustRole>;
+};
+
+/** Reject Input */
+export type ActionOrganizationTrustRejectInput = {
+  /** The reject reason */
+  reason: Scalars['NonEmpty']['input'];
+};
+
+/** Revoke Input */
+export type ActionOrganizationTrustRevokeInput = {
+  /** The revoke reason */
+  reason: Scalars['NonEmpty']['input'];
 };
 
 /** Do action Input */
@@ -266,6 +342,63 @@ export type ActionStudioPlanInput = {
   action: StudioPlanAction;
 };
 
+/** The input for actioning a managed trust anchor certificate. */
+export type ActionTrustAnchorX509ManagedCertificateInput = {
+  /**
+   * The action. ACTIVATE restores a DEPRECATED or INACTIVE anchor. DEPRECATE keeps
+   * an ACTIVE anchor trusted for verification only. DEACTIVATE stops trusting an
+   * ACTIVE or DEPRECATED anchor: credentials chaining to it no longer verify.
+   */
+  action: TrustAnchorX509ManagedCertificateAction;
+};
+
+/** The input for actioning a provisioning CA. */
+export type ActionTrustAnchorX509ProvisioningCaCustodyInput = {
+  /**
+   * The action. ACTIVATE restores a DEPRECATED or INACTIVE CA. DEPRECATE and
+   * DEACTIVATE both stop it signing new leaves.
+   */
+  action: TrustAnchorX509ProvisioningCaCustodyAction;
+};
+
+/** The input for actioning a trust. */
+export type ActionTrustInput = {
+  /**
+   * The action. Only records the operator state: it is not enforced yet, so flows,
+   * enrolment and provisioning are unaffected.
+   */
+  action: Action;
+};
+
+/** The input for actioning a trust issuer. */
+export type ActionTrustIssuerInput = {
+  /**
+   * The action. ACTIVATE is gated on valid certificate material being
+   * provisioned — provisioning itself never activates. DEACTIVATE leaves the
+   * provisioned material in place.
+   */
+  action: Action;
+};
+
+/** The input for actioning a trust issuer intermediate CA certificate. */
+export type ActionTrustIssuerIntermediateCaCertificateInput = {
+  /**
+   * The action. DEACTIVATE retires an ACTIVE or DEPRECATED CA: credentials
+   * chaining to it are no longer trusted. ACTIVATE restores an INACTIVE CA.
+   */
+  action: Action;
+};
+
+/** The input for actioning a trust issuer key. */
+export type ActionTrustIssuerKeyInput = {
+  /**
+   * The action. DEACTIVATE retires an ACTIVE or DEPRECATED key: it signs nothing
+   * new and is no longer trusted for verification. ACTIVATE restores an INACTIVE
+   * key; a platform attachment allows only one ACTIVE key.
+   */
+  action: Action;
+};
+
 /** AlertSeverity */
 export enum AlertSeverity {
   Critical = 'CRITICAL',
@@ -293,12 +426,14 @@ export enum Algorithm {
   Idemix = 'IDEMIX'
 }
 
-/** Trust verification anchor types. */
-export enum Anchor {
-  Did = 'DID',
-  Idemix = 'IDEMIX',
-  None = 'NONE',
-  X509 = 'X509'
+/**
+ * What a trust anchor certificate is trusted for. ISSUANCE anchors verify issued
+ * credentials; ACCESS and REGISTRAR anchors are recorded but not yet read.
+ */
+export enum AnchorRole {
+  Access = 'ACCESS',
+  Issuance = 'ISSUANCE',
+  Registrar = 'REGISTRAR'
 }
 
 /** App definition. */
@@ -385,6 +520,12 @@ export type AppLocale = Model & {
   locale: Scalars['Locale']['output'];
   /** The name */
   name: Scalars['NonEmpty']['output'];
+  /**
+   * The name including its definite article where appropriate (e.g. "the NL Wallet").
+   * Use this variant when the name appears inside prose. For names that do not take
+   * an article, this equals the plain name.
+   */
+  nameWithArticle?: Maybe<Scalars['NonEmpty']['output']>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -440,6 +581,13 @@ export type AppSortInput = {
   field: AppSortEnum;
 };
 
+/** Attestation categories per EUDI ARF. */
+export enum AttestationCategory {
+  Eaa = 'EAA',
+  PubEaa = 'PUB_EAA',
+  Qeaa = 'QEAA'
+}
+
 /** Attribute definition. */
 export type Attribute = Model & {
   __typename?: 'Attribute';
@@ -448,7 +596,7 @@ export type Attribute = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this attribute belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The Datakeeper format configuration. */
   formatDatakeeper?: Maybe<AttributeFormatDatakeeper>;
   /** The Digidentity format configuration. */
@@ -1098,8 +1246,6 @@ export type Authentication = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
-  /** The active provisioning task, if the flow is currently being provisioned. */
-  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The data retention policy. */
@@ -1280,11 +1426,13 @@ export type AuthenticationDomain = Model & {
   /** The user organization domain */
   organizationDomain: OrganizationDomain;
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
+  path: Scalars['RedirectPath']['output'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
+  port: Scalars['RedirectPort']['output'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  protocol: Scalars['RedirectProtocol']['output'];
+  /** The type of the domain. */
+  type: DomainType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -1309,14 +1457,15 @@ export type AuthenticationDomainEdge = {
 export enum AuthenticationDomainFilteringField {
   AuthenticationUuid = 'authenticationUuid',
   OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
+  Type = 'type',
   Uuid = 'uuid'
 }
 
 /** Fields which can be used to sort domains on. Value must be camel case. */
 export enum AuthenticationDomainSortEnum {
   CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
   UpdatedAt = 'updatedAt'
 }
 
@@ -1372,6 +1521,12 @@ export type AuthenticationHandlerAuthenticationScopesArgs = {
   input?: InputMaybe<FindManyAuthenticationScopesInput>;
 };
 
+/** AuthenticationHandlerAction */
+export enum AuthenticationHandlerAction {
+  /** Clear the handler's verifier certificate pointers. The flow must be INACTIVE. */
+  ClearCertificate = 'CLEAR_CERTIFICATE'
+}
+
 /** Flow authentication handler configuration definition */
 export type AuthenticationHandlerConfiguration = Model & {
   __typename?: 'AuthenticationHandlerConfiguration';
@@ -1381,6 +1536,8 @@ export type AuthenticationHandlerConfiguration = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The NL Wallet flow authentication handler configuration */
   nlWallet?: Maybe<AuthenticationHandlerConfigurationNlWallet>;
+  /** The OID4VC flow authentication handler configuration */
+  oid4vc?: Maybe<AuthenticationHandlerConfigurationOid4Vc>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -1427,6 +1584,12 @@ export type AuthenticationHandlerConfigurationNlWallet = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault identifier of the verification key */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
 };
 
 /** The AuthenticationHandlerConfigurationNLWallet connection definition. */
@@ -1460,6 +1623,63 @@ export type AuthenticationHandlerConfigurationNlWalletSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: AuthenticationHandlerConfigurationNlWalletSortEnum;
+};
+
+/** AuthenticationHandlerConfigurationOID4VC definition */
+export type AuthenticationHandlerConfigurationOid4Vc = Model & {
+  __typename?: 'AuthenticationHandlerConfigurationOID4VC';
+  /** The AuthenticationHandlerConfiguration this object belongs to. */
+  authenticationHandlerConfiguration: AuthenticationHandlerConfiguration;
+  /** The creation timestamp */
+  createdAt: Scalars['DateTime']['output'];
+  /** The OID4VC verification profile */
+  profile: Oid4vcVerificationProfile;
+  /** The timestamp of when the type has been last updated */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault identifier of the verification key */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
+  /** The registration certificate the handler's request is sent with. */
+  verificationRegistration?: Maybe<OrganizationRegistration>;
+  /** The uuid of the registration certificate the handler's request is sent with. */
+  verificationRegistrationUuid?: Maybe<Scalars['UUID']['output']>;
+};
+
+/** The AuthenticationHandlerConfigurationOID4VC connection definition. */
+export type AuthenticationHandlerConfigurationOid4VcConnection = {
+  __typename?: 'AuthenticationHandlerConfigurationOID4VCConnection';
+  edges: Array<Maybe<AuthenticationHandlerConfigurationOid4VcEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The AuthenticationHandlerConfigurationOID4VC edge definition. */
+export type AuthenticationHandlerConfigurationOid4VcEdge = {
+  __typename?: 'AuthenticationHandlerConfigurationOID4VCEdge';
+  cursor: Scalars['String']['output'];
+  node: AuthenticationHandlerConfigurationOid4Vc;
+};
+
+/** Fields which can be used to filter AuthenticationHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum AuthenticationHandlerConfigurationOid4VcFilteringField {
+  AuthenticationHandlerConfigurationUuid = 'authenticationHandlerConfigurationUuid'
+}
+
+/** Fields which can be used to sort AuthenticationHandlerConfigurationOID4VC on. Value must be camel case. */
+export enum AuthenticationHandlerConfigurationOid4VcSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting AuthenticationHandlerConfigurationOID4VC. */
+export type AuthenticationHandlerConfigurationOid4VcSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: AuthenticationHandlerConfigurationOid4VcSortEnum;
 };
 
 /** Fields which can be used to sort AuthenticationHandlerConfiguration on. Value must be camel case. */
@@ -2169,6 +2389,8 @@ export type BillingWalletTransactionMeta = Model & {
   __typename?: 'BillingWalletTransactionMeta';
   /** Transaction */
   billingWalletTransaction: BillingWalletTransaction;
+  /** Brand Payment Meta (when metaType = BRAND) */
+  brand?: Maybe<BillingWalletTransactionMetaBrand>;
   /** The user creation time */
   createdAt: Scalars['DateTime']['output'];
   /** Flow Payment Meta (when metaType = FLOW) */
@@ -2181,6 +2403,69 @@ export type BillingWalletTransactionMeta = Model & {
   uuid: Scalars['UUID']['output'];
   /** Wallet Payment Meta (when metaType = WALLET) */
   wallet?: Maybe<BillingWalletTransactionMetaWallet>;
+};
+
+/** BillingWalletTransactionMetaBrand definition - per-brand payment details. */
+export type BillingWalletTransactionMetaBrand = Model & {
+  __typename?: 'BillingWalletTransactionMetaBrand';
+  /** Billing Plan */
+  billingPlan: BillingPlan;
+  /** Transaction Meta */
+  billingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** The user creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The interval end time */
+  intervalEndAt: Scalars['DateTime']['output'];
+  /** The interval start time */
+  intervalStartAt: Scalars['DateTime']['output'];
+  /** Organization Brand */
+  organizationBrand: OrganizationBrand;
+  /** The user update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+export type BillingWalletTransactionMetaBrandConnection = {
+  __typename?: 'BillingWalletTransactionMetaBrandConnection';
+  edges: Array<BillingWalletTransactionMetaBrandEdge>;
+  pageInfo: PageInfo;
+};
+
+export type BillingWalletTransactionMetaBrandEdge = {
+  __typename?: 'BillingWalletTransactionMetaBrandEdge';
+  cursor: Scalars['String']['output'];
+  node: BillingWalletTransactionMetaBrand;
+};
+
+/** Fields which can be used to filter billing wallet transaction meta brands on. Value must be camel case. */
+export enum BillingWalletTransactionMetaBrandFilteringField {
+  BillingPlanUuid = 'billingPlanUuid',
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  IntervalEndAt = 'intervalEndAt',
+  IntervalStartAt = 'intervalStartAt',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort billing wallet transaction meta brands on. Value must be camel case. */
+export enum BillingWalletTransactionMetaBrandSortEnum {
+  BillingPlanUuid = 'billingPlanUuid',
+  BillingWalletTransactionMetaUuid = 'billingWalletTransactionMetaUuid',
+  CreatedAt = 'createdAt',
+  IntervalEndAt = 'intervalEndAt',
+  IntervalStartAt = 'intervalStartAt',
+  OrganizationBrandUuid = 'organizationBrandUuid',
+  UpdatedAt = 'updatedAt',
+  Uuid = 'uuid'
+}
+
+/** Input options for sorting billing wallet transaction meta brands. */
+export type BillingWalletTransactionMetaBrandSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: BillingWalletTransactionMetaBrandSortEnum;
 };
 
 export type BillingWalletTransactionMetaConnection = {
@@ -2435,6 +2720,7 @@ export type BillingWalletTransactionMetaSortInput = {
 
 /** Transaction meta types */
 export enum BillingWalletTransactionMetaType {
+  Brand = 'BRAND',
   Flow = 'FLOW',
   Plan = 'PLAN',
   Wallet = 'WALLET'
@@ -2530,6 +2816,55 @@ export enum BillingWalletTransactionState {
   Succeeded = 'SUCCEEDED'
 }
 
+/**
+ * One outbound delivery attempt of a credential offer into an organization's headless
+ * business wallet (RFC 20260810a). Child of IssuanceRun; delivery-method agnostic. This is
+ * the internal (Nebula) window into the asynchronous outcome. Written only by the registry
+ * service over Collector.
+ */
+export type BusinessWalletDelivery = Model & {
+  __typename?: 'BusinessWalletDelivery';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** Method-specific provider reference (for qerds, the Domibus provider ref) — correlate by this. */
+  deliveryRef?: Maybe<Scalars['String']['output']>;
+  /** The transport failure reason, when failed. */
+  failureReason?: Maybe<Scalars['String']['output']>;
+  /** The issuance run this delivery belongs to. */
+  issuanceRunUuid: Scalars['UUID']['output'];
+  /** Which delivery transport the offer was shipped over (derived from the handler app config). */
+  method: BusinessWalletDeliveryMethod;
+  /** The client_id that triggered issuance (POST /issue). */
+  ownerClientId: Scalars['String']['output'];
+  /** Method-specific target address (for qerds, the org's QERDS digital address). */
+  recipient?: Maybe<Scalars['String']['output']>;
+  /** The closed delivery state */
+  state: BusinessWalletDeliveryState;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID (also the client-facing delivery handle). */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Delivery transport a business wallet is issued over (RFC 20260810a). One value today (QERDS). */
+export enum BusinessWalletDeliveryMethod {
+  Qerds = 'QERDS'
+}
+
+/**
+ * Delivery state of a credential OFFER into a headless business wallet (RFC 20260810a).
+ * The closed state set the client polls and Nebula renders: PENDING → SUBMITTED → REDEEMED,
+ * with FAILED covering initiation and transport failures. REDEEMED and FAILED are terminal.
+ * Tracks the offer's lifecycle only; whether the credential was issued is the
+ * IssuanceRun/CredentialRecord's concern.
+ */
+export enum BusinessWalletDeliveryState {
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Redeemed = 'REDEEMED',
+  Submitted = 'SUBMITTED'
+}
+
 /** CatalogModelType */
 export enum CatalogModelType {
   App = 'APP',
@@ -2547,6 +2882,131 @@ export enum CategoryType {
   Production = 'PRODUCTION',
   Protected = 'PROTECTED',
   Test = 'TEST'
+}
+
+/**
+ * A certificate in the shared (L0) certificate pool. Rows are content-addressed
+ * metadata over an X.509 certificate whose bytes live in Vault; the private key
+ * material (if any) is never exposed here. Referenced by the trust-issuer key,
+ * intermediate-CA and status-list linkage rows.
+ */
+export type Certificate = Model & {
+  __typename?: 'Certificate';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The X.509 extended key usage OIDs. */
+  extendedKeyUsage: Array<Scalars['String']['output']>;
+  /** The SHA-256 fingerprint (hex). */
+  fingerprintSha256: Scalars['String']['output'];
+  /** Whether this certificate is a CA (basic constraints cA=true). */
+  isCa: Scalars['Boolean']['output'];
+  /** The issuer distinguished name. */
+  issuerDn: Scalars['String']['output'];
+  /** The X.509 key usage bits. */
+  keyUsage: Array<Scalars['String']['output']>;
+  /** Not-valid-after (expiry) timestamp. */
+  notAfter: Scalars['DateTime']['output'];
+  /** Not-valid-before timestamp. */
+  notBefore: Scalars['DateTime']['output'];
+  /** The path length constraint (CA certificates only). */
+  pathLenConstraint?: Maybe<Scalars['Int']['output']>;
+  /** The public key algorithm. */
+  publicKeyAlgorithm: Scalars['String']['output'];
+  /** The revocation time, if revoked. */
+  revokedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The certificate serial number. */
+  serialNumber: Scalars['String']['output'];
+  /** The lifecycle status of the certificate. */
+  status: CertificateStatus;
+  /** The subject distinguished name. */
+  subjectDn: Scalars['String']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/**
+ * One certificate inside a chain, parsed from its PEM: a pooled certificate's
+ * stored chain, or the x5c a registration certificate carries. Descriptive only.
+ */
+export type CertificateChainEntry = {
+  __typename?: 'CertificateChainEntry';
+  /** The X.509 extended key usage OIDs. */
+  extendedKeyUsage: Array<Scalars['String']['output']>;
+  /** The SHA-256 fingerprint (hex). */
+  fingerprintSha256: Scalars['String']['output'];
+  /** Whether this certificate is a CA (basic constraints cA=true). */
+  isCa: Scalars['Boolean']['output'];
+  /** The issuer distinguished name. */
+  issuerDn: Scalars['String']['output'];
+  /** The X.509 key usage bits. */
+  keyUsage: Array<Scalars['String']['output']>;
+  /** Not-valid-after (expiry) timestamp. */
+  notAfter: Scalars['DateTime']['output'];
+  /** Not-valid-before timestamp. */
+  notBefore: Scalars['DateTime']['output'];
+  /** This certificate's own PEM block. */
+  pem: Scalars['String']['output'];
+  /** The position this certificate holds in the chain. */
+  role: CertificateChainRole;
+  /** The certificate serial number. */
+  serialNumber: Scalars['String']['output'];
+  /** The subject distinguished name. */
+  subjectDn: Scalars['String']['output'];
+};
+
+/** Where a certificate sits in the chain it was read from. */
+export enum CertificateChainRole {
+  /** The trailing self-signed certificate that closes the chain. */
+  Anchor = 'ANCHOR',
+  /** A certificate between the subject and the anchor. */
+  Intermediate = 'INTERMEDIATE',
+  /** The certificate the chain is about — the leaf, or the CA itself for a CA entry. */
+  Subject = 'SUBJECT'
+}
+
+/** The PEM bytes of a pooled certificate, read from Vault. */
+export type CertificatePem = {
+  __typename?: 'CertificatePem';
+  /** The chain split into its certificates, subject-first. */
+  certificates: Array<CertificateChainEntry>;
+  /**
+   * The PEM stored in the pool: the leaf joined with its CA chain for a minted
+   * certificate, or the uploaded PEM for bring-your-own.
+   */
+  chain: Scalars['String']['output'];
+};
+
+/**
+ * The X.509 extension recipe an ecosystem demands of the leaves used within it.
+ * STANDARD is SAN plus the mdoc reader-auth EKU; NL_WALLET adds ReaderRegistration
+ * to a reader leaf and IssuerRegistration to a document signer. A property of the
+ * ecosystem rather than of whichever CA signs, so it is readable even for a trust
+ * the platform holds no signing CA for.
+ */
+export enum CertificateProfile {
+  NlWallet = 'NL_WALLET',
+  Standard = 'STANDARD'
+}
+
+/**
+ * Who signs a certificate the platform uses, as distinct from Custody, which is who
+ * holds the private key. PLATFORM leaves are minted by the platform under its own
+ * CA; EXTERNAL ones are signed by the ecosystem's registrar against a signing
+ * request the platform emits, and can only be imported. The platform holds the
+ * leaf's key either way — only the signer differs.
+ */
+export enum CertificateProvisioning {
+  External = 'EXTERNAL',
+  Platform = 'PLATFORM'
+}
+
+/** The status of a certificate in the shared certificate pool. */
+export enum CertificateStatus {
+  Active = 'ACTIVE',
+  Revoked = 'REVOKED',
+  Superseded = 'SUPERSEDED'
 }
 
 /** Output type used for billing method configuration */
@@ -2598,6 +3058,12 @@ export type CreateAppLocaleInput = {
   locale: Scalars['Locale']['input'];
   /** The name */
   name: Scalars['NonEmpty']['input'];
+  /**
+   * The name including its definite article where appropriate (e.g. "the NL Wallet").
+   * Use this variant when the name appears inside prose. For names that do not take
+   * an article, this equals the plain name.
+   */
+  nameWithArticle?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** The input for creating an attribute format Datakeeper. */
@@ -2729,11 +3195,13 @@ export type CreateAuthenticationDomainInput = {
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
+  path: Scalars['RedirectPath']['input'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
+  port: Scalars['RedirectPort']['input'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
+  protocol: Scalars['RedirectProtocol']['input'];
+  /** The type of the domain. */
+  type: DomainType;
 };
 
 /** Create Input */
@@ -2750,6 +3218,14 @@ export type CreateAuthenticationHandlerConfigurationNlWalletInput = {
   maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
   /** Purpose statement */
   purposeStatement: Scalars['JSONObject']['input'];
+};
+
+/** Create Input */
+export type CreateAuthenticationHandlerConfigurationOid4VcInput = {
+  /** The AuthenticationHandler UUID */
+  authenticationHandlerUuid: Scalars['UUID']['input'];
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
 };
 
 /** The input for creating a flow authentication handler. */
@@ -2820,7 +3296,10 @@ export type CreateBillingWalletInput = {
   currencyUnit: CurrencyUnit;
 };
 
-/** The input for creating a credential draft (RFC 0012). */
+/**
+ * The input for creating a credential draft. Creates the Credential identity and
+ * the first DRAFT CredentialVersion.
+ */
 export type CreateCredentialDraftInput = {
   /** The categories of the credential. */
   categories?: InputMaybe<Array<CategoryType>>;
@@ -2828,8 +3307,8 @@ export type CreateCredentialDraftInput = {
   format: Format;
   /** The name of the credential. */
   name: Scalars['NonEmpty']['input'];
-  /** The organization UUID. */
-  organizationUuid: Scalars['UUID']['input'];
+  /** The owning organization UUID. Null for platform-managed credentials. */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The slug. */
   slug: Scalars['NonEmpty']['input'];
 };
@@ -2998,14 +3477,14 @@ export type CreateDisclosureBrandInput = {
 
 /** The input for creating a flow disclosure field. */
 export type CreateDisclosureCredentialInput = {
-  /** The uuid of the credential. */
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the group the credential belongs to. */
   disclosureGroupUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /** The uuid of the issuer. Optional at creation; configured later. */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust. Optional at creation; configured later. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Create input */
@@ -3015,11 +3494,13 @@ export type CreateDisclosureDomainInput = {
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
+  path: Scalars['RedirectPath']['input'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
+  port: Scalars['RedirectPort']['input'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
+  protocol: Scalars['RedirectProtocol']['input'];
+  /** The type of the domain. */
+  type: DomainType;
 };
 
 /** The input for creating a flow disclosure group. */
@@ -3034,10 +3515,14 @@ export type CreateDisclosureGroupInput = {
 export type CreateDisclosureHandlerByAttributesAttributeInput = {
   /** The uuid of the catalog attribute. */
   attributeUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /**
+   * The uuid of the issuer. Optional — omitted when the accepted trust and issuer
+   * are configured afterwards via `updateDisclosureCredential` (a credential found
+   * through an open trust, or bound to no trust issuer).
+   */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust. Optional — see `issuerUuid`. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** The input for creating a flow disclosure handler by attributes. */
@@ -3220,16 +3705,19 @@ export type CreateIssuanceBrandInput = {
 
 /** The input for creating a flow issuance field. */
 export type CreateIssuanceCredentialInput = {
-  /** The uuid of the credential. */
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the handler the credential belongs to. */
   issuanceHandlerUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
+  /**
+   * The uuid of the issuer. Optional — left unconfigured at creation and set later
+   * via `updateIssuanceCredential`.
+   */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The meta type of the credential */
   metaType: IssuanceCredentialMetaType;
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /** The uuid of the trust. Optional — see `issuerUuid`. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** The input for creating a flow credential meta datakeeper */
@@ -3263,21 +3751,26 @@ export type CreateIssuanceDomainInput = {
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
+  path: Scalars['RedirectPath']['input'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
+  port: Scalars['RedirectPort']['input'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
+  protocol: Scalars['RedirectProtocol']['input'];
+  /** The type of the domain. */
+  type: DomainType;
 };
 
 /** A single attribute entry for creating an issuance handler by attributes. */
 export type CreateIssuanceHandlerByAttributesAttributeInput = {
   /** The uuid of the catalog attribute. */
   attributeUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /**
+   * The uuid of the issuer. Optional — credentials are created unconfigured and the
+   * issuing trust issuer is set later via `updateIssuanceCredential`.
+   */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust. Optional — see `issuerUuid`. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** The input for creating a flow issuance handler by attributes. */
@@ -3358,14 +3851,19 @@ export type CreateIssuanceSecretInput = {
   organizationSecretUuid: Scalars['UUID']['input'];
 };
 
-/** The input for creating an issuer draft (RFC 0012). */
-export type CreateIssuerDraftInput = {
+/** The input for creating an issuer. */
+export type CreateIssuerInput = {
   /** The base64 encoded logo. */
-  base64Logo: Scalars['NonEmpty']['input'];
+  base64Logo?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /**
+   * Key custody. PLATFORM keys are minted by the platform and can only be
+   * provisioned; EXTERNAL keys are the issuer's own and can only be imported.
+   */
+  custody: Custody;
   /** The name of the issuer. */
   name: Scalars['NonEmpty']['input'];
-  /** The organization UUID. */
-  organizationUuid: Scalars['UUID']['input'];
+  /** The owning organization UUID. Null for platform-managed issuers. */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The slug. */
   slug: Scalars['NonEmpty']['input'];
 };
@@ -3440,7 +3938,7 @@ export type CreateManyMappingIssuanceAttributeInput = {
 
 /** The input for creating many mappingIssuance links. */
 export type CreateManyMappingIssuanceLinkInput = {
-  /** The uuid of the link. */
+  /** The uuid of the linked credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
@@ -3472,7 +3970,7 @@ export type CreateManyMappingVerificationAttributeInput = {
 
 /** The input for creating many mappingVerification links. */
 export type CreateManyMappingVerificationLinkInput = {
-  /** The uuid of the link. */
+  /** The uuid of the linked credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
@@ -3546,7 +4044,7 @@ export type CreateMappingIssuanceInput = {
 
 /** The input for creating an mappingIssuance link. */
 export type CreateMappingIssuanceLinkInput = {
-  /** The uuid of the link credential. */
+  /** The uuid of the linked credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
@@ -3584,7 +4082,7 @@ export type CreateMappingVerificationInput = {
 
 /** The input for creating an mappingVerification link. */
 export type CreateMappingVerificationLinkInput = {
-  /** The uuid of the link credential. */
+  /** The uuid of the linked credential version. */
   credentialUuid: Scalars['UUID']['input'];
   /** The uuid of the issuer. */
   issuerUuid: Scalars['UUID']['input'];
@@ -3688,16 +4186,6 @@ export type CreateOrganizationAppMetaKiwaInput = {
   organizationAppUuid: Scalars['UUID']['input'];
 };
 
-/** The input for creating a organization app meta OID4VC. */
-export type CreateOrganizationAppMetaOid4vcInput = {
-  /** The organization app UUID */
-  organizationAppUuid: Scalars['UUID']['input'];
-  /** The verifier certificate identifier */
-  verifierCertIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The verifier key identifier */
-  verifierKeyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
 /** The input for creating a organization app meta yoti. */
 export type CreateOrganizationAppMetaYotiInput = {
   /** The org domain registered at Yoti */
@@ -3784,6 +4272,14 @@ export type CreateOrganizationInput = {
   website?: InputMaybe<Scalars['URL']['input']>;
 };
 
+/** Input for creating an issuer's verified-brand binding. */
+export type CreateOrganizationIssuerInput = {
+  /** The UUID of the org-owned issuer to bind. */
+  catalogIssuerUuid: Scalars['UUID']['input'];
+  /** The UUID of the verified organization brand naming this issuer's certificates. */
+  organizationBrandUuid: Scalars['UUID']['input'];
+};
+
 /** Input type used to create */
 export type CreateOrganizationNotificationEventInput = {
   /** The event URN */
@@ -3808,6 +4304,21 @@ export type CreateOrganizationQuotaInput = {
   organizationUuid: Scalars['UUID']['input'];
 };
 
+/** The input for ingesting a registration certificate. */
+export type CreateOrganizationRegistrationInput = {
+  /** The trust whose registrar issued the certificate. */
+  catalogTrustUuid: Scalars['UUID']['input'];
+  /** The organization UUID. */
+  organizationUuid: Scalars['UUID']['input'];
+  /** The registration certificate, a compact rc-wrp+jwt (ETSI TS 119 475). */
+  registrationJwt: Scalars['NonEmpty']['input'];
+  /**
+   * The role it is imported for. Its entitlement must grant this role:
+   * Service_Provider for VERIFICATION, a provider entitlement for ISSUANCE.
+   */
+  role: TrustRole;
+};
+
 /** Create input */
 export type CreateOrganizationSecretInput = {
   /** The algorithm */
@@ -3822,14 +4333,12 @@ export type CreateOrganizationSecretInput = {
   type: OrganizationSecretType;
 };
 
-/** The input for creating an organization trust issuer key. */
-export type CreateOrganizationTrustIssuerKeyInput = {
+/** The input for enrolling an organization in a trust. */
+export type CreateOrganizationTrustInput = {
   /** The organization UUID. */
   organizationUuid: Scalars['UUID']['input'];
-  /** The Vault Transit private key identifier. */
-  privateKeyIdentifier: Scalars['NonEmpty']['input'];
-  /** The trust issuer key UUID (cross-db reference to catalog). */
-  trustIssuerKeyUuid: Scalars['UUID']['input'];
+  /** The trust UUID. */
+  trustUuid: Scalars['UUID']['input'];
 };
 
 export type CreateOrganizationUserInput = {
@@ -4007,14 +4516,14 @@ export type CreateSignatureBrandInput = {
 
 /** The input for creating a flow signature field. */
 export type CreateSignatureCredentialInput = {
-  /** The uuid of the credential. */
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
+  /** The uuid of the issuer. Optional at creation; configured later. */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The uuid of the group the credential belongs to. */
   signatureGroupUuid: Scalars['UUID']['input'];
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /** The uuid of the trust. Optional at creation; configured later. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Create input */
@@ -4022,13 +4531,15 @@ export type CreateSignatureDomainInput = {
   /** The UUID of the flow domain */
   organizationDomainUuid: Scalars['UUID']['input'];
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['input'];
+  path: Scalars['RedirectPath']['input'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['input'];
+  port: Scalars['RedirectPort']['input'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['input'];
+  protocol: Scalars['RedirectProtocol']['input'];
   /** The UUID of the organization the domain belongs to. */
   signatureUuid: Scalars['UUID']['input'];
+  /** The type of the domain. */
+  type: DomainType;
 };
 
 /** The input for creating a flow signature group. */
@@ -4043,10 +4554,14 @@ export type CreateSignatureGroupInput = {
 export type CreateSignatureHandlerByAttributesAttributeInput = {
   /** The uuid of the catalog attribute. */
   attributeUuid: Scalars['UUID']['input'];
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['input'];
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['input'];
+  /**
+   * The uuid of the issuer. Optional — omitted when the accepted trust and issuer
+   * are configured afterwards via `updateSignatureCredential` (a credential found
+   * through an open trust, or bound to no trust issuer).
+   */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust. Optional — see `issuerUuid`. */
+  trustUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** The input for creating a flow signature handler by attributes. */
@@ -4155,6 +4670,8 @@ export type CreateStudioPlanInput = {
 
 /** Create Input */
 export type CreateStudioPlanIntervalInput = {
+  /** The default cost per approved brand, per recurring interval */
+  brandCost: Scalars['UInt']['input'];
   /** The default cost per recurring interval */
   cost: Scalars['UInt']['input'];
   /** The default currency */
@@ -4195,28 +4712,10 @@ export type CreateTrustAnchorIdemixInput = {
 
 /** The input for creating a trust anchor X.509. */
 export type CreateTrustAnchorX509Input = {
+  /** The source of the anchor material. */
+  source?: InputMaybe<TrustSource>;
   /** The uuid of the trust. */
   trustUuid: Scalars['UUID']['input'];
-};
-
-/** The input for creating a trust anchor X.509 root certificate. */
-export type CreateTrustAnchorX509RootCertificateInput = {
-  /** The Authority Key Identifier */
-  aki: Scalars['NonEmpty']['input'];
-  /** The certificate name */
-  name: Scalars['NonEmpty']['input'];
-  /** The not-after validity date */
-  notAfter: Scalars['DateTime']['input'];
-  /** The not-before validity date */
-  notBefore: Scalars['DateTime']['input'];
-  /** The uuid of the trust anchor X.509. */
-  trustAnchorX509Uuid: Scalars['UUID']['input'];
-  /** The status of the entry in the trusted list */
-  trustedListEntryStatus?: InputMaybe<TrustedListEntryStatus>;
-  /** The URI of the trusted list this certificate belongs to */
-  trustedListUri?: InputMaybe<Scalars['String']['input']>;
-  /** The X.509 certificate chain (PEM) */
-  x5c: Scalars['NonEmpty']['input'];
 };
 
 /** The input for creating a trust app. */
@@ -4227,23 +4726,65 @@ export type CreateTrustAppInput = {
   trustUuid: Scalars['UUID']['input'];
 };
 
-/**
- * The input for creating a trust draft. Creates both the TrustVersion envelope
- * and the first DRAFT version (RFC 0012).
- */
-export type CreateTrustDraftInput = {
-  /** The verification anchor type */
-  anchor: Anchor;
+/** The input for creating a trust handler. */
+export type CreateTrustHandlerInput = {
+  /** The UUID of the handler. */
+  handlerUuid: Scalars['UUID']['input'];
+  /** The UUID of the trust. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
+/** The input for creating a trust. */
+export type CreateTrustInput = {
+  /**
+   * Who signs the access (reader) certificates used in this ecosystem. PLATFORM
+   * means the platform mints them under its own verifier CA; EXTERNAL means this
+   * ecosystem's registrar signs them against a signing request and they can only
+   * be imported. The platform holds the leaf key either way, so this is not key
+   * custody.
+   */
+  accessCertificateProvisioning?: InputMaybe<CertificateProvisioning>;
+  /**
+   * The verification anchor type. The matching anchor row is created with the
+   * trust (none for NONE).
+   */
+  anchor: TrustAnchor;
+  /**
+   * The attestation categories issuable under this framework. Omit on frameworks
+   * outside eIDAS attestation-category governance.
+   */
+  attestationCategories?: InputMaybe<Array<AttestationCategory>>;
+  /** The extension recipe every leaf minted for, or imported into, this trust follows */
+  certificateProfile?: InputMaybe<CertificateProfile>;
+  /** The DID method of the anchor. Required when anchor is DID, ignored otherwise. */
+  didMethod?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The trust environment */
   environment: TrustEnvironment;
+  /** Who picks a flow credential's issuer under this trust */
+  issuerSelection?: InputMaybe<TrustIssuerSelection>;
   /** The name of the trust framework */
   name: Scalars['NonEmpty']['input'];
-  /** The organization uuid */
-  organizationUuid: Scalars['UUID']['input'];
-  /** The unique slug within the organization */
-  slug: Scalars['NonEmpty']['input'];
-  /** The trust type */
-  type: TrustType;
+  /** The owning organization uuid. Null for platform-managed trusts. */
+  organizationUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /**
+   * Whether this ecosystem's registrar issues registration certificates and its
+   * wallets demand them. A verifying handler sends one covering every claim it
+   * requests; an issuing handler signs its metadata with its access certificate
+   * and includes one covering every type it issues. Flows on such a trust cannot
+   * activate until the handler's configuration names one.
+   */
+  registrationCertificateRequired?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The DID resolver URI of the anchor. Ignored unless anchor is DID. */
+  resolverUri?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * The roles the framework offers an enrolled organization. An organization can
+   * only turn on a role listed here.
+   */
+  roles?: InputMaybe<Array<TrustRole>>;
+  /** The source of the trust anchor material */
+  source?: InputMaybe<TrustSource>;
+  /** The visibility of the trust */
+  visibility?: InputMaybe<Visibility>;
 };
 
 /** The input for creating a trust issuer. */
@@ -4252,6 +4793,8 @@ export type CreateTrustIssuerInput = {
   issuerUuid: Scalars['UUID']['input'];
   /** The UUID of the trust. */
   trustUuid: Scalars['UUID']['input'];
+  /** The visibility of the trust issuer. */
+  visibility?: InputMaybe<Visibility>;
 };
 
 /** The input for creating a trust issuer key algorithm Idemix. */
@@ -4278,22 +4821,24 @@ export type CreateTrustIssuerKeyInput = {
   jwk?: InputMaybe<Scalars['JSONObject']['input']>;
   /** The key identifier. */
   kid?: InputMaybe<Scalars['String']['input']>;
+  /** The attestation categories this key supports. */
+  supportedAttestationCategories?: InputMaybe<Array<AttestationCategory>>;
+  /** The credential formats this key signs. */
+  supportedFormats?: InputMaybe<Array<Format>>;
   /** The UUID of the trust issuer. */
   trustIssuerUuid: Scalars['UUID']['input'];
 };
 
-/** The input for creating a trust issuer key X.509 certificate. */
+/**
+ * The input for creating a trust issuer key X.509 certificate. Rows are
+ * append-only: each row binds a key to one leaf certificate in the shared
+ * certificate pool.
+ */
 export type CreateTrustIssuerKeyX509CertInput = {
-  /** The not after date. */
-  notAfter: Scalars['DateTime']['input'];
-  /** The not before date. */
-  notBefore: Scalars['DateTime']['input'];
-  /** The UUID of the trust anchor X.509 root certificate. */
-  trustAnchorX509RootCertificateUuid: Scalars['UUID']['input'];
+  /** The UUID of the leaf certificate in the certificate pool. */
+  certificateUuid: Scalars['UUID']['input'];
   /** The UUID of the trust issuer key. */
   trustIssuerKeyUuid: Scalars['UUID']['input'];
-  /** The X.509 certificate chain. */
-  x5c: Array<Scalars['NonEmpty']['input']>;
 };
 
 /** Create input */
@@ -4351,85 +4896,69 @@ export type CreateUserResetInput = {
   email: Scalars['Email']['input'];
 };
 
-/** Credential definition (RFC 0012 versioned). */
+/**
+ * Credential identity definition. Tracks a credential type across its full
+ * version history; authored content lives on CredentialVersion.
+ */
 export type Credential = Model & {
   __typename?: 'Credential';
-  /** The collection of attributes. */
-  attributes: AttributeConnection;
-  /** The UUID of the version this was based on. */
-  basedOnUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The categories of the credential. */
-  categories: Array<CategoryType>;
-  /** The change note. */
-  changeNote?: Maybe<Scalars['String']['output']>;
+  /** The collection of change logs. */
+  changeLogs: CredentialChangeLogConnection;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The UUID of the user who created this version. */
-  createdByUserUuid: Scalars['UUID']['output'];
   /** The collection of trust issuers. */
   credentialTrustIssuers: CredentialTrustIssuerConnection;
-  /** The credential version this credential belongs to. */
-  credentialVersion: CredentialVersion;
-  /** The UUID of the credential version. */
-  credentialVersionUuid: Scalars['UUID']['output'];
-  /** The format of the credential. */
-  format: Format;
-  /** The Datakeeper format configuration, if applicable. */
-  formatDatakeeper?: Maybe<CredentialFormatDatakeeper>;
-  /** The Digidentity format configuration, if applicable. */
-  formatDigidentity?: Maybe<CredentialFormatDigidentity>;
-  /** The MSO MDOC format configuration, if applicable. */
-  formatMsoMdoc?: Maybe<CredentialFormatMsoMdoc>;
-  /** The Nect format configuration, if applicable. */
-  formatNect?: Maybe<CredentialFormatNect>;
-  /** The NL Wallet format configuration, if applicable. */
-  formatNlWallet?: Maybe<CredentialFormatNlWallet>;
-  /** The ReadID format configuration, if applicable. */
-  formatReadid?: Maybe<CredentialFormatReadid>;
-  /** The SD-JWT format configuration, if applicable. */
-  formatSdJwt?: Maybe<CredentialFormatSdJwt>;
-  /** The Yivi format configuration, if applicable. */
-  formatYivi?: Maybe<CredentialFormatYivi>;
-  /** The Yoti format configuration, if applicable. */
-  formatYoti?: Maybe<CredentialFormatYoti>;
-  /** The last edited time. */
-  lastEditedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The UUID of the user who last edited this version. */
-  lastEditedByUserUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The collection of locales. */
-  locales: CredentialLocaleConnection;
-  /** The name of the credential. */
-  name: Scalars['NonEmpty']['output'];
-  /** The publish time, if published. */
-  publishedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The UUID of the user who published this version. */
-  publishedByUserUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The version status. */
-  status: VersionStatus;
+  /** The collection of all versions of this credential. */
+  credentialVersions: CredentialVersionConnection;
+  /** The deprecation reason, if any. */
+  deprecationReason?: Maybe<Scalars['String']['output']>;
+  /** The draft version of the credential, if any. */
+  draft?: Maybe<CredentialVersion>;
+  /** Whether a draft version exists. */
+  hasDraft: Scalars['Boolean']['output'];
+  /** Whether a live version exists. */
+  hasLive: Scalars['Boolean']['output'];
+  /** Whether this credential is deprecated. */
+  isDeprecated: Scalars['Boolean']['output'];
+  /** The live version of the credential, if any. */
+  live?: Maybe<CredentialVersion>;
+  /** The owning organization. Null for platform-managed credentials. */
+  organization?: Maybe<Organization>;
+  /** The owning organization UUID. Null for platform-managed credentials. */
+  organizationUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The slug */
+  slug: Scalars['NonEmpty']['output'];
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The version number. */
-  versionNumber: Scalars['Int']['output'];
 };
 
 
-/** Credential definition (RFC 0012 versioned). */
-export type CredentialAttributesArgs = {
-  input?: InputMaybe<FindManyAttributesInput>;
+/**
+ * Credential identity definition. Tracks a credential type across its full
+ * version history; authored content lives on CredentialVersion.
+ */
+export type CredentialChangeLogsArgs = {
+  input?: InputMaybe<FindManyCredentialChangeLogsInput>;
 };
 
 
-/** Credential definition (RFC 0012 versioned). */
+/**
+ * Credential identity definition. Tracks a credential type across its full
+ * version history; authored content lives on CredentialVersion.
+ */
 export type CredentialCredentialTrustIssuersArgs = {
   input?: InputMaybe<FindManyCredentialTrustIssuersInput>;
 };
 
 
-/** Credential definition (RFC 0012 versioned). */
-export type CredentialLocalesArgs = {
-  input?: InputMaybe<FindManyCredentialLocalesInput>;
+/**
+ * Credential identity definition. Tracks a credential type across its full
+ * version history; authored content lives on CredentialVersion.
+ */
+export type CredentialCredentialVersionsArgs = {
+  input?: InputMaybe<FindManyCredentialVersionsInput>;
 };
 
 /** Credential change log definition (RFC 0012). */
@@ -4437,8 +4966,8 @@ export type CredentialChangeLog = Model & {
   __typename?: 'CredentialChangeLog';
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential version this change log belongs to. */
-  credentialVersion: CredentialVersion;
+  /** The credential this change log belongs to. */
+  credential: Credential;
   /** The metadata of the change. */
   metadata: Scalars['JSONObject']['output'];
   /** The UUID of the user who performed the change. */
@@ -4502,12 +5031,12 @@ export type CredentialEdge = {
 
 /** Fields which can be used to filter credential on. Value must be camel case. */
 export enum CredentialFilteringField {
-  Categories = 'categories',
   CreatedAt = 'createdAt',
-  CredentialVersionUuid = 'credentialVersionUuid',
-  Format = 'format',
-  Name = 'name',
-  Status = 'status',
+  HasDraft = 'hasDraft',
+  HasLive = 'hasLive',
+  IsDeprecated = 'isDeprecated',
+  OrganizationUuid = 'organizationUuid',
+  Slug = 'slug',
   Uuid = 'uuid'
 }
 
@@ -4519,7 +5048,7 @@ export type CredentialFormatDatakeeper = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The issuer. */
   issuer: Issuer;
   /** The update time */
@@ -4568,7 +5097,7 @@ export type CredentialFormatDigidentity = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The issuer. */
   issuer: Issuer;
   /** The scope. */
@@ -4619,7 +5148,7 @@ export type CredentialFormatMsoMdoc = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The document type. */
   docType: Scalars['String']['output'];
   /** The update time */
@@ -4667,7 +5196,7 @@ export type CredentialFormatNect = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The intent. */
   intent: Scalars['Int']['output'];
   /** The issuer. */
@@ -4718,7 +5247,7 @@ export type CredentialFormatNlWallet = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The document type. */
   docType: Scalars['String']['output'];
   /** The NL Wallet format. */
@@ -4770,7 +5299,7 @@ export type CredentialFormatReadid = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The document type. */
   documentType: ReadidDocumentType;
   /** The issuer. */
@@ -4822,7 +5351,7 @@ export type CredentialFormatSdJwt = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The extended verifiable credential type. */
   extendsVct?: Maybe<Scalars['String']['output']>;
   /** The extended VCT integrity hash. */
@@ -4880,7 +5409,7 @@ export type CredentialFormatYivi = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The Yivi credential type identifier. */
   id: Scalars['String']['output'];
   /** The issuer. */
@@ -4931,7 +5460,7 @@ export type CredentialFormatYoti = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this format belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The grouping predicate. */
   groupingPredicate: Scalars['String']['output'];
   /** Whether grouping is allowed. */
@@ -5046,7 +5575,7 @@ export type CredentialLocale = Model & {
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential this locale belongs to. */
-  credential: Credential;
+  credential: CredentialVersion;
   /** The localized description. */
   description?: Maybe<Scalars['String']['output']>;
   /** The locale. */
@@ -5098,6 +5627,16 @@ export type CredentialLocaleSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: CredentialLocaleSortEnum;
+};
+
+/** The input for filtering credential trust issuers in nested filtering. */
+export type CredentialNestedFilteringCredentialTrustIssuerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering credential trust issuers */
+  input: FindManyCredentialTrustIssuersInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
 };
 
 /** Credential record definition. Tracks every credential instance issued through a flow. */
@@ -5548,8 +6087,7 @@ export enum CredentialRecordType {
 /** Fields which can be used to sort credential on. Value must be camel case. */
 export enum CredentialSortEnum {
   CreatedAt = 'createdAt',
-  Name = 'name',
-  VersionNumber = 'versionNumber'
+  Slug = 'slug'
 }
 
 /** Input options for sorting credential. */
@@ -5597,6 +6135,14 @@ export enum CredentialTrustIssuerFilteringField {
   Uuid = 'uuid'
 }
 
+/** The input for filtering the trust issuer in nested filtering. */
+export type CredentialTrustIssuerNestedFilteringTrustIssuerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering the trust issuer */
+  input: FindManyTrustIssuersInput;
+};
+
 /** Fields which can be used to sort credential trust issuer on. Value must be camel case. */
 export enum CredentialTrustIssuerSortEnum {
   CreatedAt = 'createdAt'
@@ -5610,49 +6156,86 @@ export type CredentialTrustIssuerSortInput = {
   field: CredentialTrustIssuerSortEnum;
 };
 
-/** Credential version definition (RFC 0012). */
+/**
+ * Credential version definition. A single versioned snapshot of the authored
+ * credential content, managed through the draft/publish lifecycle on Credential.
+ */
 export type CredentialVersion = Model & {
   __typename?: 'CredentialVersion';
-  /** The collection of change logs. */
-  changeLogs: CredentialChangeLogConnection;
+  /** The collection of attributes. */
+  attributes: AttributeConnection;
+  /** The UUID of the version this was based on. */
+  basedOnUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The categories of the credential. */
+  categories: Array<CategoryType>;
+  /** The change note. */
+  changeNote?: Maybe<Scalars['String']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The collection of all credentials for this version. */
-  credentials: CredentialConnection;
-  /** The deprecation reason, if any. */
-  deprecationReason?: Maybe<Scalars['String']['output']>;
-  /** The draft version of the credential, if any. */
-  draft?: Maybe<Credential>;
-  /** Whether a draft version exists. */
-  hasDraft: Scalars['Boolean']['output'];
-  /** Whether a live version exists. */
-  hasLive: Scalars['Boolean']['output'];
-  /** Whether this credential is deprecated. */
-  isDeprecated: Scalars['Boolean']['output'];
-  /** The live version of the credential, if any. */
-  live?: Maybe<Credential>;
-  /** The organization this credential version belongs to. */
-  organization: Organization;
-  /** The organization UUID */
-  organizationUuid: Scalars['UUID']['output'];
-  /** The slug */
-  slug: Scalars['NonEmpty']['output'];
+  /** The UUID of the user who created this version. */
+  createdByUserUuid: Scalars['UUID']['output'];
+  /** The credential this version belongs to. */
+  credential: Credential;
+  /** The UUID of the credential this version belongs to. */
+  credentialVersionUuid: Scalars['UUID']['output'];
+  /** The format of the credential. */
+  format: Format;
+  /** The Datakeeper format configuration, if applicable. */
+  formatDatakeeper?: Maybe<CredentialFormatDatakeeper>;
+  /** The Digidentity format configuration, if applicable. */
+  formatDigidentity?: Maybe<CredentialFormatDigidentity>;
+  /** The MSO MDOC format configuration, if applicable. */
+  formatMsoMdoc?: Maybe<CredentialFormatMsoMdoc>;
+  /** The Nect format configuration, if applicable. */
+  formatNect?: Maybe<CredentialFormatNect>;
+  /** The NL Wallet format configuration, if applicable. */
+  formatNlWallet?: Maybe<CredentialFormatNlWallet>;
+  /** The ReadID format configuration, if applicable. */
+  formatReadid?: Maybe<CredentialFormatReadid>;
+  /** The SD-JWT format configuration, if applicable. */
+  formatSdJwt?: Maybe<CredentialFormatSdJwt>;
+  /** The Yivi format configuration, if applicable. */
+  formatYivi?: Maybe<CredentialFormatYivi>;
+  /** The Yoti format configuration, if applicable. */
+  formatYoti?: Maybe<CredentialFormatYoti>;
+  /** The last edited time. */
+  lastEditedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The UUID of the user who last edited this version. */
+  lastEditedByUserUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The collection of locales. */
+  locales: CredentialLocaleConnection;
+  /** The name of the credential. */
+  name: Scalars['NonEmpty']['output'];
+  /** The publish time, if published. */
+  publishedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** The UUID of the user who published this version. */
+  publishedByUserUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The version status. */
+  status: VersionStatus;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The version number. */
+  versionNumber: Scalars['Int']['output'];
 };
 
 
-/** Credential version definition (RFC 0012). */
-export type CredentialVersionChangeLogsArgs = {
-  input?: InputMaybe<FindManyCredentialChangeLogsInput>;
+/**
+ * Credential version definition. A single versioned snapshot of the authored
+ * credential content, managed through the draft/publish lifecycle on Credential.
+ */
+export type CredentialVersionAttributesArgs = {
+  input?: InputMaybe<FindManyAttributesInput>;
 };
 
 
-/** Credential version definition (RFC 0012). */
-export type CredentialVersionCredentialsArgs = {
-  input?: InputMaybe<FindManyCredentialsInput>;
+/**
+ * Credential version definition. A single versioned snapshot of the authored
+ * credential content, managed through the draft/publish lifecycle on Credential.
+ */
+export type CredentialVersionLocalesArgs = {
+  input?: InputMaybe<FindManyCredentialLocalesInput>;
 };
 
 /** The credential version connection definition. */
@@ -5671,18 +6254,20 @@ export type CredentialVersionEdge = {
 
 /** Fields which can be used to filter credential version on. Value must be camel case. */
 export enum CredentialVersionFilteringField {
+  Categories = 'categories',
   CreatedAt = 'createdAt',
-  HasDraft = 'hasDraft',
-  HasLive = 'hasLive',
-  IsDeprecated = 'isDeprecated',
-  OrganizationUuid = 'organizationUuid',
-  Slug = 'slug'
+  CredentialVersionUuid = 'credentialVersionUuid',
+  Format = 'format',
+  Name = 'name',
+  Status = 'status',
+  Uuid = 'uuid'
 }
 
 /** Fields which can be used to sort credential version on. Value must be camel case. */
 export enum CredentialVersionSortEnum {
   CreatedAt = 'createdAt',
-  Slug = 'slug'
+  Name = 'name',
+  VersionNumber = 'versionNumber'
 }
 
 /** Input options for sorting credential version. */
@@ -5891,21 +6476,18 @@ export enum CurrencyUnit {
   Unity = 'UNITY'
 }
 
-/** The input for deprecating a credential (RFC 0012). */
+/**
+ * Key custody. PLATFORM keys are held in the platform's Vault Transit;
+ * EXTERNAL keys are held by the issuer.
+ */
+export enum Custody {
+  External = 'EXTERNAL',
+  Platform = 'PLATFORM'
+}
+
+/** The input for deprecating a credential. */
 export type DeprecateCredentialInput = {
   /** The deprecation reason. */
-  reason: Scalars['NonEmpty']['input'];
-};
-
-/** The input for deprecating an issuer (RFC 0012). */
-export type DeprecateIssuerInput = {
-  /** The deprecation reason. */
-  reason: Scalars['NonEmpty']['input'];
-};
-
-/** The input for deprecating a trust framework. */
-export type DeprecateTrustInput = {
-  /** The reason for deprecation */
   reason: Scalars['NonEmpty']['input'];
 };
 
@@ -5936,8 +6518,6 @@ export type Disclosure = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
-  /** The active provisioning task, if the flow is currently being provisioned. */
-  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The indicator if explicit consent is required */
@@ -6174,22 +6754,22 @@ export type DisclosureCredential = Model & {
   __typename?: 'DisclosureCredential';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
+  /** The credential version the credentialUuid belongs to. */
+  credential: CredentialVersion;
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['output'];
   /** The associated fields with this credential */
   disclosureAttributes: DisclosureAttributeConnection;
   /** The flow disclosure group the flow disclosure credential belongs to. */
   disclosureGroup: DisclosureGroup;
-  /** The issuer the issuerUuid belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
+  /** The issuer the issuerUuid belongs to. Null when any issuer under the trust is accepted. */
+  issuer?: Maybe<Issuer>;
+  /** The uuid of the issuer. Null means any issuer under the trust is accepted. */
+  issuerUuid?: Maybe<Scalars['UUID']['output']>;
   /** The trust the trustUuid belongs to. */
-  trust: Trust;
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['output'];
+  trust?: Maybe<Trust>;
+  /** The uuid of the trust. Configured after creation and required at activation. */
+  trustUuid?: Maybe<Scalars['UUID']['output']>;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID. */
@@ -6252,11 +6832,13 @@ export type DisclosureDomain = Model & {
   /** The user organization domain */
   organizationDomain: OrganizationDomain;
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
+  path: Scalars['RedirectPath']['output'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
+  port: Scalars['RedirectPort']['output'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  protocol: Scalars['RedirectProtocol']['output'];
+  /** The type of the domain. */
+  type: DomainType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -6281,14 +6863,15 @@ export type DisclosureDomainEdge = {
 export enum DisclosureDomainFilteringField {
   DisclosureUuid = 'disclosureUuid',
   OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
+  Type = 'type',
   Uuid = 'uuid'
 }
 
 /** Fields which can be used to sort domains on. Value must be camel case. */
 export enum DisclosureDomainSortEnum {
   CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
   UpdatedAt = 'updatedAt'
 }
 
@@ -6403,6 +6986,12 @@ export type DisclosureHandlerDisclosureGroupsArgs = {
   input?: InputMaybe<FindManyDisclosureGroupsInput>;
 };
 
+/** DisclosureHandlerAction */
+export enum DisclosureHandlerAction {
+  /** Clear the handler's verifier certificate pointers. The flow must be INACTIVE. */
+  ClearCertificate = 'CLEAR_CERTIFICATE'
+}
+
 /** Flow disclosure handler configuration definition */
 export type DisclosureHandlerConfiguration = Model & {
   __typename?: 'DisclosureHandlerConfiguration';
@@ -6462,6 +7051,12 @@ export type DisclosureHandlerConfigurationNlWallet = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault identifier of the verification key */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
 };
 
 /** The DisclosureHandlerConfigurationNLWallet connection definition. */
@@ -6510,6 +7105,16 @@ export type DisclosureHandlerConfigurationOid4Vc = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault identifier of the verification key */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
+  /** The registration certificate the handler's request is sent with. */
+  verificationRegistration?: Maybe<OrganizationRegistration>;
+  /** The uuid of the registration certificate the handler's request is sent with. */
+  verificationRegistrationUuid?: Maybe<Scalars['UUID']['output']>;
 };
 
 /** The DisclosureHandlerConfigurationOID4VC connection definition. */
@@ -6786,6 +7391,16 @@ export enum DisclosureState {
   Provisioning = 'PROVISIONING'
 }
 
+/** The type of a flow domain, determining how the domain value is used. */
+export enum DomainType {
+  /** An origin that is allowed to embed the flow. */
+  AllowedEmbedOrigin = 'allowedEmbedOrigin',
+  /** A domain used for redirecting the user back after a flow completes. */
+  Redirect = 'redirect',
+  /** A domain used to receive webhook callbacks. */
+  Webhook = 'webhook'
+}
+
 /** Update Input */
 export type DuplicateAuthenticationInput = {
   /** The name of the new flow authentication. */
@@ -6840,6 +7455,11 @@ export enum FilteringMode {
 
 /** All the different types to filter on. */
 export enum FilteringType {
+  /**
+   * Filter type where the field must be empty (value true) or set (value false).
+   * Matches a null column, which a value filter cannot express.
+   */
+  Empty = 'EMPTY',
   /** Filter type where array value must have all the elements provided in an input array */
   Every = 'EVERY',
   /** Filter type where value must exactly match with other parameter. */
@@ -7294,6 +7914,30 @@ export type FindManyAuthenticationHandlerConfigurationNlWalletsInput = {
   sorting?: InputMaybe<AuthenticationHandlerConfigurationNlWalletSortInput>;
 };
 
+/** Input for filtering finding many AuthenticationHandlerConfigurationOID4VC. */
+export type FindManyAuthenticationHandlerConfigurationOid4VCsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: AuthenticationHandlerConfigurationOid4VcFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for finding many AuthenticationHandlerConfigurationOID4VC. */
+export type FindManyAuthenticationHandlerConfigurationOid4VCsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyAuthenticationHandlerConfigurationOid4VCsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<AuthenticationHandlerConfigurationOid4VcSortInput>;
+};
+
 /** Input for filtering AuthenticationHandlerConfiguration on provided fields. */
 export type FindManyAuthenticationHandlerConfigurationsFilter = {
   /** The query connector */
@@ -7545,6 +8189,30 @@ export type FindManyBillingPlansInput = {
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<BillingPlanSortInput>;
+};
+
+/** Input for filtering billing wallet transaction meta brands on provided fields. */
+export type FindManyBillingWalletTransactionMetaBrandsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: BillingWalletTransactionMetaBrandFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many billing wallet transaction meta brands on filters, pagination and sorting. */
+export type FindManyBillingWalletTransactionMetaBrandsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyBillingWalletTransactionMetaBrandsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<BillingWalletTransactionMetaBrandSortInput>;
 };
 
 /** Input for filtering billing wallet transaction meta flow attributes on provided fields. */
@@ -8205,10 +8873,18 @@ export type FindManyCredentialTrustIssuersFilter = {
 export type FindManyCredentialTrustIssuersInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyCredentialTrustIssuersFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyCredentialTrustIssuersNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<CredentialTrustIssuerSortInput>;
+};
+
+/** Input for filtering credential trust issuers on nested fields. */
+export type FindManyCredentialTrustIssuersNestedFilter = {
+  /** Trust issuer nested filter */
+  trustIssuer?: InputMaybe<CredentialTrustIssuerNestedFilteringTrustIssuerField>;
 };
 
 /** Input for filtering credential version on provided fields. */
@@ -8253,10 +8929,18 @@ export type FindManyCredentialsFilter = {
 export type FindManyCredentialsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyCredentialsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyCredentialsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<CredentialSortInput>;
+};
+
+/** Input for filtering credentials on nested fields. */
+export type FindManyCredentialsNestedFilter = {
+  /** Credential trust issuers nested filter */
+  credentialTrustIssuers?: InputMaybe<CredentialNestedFilteringCredentialTrustIssuerField>;
 };
 
 /** Input for filtering disclosure activities on provided fields. */
@@ -9215,30 +9899,6 @@ export type FindManyIssuancesNestedFilter = {
   issuanceLabels?: InputMaybe<IssuanceNestedFilteringIssuanceLabelField>;
 };
 
-/** Input for filtering issuer change log on provided fields. */
-export type FindManyIssuerChangeLogsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: IssuerChangeLogFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many issuer change logs on filters, pagination and sorting. */
-export type FindManyIssuerChangeLogsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyIssuerChangeLogsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<IssuerChangeLogSortInput>;
-};
-
 /** Input for filtering identity issuer labels */
 export type FindManyIssuerLabelsFilter = {
   /** The query connector */
@@ -9287,30 +9947,6 @@ export type FindManyIssuerLocalesInput = {
   sorting?: InputMaybe<IssuerLocaleSortInput>;
 };
 
-/** Input for filtering issuer version on provided fields. */
-export type FindManyIssuerVersionsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: IssuerVersionFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many issuer versions on filters, pagination and sorting. */
-export type FindManyIssuerVersionsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyIssuerVersionsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<IssuerVersionSortInput>;
-};
-
 /** Input for filtering issuer on provided fields. */
 export type FindManyIssuersFilter = {
   /** The query connector */
@@ -9329,10 +9965,18 @@ export type FindManyIssuersFilter = {
 export type FindManyIssuersInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyIssuersFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyIssuersNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<IssuerSortInput>;
+};
+
+/** Input for filtering issuers on nested fields. */
+export type FindManyIssuersNestedFilter = {
+  /** Trust issuer nested filter */
+  trustIssuers?: InputMaybe<IssuerNestedFilteringTrustIssuerField>;
 };
 
 /** Input for filtering labels on provided fields. */
@@ -9767,30 +10411,6 @@ export type FindManyOrganizationAppMetaKiwaInput = {
   sorting?: InputMaybe<OrganizationAppMetaKiwaSortInput>;
 };
 
-/** Input for filtering organization app meta OID4VC on provided fields. */
-export type FindManyOrganizationAppMetaOid4vcFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: OrganizationAppMetaOid4vcFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many organization app meta OID4VC on filters, pagination and sorting. */
-export type FindManyOrganizationAppMetaOid4vcInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyOrganizationAppMetaOid4vcFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<OrganizationAppMetaOid4vcSortInput>;
-};
-
 /** Input for filtering organization app meta yoti on provided fields. */
 export type FindManyOrganizationAppMetaYotiFilter = {
   /** The query connector */
@@ -10095,6 +10715,30 @@ export type FindManyOrganizationQuotasInput = {
   sorting?: InputMaybe<OrganizationQuotaSortInput>;
 };
 
+/** Input for filtering organization registrations on provided fields. */
+export type FindManyOrganizationRegistrationsFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: OrganizationRegistrationFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many organization registrations on filters, pagination and sorting. */
+export type FindManyOrganizationRegistrationsInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyOrganizationRegistrationsFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<OrganizationRegistrationSortInput>;
+};
+
 /** Input for filtering user on provided fields. */
 export type FindManyOrganizationSecretsFilter = {
   /** The query connector */
@@ -10119,12 +10763,12 @@ export type FindManyOrganizationSecretsInput = {
   sorting?: InputMaybe<OrganizationSecretSortInput>;
 };
 
-/** Input for filtering OrganizationTrustIssuerKey on provided fields. */
-export type FindManyOrganizationTrustIssuerKeysFilter = {
+/** Input for filtering organization trusts on provided fields. */
+export type FindManyOrganizationTrustsFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: OrganizationTrustIssuerKeyFilteringField;
+  field: OrganizationTrustFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -10133,14 +10777,14 @@ export type FindManyOrganizationTrustIssuerKeysFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many OrganizationTrustIssuerKeys on filters, pagination and sorting. */
-export type FindManyOrganizationTrustIssuerKeysInput = {
+/** Input for filtering many organization trusts on filters, pagination and sorting. */
+export type FindManyOrganizationTrustsInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyOrganizationTrustIssuerKeysFilter>>;
+  filtering?: InputMaybe<Array<FindManyOrganizationTrustsFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<OrganizationTrustIssuerKeySortInput>;
+  sorting?: InputMaybe<OrganizationTrustSortInput>;
 };
 
 /** Input for filtering user on provided fields. */
@@ -11145,12 +11789,12 @@ export type FindManyTrustAnchorIdemixesInput = {
   sorting?: InputMaybe<TrustAnchorIdemixSortInput>;
 };
 
-/** Input for filtering trust anchor X.509 root certificates on provided fields. */
-export type FindManyTrustAnchorX509RootCertificatesFilter = {
+/** Input for filtering on provided fields. */
+export type FindManyTrustAnchorX509ManagedCertificatesFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: TrustAnchorX509RootCertificateFilteringField;
+  field: TrustAnchorX509ManagedCertificateFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -11159,14 +11803,41 @@ export type FindManyTrustAnchorX509RootCertificatesFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many trust anchor X.509 root certificates on filters, pagination and sorting. */
-export type FindManyTrustAnchorX509RootCertificatesInput = {
+/**
+ * Input for filtering many managed trust anchor certificates on filters,
+ * pagination and sorting.
+ */
+export type FindManyTrustAnchorX509ManagedCertificatesInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyTrustAnchorX509RootCertificatesFilter>>;
+  filtering?: InputMaybe<Array<FindManyTrustAnchorX509ManagedCertificatesFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<TrustAnchorX509RootCertificateSortInput>;
+  sorting?: InputMaybe<TrustAnchorX509ManagedCertificateSortInput>;
+};
+
+/** Input for filtering on provided fields. */
+export type FindManyTrustAnchorX509ProvisioningCaCustodiesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: TrustAnchorX509ProvisioningCaCustodyFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many provisioning CAs on filters, pagination and sorting. */
+export type FindManyTrustAnchorX509ProvisioningCaCustodiesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyTrustAnchorX509ProvisioningCaCustodiesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<TrustAnchorX509ProvisioningCaCustodySortInput>;
 };
 
 /** Input for filtering trust anchor X.509 on provided fields. */
@@ -11217,12 +11888,12 @@ export type FindManyTrustAppsInput = {
   sorting?: InputMaybe<TrustAppSortInput>;
 };
 
-/** Input for filtering trust change logs on provided fields. */
-export type FindManyTrustChangeLogsFilter = {
+/** Input for filtering trust handler on provided fields. */
+export type FindManyTrustHandlersFilter = {
   /** The query connector */
   connector?: InputMaybe<FilteringConnector>;
   /** The field to filter on. */
-  field: TrustChangeLogFilteringField;
+  field: TrustHandlerFilteringField;
   /** The filter mode. */
   mode?: InputMaybe<FilteringMode>;
   /** The filter type. */
@@ -11231,14 +11902,38 @@ export type FindManyTrustChangeLogsFilter = {
   value: Scalars['FilteringValue']['input'];
 };
 
-/** Input for filtering many trust change logs on filters, pagination and sorting. */
-export type FindManyTrustChangeLogsInput = {
+/** Input for filtering many trust handlers on filters, pagination and sorting. */
+export type FindManyTrustHandlersInput = {
   /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyTrustChangeLogsFilter>>;
+  filtering?: InputMaybe<Array<FindManyTrustHandlersFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
-  sorting?: InputMaybe<TrustChangeLogSortInput>;
+  sorting?: InputMaybe<TrustHandlerSortInput>;
+};
+
+/** Input for filtering on provided fields. */
+export type FindManyTrustIssuerIntermediateCaCertificatesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: TrustIssuerIntermediateCaCertificateFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many intermediate CA certificates on filters, pagination and sorting. */
+export type FindManyTrustIssuerIntermediateCaCertificatesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyTrustIssuerIntermediateCaCertificatesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<TrustIssuerIntermediateCaCertificateSortInput>;
 };
 
 /** Input for filtering trust issuer key algorithm Idemix on provided fields. */
@@ -11337,6 +12032,30 @@ export type FindManyTrustIssuerKeysInput = {
   sorting?: InputMaybe<TrustIssuerKeySortInput>;
 };
 
+/** Input for filtering on provided fields. */
+export type FindManyTrustIssuerStatusListCertificatesFilter = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The field to filter on. */
+  field: TrustIssuerStatusListCertificateFilteringField;
+  /** The filter mode. */
+  mode?: InputMaybe<FilteringMode>;
+  /** The filter type. */
+  type?: InputMaybe<FilteringType>;
+  /** The value to filter on. */
+  value: Scalars['FilteringValue']['input'];
+};
+
+/** Input for filtering many status-list certificates on filters, pagination and sorting. */
+export type FindManyTrustIssuerStatusListCertificatesInput = {
+  /** Filtering options. */
+  filtering?: InputMaybe<Array<FindManyTrustIssuerStatusListCertificatesFilter>>;
+  /** Pagination options. */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Sorting options. */
+  sorting?: InputMaybe<TrustIssuerStatusListCertificateSortInput>;
+};
+
 /** Input for filtering trust issuer on provided fields. */
 export type FindManyTrustIssuersFilter = {
   /** The query connector */
@@ -11355,10 +12074,20 @@ export type FindManyTrustIssuersFilter = {
 export type FindManyTrustIssuersInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyTrustIssuersFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyTrustIssuersNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<TrustIssuerSortInput>;
+};
+
+/** Input for filtering trust issuers on nested fields. */
+export type FindManyTrustIssuersNestedFilter = {
+  /** Issuer nested filter */
+  issuer?: InputMaybe<TrustIssuerNestedFilteringIssuerField>;
+  /** Trust nested filter */
+  trust?: InputMaybe<TrustIssuerNestedFilteringTrustField>;
 };
 
 /** Input for filtering identity trust labels */
@@ -11409,30 +12138,6 @@ export type FindManyTrustLocalesInput = {
   sorting?: InputMaybe<TrustLocaleSortInput>;
 };
 
-/** Input for filtering trust versions on provided fields. */
-export type FindManyTrustVersionsFilter = {
-  /** The query connector */
-  connector?: InputMaybe<FilteringConnector>;
-  /** The field to filter on. */
-  field: TrustVersionFilteringField;
-  /** The filter mode. */
-  mode?: InputMaybe<FilteringMode>;
-  /** The filter type. */
-  type?: InputMaybe<FilteringType>;
-  /** The value to filter on. */
-  value: Scalars['FilteringValue']['input'];
-};
-
-/** Input for filtering many trust versions on filters, pagination and sorting. */
-export type FindManyTrustVersionsInput = {
-  /** Filtering options. */
-  filtering?: InputMaybe<Array<FindManyTrustVersionsFilter>>;
-  /** Pagination options. */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Sorting options. */
-  sorting?: InputMaybe<TrustVersionSortInput>;
-};
-
 /** Input for filtering trusts on provided fields. */
 export type FindManyTrustsFilter = {
   /** The query connector */
@@ -11451,10 +12156,20 @@ export type FindManyTrustsFilter = {
 export type FindManyTrustsInput = {
   /** Filtering options. */
   filtering?: InputMaybe<Array<FindManyTrustsFilter>>;
+  /** Nested filtering options. */
+  nestedFiltering?: InputMaybe<Array<FindManyTrustsNestedFilter>>;
   /** Pagination options. */
   pagination?: InputMaybe<PaginationInput>;
   /** Sorting options. */
   sorting?: InputMaybe<TrustSortInput>;
+};
+
+/** Input for filtering trusts on nested fields. */
+export type FindManyTrustsNestedFilter = {
+  /** Trust apps nested filter */
+  appTrusts?: InputMaybe<TrustNestedFilteringTrustAppField>;
+  /** Trust handlers nested filter */
+  handlerTrusts?: InputMaybe<TrustNestedFilteringTrustHandlerField>;
 };
 
 /** Input for filtering userInvitation on provided fields. */
@@ -11544,6 +12259,8 @@ export type Handler = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The collection of handler apps */
   handlerApps: HandlerAppConnection;
+  /** The collection of trust handlers */
+  handlerTrusts: TrustHandlerConnection;
   /** The handler URI. */
   handlerUri: Scalars['NonEmpty']['output'];
   /** The collection of locale config */
@@ -11568,6 +12285,12 @@ export type Handler = Model & {
 /** Handler definition. */
 export type HandlerHandlerAppsArgs = {
   input?: InputMaybe<FindManyHandlerAppsInput>;
+};
+
+
+/** Handler definition. */
+export type HandlerHandlerTrustsArgs = {
+  input?: InputMaybe<FindManyTrustHandlersInput>;
 };
 
 
@@ -11763,11 +12486,13 @@ export enum HandlerAppProtocolOid4vcVerificationProfile {
 
 /** Wallet implementation identifier for OID4VC protocol. */
 export enum HandlerAppProtocolOid4vcWalletImplementation {
+  DYou = 'D_YOU',
   FranceIdentite = 'FRANCE_IDENTITE',
   Lissi = 'LISSI',
   NlWalletDemo = 'NL_WALLET_DEMO',
   NlWalletPreprod = 'NL_WALLET_PREPROD',
-  ThalesWallet = 'THALES_WALLET'
+  ThalesWallet = 'THALES_WALLET',
+  Yivi = 'YIVI'
 }
 
 /** Fields which can be used to sort handler app on. Value must be camel case. */
@@ -11781,6 +12506,31 @@ export type HandlerAppSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: HandlerAppSortEnum;
+};
+
+/**
+ * The signing request for a handler whose access certificates are issued outside
+ * the platform. Derived on demand from the handler's current configuration and not
+ * stored, so it always asks for the certificate the runtime currently expects;
+ * requesting it again re-signs for the same key rather than rotating it.
+ */
+export type HandlerCertificateSigningRequest = {
+  __typename?: 'HandlerCertificateSigningRequest';
+  /**
+   * The PKCS#10 certificate signing request, PEM-encoded, signed by the handler's
+   * own key.
+   */
+  csrPem: Scalars['String']['output'];
+  /**
+   * The handler's long-lived key the request was signed with, as bound on the
+   * handler configuration's slot.
+   */
+  keyIdentifier: Scalars['String']['output'];
+  /**
+   * That same public key as an SPKI PEM, for a registrar that takes a bare public
+   * key instead of a signing request.
+   */
+  publicKeyPem: Scalars['String']['output'];
 };
 
 /** The handler connection definition. */
@@ -11925,6 +12675,64 @@ export type HandlerSortInput = {
   field: HandlerSortEnum;
 };
 
+/**
+ * Input for uploading the access certificate an external registrar signed for one
+ * flow handler. The certificate must carry the public key of the handler's own
+ * signing key for that certificate — the signing request establishes that key, so
+ * one must have been generated first.
+ */
+export type IngestExternalHandlerCertificateInput = {
+  /**
+   * The intermediate CA it chains through, PEM-encoded, where the registrar issues
+   * under one. Stored with the certificate so the chain served matches a minted
+   * certificate's.
+   */
+  intermediatePem?: InputMaybe<Scalars['String']['input']>;
+  /** The issued access certificate, PEM-encoded. */
+  leafPem: Scalars['String']['input'];
+  /** The flow handler the certificate belongs to. */
+  uuid: Scalars['UUID']['input'];
+};
+
+/**
+ * Input for uploading external (bring-your-own) issuer certificates. At least one
+ * PEM must be provided. A status-list signer needs a leaf in the same upload or an
+ * existing `trustIssuerKeyUuid` to attach to. `formats` are the credential
+ * encodings a new key serves (used when a leaf is provided).
+ */
+export type IngestExternalIssuerCertificatesInput = {
+  /** The credential formats the uploaded key material serves (e.g. MSO_MDOC, SD_JWT). */
+  formats: Array<Scalars['String']['input']>;
+  /** The intermediate (issuing) CA certificate, PEM-encoded. */
+  intermediatePem?: InputMaybe<Scalars['String']['input']>;
+  /** The UUID of the issuer. */
+  issuerUuid: Scalars['UUID']['input'];
+  /** The document-signer (leaf) certificate, PEM-encoded. */
+  leafPem?: InputMaybe<Scalars['String']['input']>;
+  /** The status-list signer certificate, PEM-encoded. */
+  statusListPem?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * An existing external signing key on the attachment to add the status-list
+   * signer to. When set, only `statusListPem` may be provided, and the key must
+   * not have a status-list signer yet.
+   */
+  trustIssuerKeyUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The UUID of the trust. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
+/** Input for uploading a trust anchor certificate (admin). */
+export type IngestTrustAnchorCertificateInput = {
+  /** The display name of the anchor certificate. */
+  name: Scalars['NonEmpty']['input'];
+  /** PEM of the anchor (CA) certificate. Public material only. */
+  pem: Scalars['NonEmpty']['input'];
+  /** What the anchor is trusted for. */
+  role: AnchorRole;
+  /** The trust. Must be PUBLIC or CONTROLLED with a MANAGED X.509 anchor. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
 /** Recurring intervals */
 export enum Interval {
   Monthly = 'MONTHLY',
@@ -11960,8 +12768,6 @@ export type Issuance = Model & {
   name: Scalars['NonEmpty']['output'];
   /** The organization the flow belongs to. */
   organization: Organization;
-  /** The active provisioning task, if the flow is currently being provisioned. */
-  provisioningTask?: Maybe<ProvisioningTask>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
   /** The indicator if explicit consent is required */
@@ -12196,28 +13002,46 @@ export type IssuanceConnection = {
 /** Flow issuance credential definition. */
 export type IssuanceCredential = Model & {
   __typename?: 'IssuanceCredential';
+  /**
+   * The eIDAS class this credential is issued under, chosen from the trust's
+   * `attestationCategories`. Null until configured, and null on frameworks that
+   * declare no categories. Validated against the trust at flow activation.
+   */
+  attestationCategory?: Maybe<AttestationCategory>;
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
+  /** The credential version the credentialUuid belongs to. */
+  credential: CredentialVersion;
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['output'];
   /** The associated fields with this credential */
   issuanceAttributes: IssuanceAttributeConnection;
   /** The flow issuance handler this credential belongs to. */
   issuanceHandler: IssuanceHandler;
-  /** The issuer the issuerUuid belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
+  /**
+   * The issuer the issuerUuid belongs to. Null until the issuing trust issuer is
+   * configured (mirrors `issuerUuid`).
+   */
+  issuer?: Maybe<Issuer>;
+  /**
+   * The uuid of the issuer used to issue this credential. Null until the operator
+   * configures the issuing trust issuer (required before the flow can activate).
+   */
+  issuerUuid?: Maybe<Scalars['UUID']['output']>;
   /** The meta */
   meta?: Maybe<IssuanceCredentialMeta>;
   /** The meta type of the credential */
   metaType: IssuanceCredentialMetaType;
-  /** The trust the trustUuid belongs to. */
-  trust: Trust;
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['output'];
+  /**
+   * The trust the trustUuid belongs to. Null until the issuing trust issuer is
+   * configured (mirrors `trustUuid`).
+   */
+  trust?: Maybe<Trust>;
+  /**
+   * The uuid of the trust the issuer issues under. Null until configured (see
+   * `issuerUuid`).
+   */
+  trustUuid?: Maybe<Scalars['UUID']['output']>;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID. */
@@ -12246,6 +13070,7 @@ export type IssuanceCredentialEdge = {
 
 /** Fields which can be used to filter flow issuance field on. Value must be camel case. */
 export enum IssuanceCredentialFilteringField {
+  AttestationCategory = 'attestationCategory',
   CredentialUuid = 'credentialUuid',
   IssuanceHandlerUuid = 'issuanceHandlerUuid',
   IssuerUuid = 'issuerUuid',
@@ -12482,11 +13307,13 @@ export type IssuanceDomain = Model & {
   /** The user organization domain */
   organizationDomain: OrganizationDomain;
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
+  path: Scalars['RedirectPath']['output'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
+  port: Scalars['RedirectPort']['output'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  protocol: Scalars['RedirectProtocol']['output'];
+  /** The type of the domain. */
+  type: DomainType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -12511,14 +13338,15 @@ export type IssuanceDomainEdge = {
 export enum IssuanceDomainFilteringField {
   IssuanceUuid = 'issuanceUuid',
   OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
+  Type = 'type',
   Uuid = 'uuid'
 }
 
 /** Fields which can be used to sort domains on. Value must be camel case. */
 export enum IssuanceDomainSortEnum {
   CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
   UpdatedAt = 'updatedAt'
 }
 
@@ -12573,6 +13401,20 @@ export type IssuanceHandler = Model & {
 export type IssuanceHandlerIssuanceCredentialsArgs = {
   input?: InputMaybe<FindManyIssuanceCredentialsInput>;
 };
+
+/** IssuanceHandlerAction */
+export enum IssuanceHandlerAction {
+  /**
+   * Clear the handler's issuance certificate pointers: the access certificate that
+   * signs its issuer metadata. The flow must be INACTIVE.
+   */
+  ClearIssuanceCertificate = 'CLEAR_ISSUANCE_CERTIFICATE',
+  /**
+   * Clear the handler's verification certificate pointers: the access certificate
+   * a disclosure-based handler sends its request with. The flow must be INACTIVE.
+   */
+  ClearVerificationCertificate = 'CLEAR_VERIFICATION_CERTIFICATE'
+}
 
 /** Flow issuance handler configuration definition */
 export type IssuanceHandlerConfiguration = Model & {
@@ -12633,6 +13475,15 @@ export type IssuanceHandlerConfigurationNlWallet = Model & {
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /**
+   * The Vault identifier of the verification key, used for the disclosure leg of
+   * disclosure-based issuance
+   */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
 };
 
 /** The IssuanceHandlerConfigurationNLWallet connection definition. */
@@ -12674,14 +13525,52 @@ export type IssuanceHandlerConfigurationOid4Vc = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The OID4VC issuance flow */
   flow: Oid4vcIssuanceFlow;
+  /** The issuance certificate in the catalog certificate pool */
+  issuanceCertificate?: Maybe<Certificate>;
+  /**
+   * The UUID of the issuance certificate in the catalog certificate pool. The
+   * handler's issuer metadata is signed only when one is bound.
+   */
+  issuanceCertificateUuid?: Maybe<Scalars['UUID']['output']>;
   /** The IssuanceHandlerConfiguration this object belongs to. */
   issuanceHandlerConfiguration: IssuanceHandlerConfiguration;
+  /**
+   * The Vault identifier of the issuance key, which signs the handler's issuer
+   * metadata
+   */
+  issuanceKeyIdentifier?: Maybe<Scalars['String']['output']>;
+  /** The provider registration the handler's signed issuer metadata carries. */
+  issuanceRegistration?: Maybe<OrganizationRegistration>;
+  /**
+   * The uuid of the provider registration the handler's signed issuer metadata
+   * carries.
+   */
+  issuanceRegistrationUuid?: Maybe<Scalars['UUID']['output']>;
   /** The OID4VC issuance profile */
   profile: Oid4vcIssuanceProfile;
   /** The timestamp of when the type has been last updated */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The verification certificate in the catalog certificate pool */
+  verificationCertificate?: Maybe<Certificate>;
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /**
+   * The Vault identifier of the verification key, used for the disclosure leg of
+   * disclosure-based issuance
+   */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
+  /**
+   * The relying-party registration a disclosure-based handler's request is sent
+   * with.
+   */
+  verificationRegistration?: Maybe<OrganizationRegistration>;
+  /**
+   * The uuid of the relying-party registration a disclosure-based handler's request
+   * is sent with.
+   */
+  verificationRegistrationUuid?: Maybe<Scalars['UUID']['output']>;
 };
 
 /** The IssuanceHandlerConfigurationOID4VC connection definition. */
@@ -12892,6 +13781,12 @@ export type IssuanceNestedFilteringIssuanceLabelField = {
  */
 export type IssuanceRun = Model & {
   __typename?: 'IssuanceRun';
+  /**
+   * Business-wallet delivery attempts for this run (headless issuance, RFC 20260810a).
+   * Empty for interactive issuance; usually one, more than one only on re-send. Ordered
+   * newest-first.
+   */
+  businessWalletDeliveries: Array<BusinessWalletDelivery>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The credential records in this batch */
@@ -13146,159 +14041,54 @@ export enum IssuanceState {
   Provisioning = 'PROVISIONING'
 }
 
-/** Issuer definition (RFC 0012 versioned). */
+/** Issuer definition. A single mutable identity row (RFC 20260717a). */
 export type Issuer = Model & {
   __typename?: 'Issuer';
   /** The base64 encoded logo. */
   base64Logo: Scalars['NonEmpty']['output'];
-  /** The UUID of the version this was based on. */
-  basedOnUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The change note. */
-  changeNote?: Maybe<Scalars['String']['output']>;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The UUID of the user who created this version. */
-  createdByUserUuid: Scalars['UUID']['output'];
-  /** The collection of Datakeeper credential format variants referencing this issuer. */
-  credentialFormatsDatakeeper: CredentialFormatDatakeeperConnection;
-  /** The collection of Digidentity credential format variants referencing this issuer. */
-  credentialFormatsDigidentity: CredentialFormatDigidentityConnection;
-  /** The collection of Nect credential format variants referencing this issuer. */
-  credentialFormatsNect: CredentialFormatNectConnection;
-  /** The collection of ReadID credential format variants referencing this issuer. */
-  credentialFormatsReadid: CredentialFormatReadidConnection;
-  /** The collection of Yivi credential format variants referencing this issuer. */
-  credentialFormatsYivi: CredentialFormatYiviConnection;
-  /** The collection of Yoti credential format variants referencing this issuer. */
-  credentialFormatsYoti: CredentialFormatYotiConnection;
-  /** The issuer version this issuer belongs to. */
-  issuerVersion: IssuerVersion;
-  /** The UUID of the issuer version. */
-  issuerVersionUuid: Scalars['UUID']['output'];
-  /** The last edited time. */
-  lastEditedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The UUID of the user who last edited this version. */
-  lastEditedByUserUuid?: Maybe<Scalars['UUID']['output']>;
+  /**
+   * Key custody. PLATFORM keys are minted by the platform and can only be
+   * provisioned; EXTERNAL keys are the issuer's own and can only be imported.
+   */
+  custody: Custody;
   /** The collection of locales. */
   locales: IssuerLocaleConnection;
   /** The name of the issuer. */
   name: Scalars['NonEmpty']['output'];
-  /** The publish time, if published. */
-  publishedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The UUID of the user who published this version. */
-  publishedByUserUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The version status. */
-  status: VersionStatus;
+  /** The owning organization. Null for platform-managed issuers. */
+  organization?: Maybe<Organization>;
+  /**
+   * The verified-brand binding for this org-owned issuer, or null when none is
+   * bound. Managed via the `OrganizationIssuer` CRUD mutations. The brand itself
+   * hangs off this binding (`organizationBrand`).
+   */
+  organizationIssuer?: Maybe<OrganizationIssuer>;
+  /** The owning organization UUID. Null for platform-managed issuers. */
+  organizationUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The slug. */
+  slug: Scalars['NonEmpty']['output'];
+  /** The state */
+  state: State;
   /** The collection of trust issuers. */
   trustIssuers: TrustIssuerConnection;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The version number. */
-  versionNumber: Scalars['Int']['output'];
 };
 
 
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsDatakeeperArgs = {
-  input?: InputMaybe<FindManyCredentialFormatDatakeepersInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsDigidentityArgs = {
-  input?: InputMaybe<FindManyCredentialFormatDigidentitiesInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsNectArgs = {
-  input?: InputMaybe<FindManyCredentialFormatNectsInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsReadidArgs = {
-  input?: InputMaybe<FindManyCredentialFormatReadidsInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsYiviArgs = {
-  input?: InputMaybe<FindManyCredentialFormatYivisInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
-export type IssuerCredentialFormatsYotiArgs = {
-  input?: InputMaybe<FindManyCredentialFormatYotisInput>;
-};
-
-
-/** Issuer definition (RFC 0012 versioned). */
+/** Issuer definition. A single mutable identity row (RFC 20260717a). */
 export type IssuerLocalesArgs = {
   input?: InputMaybe<FindManyIssuerLocalesInput>;
 };
 
 
-/** Issuer definition (RFC 0012 versioned). */
+/** Issuer definition. A single mutable identity row (RFC 20260717a). */
 export type IssuerTrustIssuersArgs = {
   input?: InputMaybe<FindManyTrustIssuersInput>;
-};
-
-/** Issuer change log definition (RFC 0012). */
-export type IssuerChangeLog = Model & {
-  __typename?: 'IssuerChangeLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The issuer version this change log belongs to. */
-  issuerVersion: IssuerVersion;
-  /** The metadata of the change. */
-  metadata: Scalars['JSONObject']['output'];
-  /** The UUID of the user who performed the change. */
-  performedByUserUuid: Scalars['UUID']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-  /** The version number at the time of the change. */
-  versionNumber: Scalars['Int']['output'];
-};
-
-/** The issuer change log connection definition. */
-export type IssuerChangeLogConnection = {
-  __typename?: 'IssuerChangeLogConnection';
-  edges: Array<Maybe<IssuerChangeLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The issuer change log edge definition. */
-export type IssuerChangeLogEdge = {
-  __typename?: 'IssuerChangeLogEdge';
-  cursor: Scalars['String']['output'];
-  node: IssuerChangeLog;
-};
-
-/** Fields which can be used to filter issuer change log on. Value must be camel case. */
-export enum IssuerChangeLogFilteringField {
-  CreatedAt = 'createdAt',
-  IssuerVersionUuid = 'issuerVersionUuid',
-  PerformedByUserUuid = 'performedByUserUuid',
-  VersionNumber = 'versionNumber'
-}
-
-/** Fields which can be used to sort issuer change log on. Value must be camel case. */
-export enum IssuerChangeLogSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting issuer change log. */
-export type IssuerChangeLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: IssuerChangeLogSortEnum;
 };
 
 /** The issuer connection definition. */
@@ -13318,9 +14108,11 @@ export type IssuerEdge = {
 /** Fields which can be used to filter issuer on. Value must be camel case. */
 export enum IssuerFilteringField {
   CreatedAt = 'createdAt',
-  IssuerVersionUuid = 'issuerVersionUuid',
+  Custody = 'custody',
   Name = 'name',
-  Status = 'status',
+  OrganizationUuid = 'organizationUuid',
+  Slug = 'slug',
+  State = 'state',
   Uuid = 'uuid'
 }
 
@@ -13428,11 +14220,21 @@ export type IssuerLocaleSortInput = {
   field: IssuerLocaleSortEnum;
 };
 
+/** The input for filtering the trust issuers in nested filtering. */
+export type IssuerNestedFilteringTrustIssuerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering the trust issuers */
+  input: FindManyTrustIssuersInput;
+  /** The type of filtering. NONE selects the issuers attached to no trust at all. */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
 /** Fields which can be used to sort issuer on. Value must be camel case. */
 export enum IssuerSortEnum {
   CreatedAt = 'createdAt',
   Name = 'name',
-  VersionNumber = 'versionNumber'
+  Slug = 'slug'
 }
 
 /** Input options for sorting issuer. */
@@ -13441,89 +14243,6 @@ export type IssuerSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: IssuerSortEnum;
-};
-
-/** Issuer version definition (RFC 0012). */
-export type IssuerVersion = Model & {
-  __typename?: 'IssuerVersion';
-  /** The collection of change logs. */
-  changeLogs: IssuerChangeLogConnection;
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The deprecation reason, if any. */
-  deprecationReason?: Maybe<Scalars['String']['output']>;
-  /** The draft version of the issuer, if any. */
-  draft?: Maybe<Issuer>;
-  /** Whether a draft version exists. */
-  hasDraft: Scalars['Boolean']['output'];
-  /** Whether a live version exists. */
-  hasLive: Scalars['Boolean']['output'];
-  /** Whether this issuer is deprecated. */
-  isDeprecated: Scalars['Boolean']['output'];
-  /** The collection of all issuers for this version. */
-  issuers: IssuerConnection;
-  /** The live version of the issuer, if any. */
-  live?: Maybe<Issuer>;
-  /** The organization this issuer version belongs to. */
-  organization: Organization;
-  /** The organization UUID */
-  organizationUuid: Scalars['UUID']['output'];
-  /** The slug */
-  slug: Scalars['NonEmpty']['output'];
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/** Issuer version definition (RFC 0012). */
-export type IssuerVersionChangeLogsArgs = {
-  input?: InputMaybe<FindManyIssuerChangeLogsInput>;
-};
-
-
-/** Issuer version definition (RFC 0012). */
-export type IssuerVersionIssuersArgs = {
-  input?: InputMaybe<FindManyIssuersInput>;
-};
-
-/** The issuer version connection definition. */
-export type IssuerVersionConnection = {
-  __typename?: 'IssuerVersionConnection';
-  edges: Array<Maybe<IssuerVersionEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The issuer version edge definition. */
-export type IssuerVersionEdge = {
-  __typename?: 'IssuerVersionEdge';
-  cursor: Scalars['String']['output'];
-  node: IssuerVersion;
-};
-
-/** Fields which can be used to filter issuer version on. Value must be camel case. */
-export enum IssuerVersionFilteringField {
-  CreatedAt = 'createdAt',
-  HasDraft = 'hasDraft',
-  HasLive = 'hasLive',
-  IsDeprecated = 'isDeprecated',
-  OrganizationUuid = 'organizationUuid',
-  Slug = 'slug'
-}
-
-/** Fields which can be used to sort issuer version on. Value must be camel case. */
-export enum IssuerVersionSortEnum {
-  CreatedAt = 'createdAt',
-  Slug = 'slug'
-}
-
-/** Input options for sorting issuer version. */
-export type IssuerVersionSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: IssuerVersionSortEnum;
 };
 
 /** Label type for categorizing and visually distinguishing entities */
@@ -14036,9 +14755,9 @@ export type MappingIssuanceLink = Model & {
   __typename?: 'MappingIssuanceLink';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The link credential uuid. */
+  /** The credential version the credentialUuid belongs to. */
+  credential: CredentialVersion;
+  /** The linked credential version uuid. */
   credentialUuid: Scalars['UUID']['output'];
   /** The issuer the issuerUuid belongs to. */
   issuer: Issuer;
@@ -14323,9 +15042,9 @@ export type MappingVerificationLink = Model & {
   __typename?: 'MappingVerificationLink';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The link credential uuid. */
+  /** The credential version the credentialUuid belongs to. */
+  credential: CredentialVersion;
+  /** The linked credential version uuid. */
   credentialUuid: Scalars['UUID']['output'];
   /** The issuer the issuerUuid belongs to. */
   issuer: Issuer;
@@ -14500,18 +15219,26 @@ export type Mutation = {
   actionApp: App;
   /** Update a flow state. */
   actionAuthentication: Authentication;
+  /** Perform an action on a flow authentication handler. */
+  actionAuthenticationHandler: AuthenticationHandler;
   /** Action on billing wallet */
   actionBillingWallet: BillingWallet;
   /** Perform action on a credential record (e.g. revoke). */
   actionCredentialRecord: CredentialRecord;
   /** Action a flow */
   actionDisclosure: Disclosure;
+  /** Perform an action on a flow disclosure handler. */
+  actionDisclosureHandler: DisclosureHandler;
   /** Perform action on a handler. */
   actionHandler: Handler;
   /** Action a flow. */
   actionIssuance: Issuance;
+  /** Perform an action on a flow issuance handler. */
+  actionIssuanceHandler: IssuanceHandler;
   /** Perform action on an issuance run (e.g. revoke all records in batch). */
   actionIssuanceRun: IssuanceRun;
+  /** Activate or deactivate an issuer. */
+  actionIssuer: Issuer;
   /** Action a maintenance */
   actionMaintenance: Maintenance;
   /** Perform action on an mappingIssuance */
@@ -14530,8 +15257,18 @@ export type Mutation = {
   actionOrganizationBrand: OrganizationBrand;
   /** Action an domain. */
   actionOrganizationDomain: OrganizationDomain;
+  /**
+   * Request, approve, reject or revoke the identity review of an organization.
+   * Revoking is admin-only and returns the organization to DECLARED.
+   */
+  actionOrganizationIdentityReview: Organization;
   /** Action */
   actionOrganizationNotification: OrganizationNotification;
+  /**
+   * Activate or deactivate one role on an enrolment, or — administrators only —
+   * approve, reject or revoke admission to a CONTROLLED trust.
+   */
+  actionOrganizationTrust: OrganizationTrust;
   /** Action a user. */
   actionOrganizationUser: OrganizationUser;
   /** Update a pricing rule state. */
@@ -14542,12 +15279,20 @@ export type Mutation = {
   actionSignature: Signature;
   /** Update a state. */
   actionStudioPlan: StudioPlan;
-  /** Clone a credential from an existing version (RFC 0012). */
-  cloneCredentialFromVersion: Credential;
-  /** Clone an issuer from an existing version (RFC 0012). */
-  cloneIssuerFromVersion: Issuer;
-  /** Clone a new draft from an existing trust version. */
-  cloneTrustFromVersion: Trust;
+  /** Activate or deactivate a trust. */
+  actionTrust: Trust;
+  /** Activate, deprecate or deactivate a managed trust anchor certificate. */
+  actionTrustAnchorX509ManagedCertificate: TrustAnchorX509ManagedCertificate;
+  /** Activate, deprecate or deactivate a provisioning CA (admin). */
+  actionTrustAnchorX509ProvisioningCaCustody: TrustAnchorX509ProvisioningCaCustody;
+  /** Activate or deactivate a trust attachment (operator toggles issuance for it). */
+  actionTrustIssuer: TrustIssuer;
+  /** Activate or deactivate a trust issuer intermediate CA certificate. */
+  actionTrustIssuerIntermediateCaCertificate: TrustIssuerIntermediateCaCertificate;
+  /** Activate or deactivate a trust issuer key. */
+  actionTrustIssuerKey: TrustIssuerKey;
+  /** Clone a new draft from an existing credential version. */
+  cloneCredentialFromVersion: CredentialVersion;
   /** Create an app. */
   createApp: App;
   /** Create an app locale. */
@@ -14586,6 +15331,8 @@ export type Mutation = {
   createAuthenticationHandler: AuthenticationHandler;
   /** Create a AuthenticationHandlerConfigurationNLWallet. */
   createAuthenticationHandlerConfigurationNLWallet: AuthenticationHandlerConfigurationNlWallet;
+  /** Create a AuthenticationHandlerConfigurationOID4VC. */
+  createAuthenticationHandlerConfigurationOID4VC: AuthenticationHandlerConfigurationOid4Vc;
   /** Create and store a new Label type. */
   createAuthenticationLabel: AuthenticationLabel;
   /** Create a flow authentication scope. */
@@ -14596,8 +15343,11 @@ export type Mutation = {
   createBillingPlan: BillingPlan;
   /** Create billing wallet */
   createBillingWallet: BillingWallet;
-  /** Create a credential draft (RFC 0012). */
-  createCredentialDraft: Credential;
+  /**
+   * Create a credential draft. Creates the Credential identity and the first
+   * DRAFT version.
+   */
+  createCredentialDraft: CredentialVersion;
   /** Create a credential Datakeeper format. */
   createCredentialFormatDatakeeper: CredentialFormatDatakeeper;
   /** Create a credential Digidentity format. */
@@ -14690,8 +15440,8 @@ export type Mutation = {
   createIssuanceMapping: IssuanceMapping;
   /** Bind an organization secret to an issuance flow. */
   createIssuanceSecret: IssuanceSecret;
-  /** Create an issuer draft (RFC 0012). */
-  createIssuerDraft: Issuer;
+  /** Create an issuer. */
+  createIssuer: Issuer;
   /** Create and store a new identity issuer label. */
   createIssuerLabel: IssuerLabel;
   /** Create an issuer locale. */
@@ -14752,8 +15502,6 @@ export type Mutation = {
   createOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Create a organization app meta kiwa. */
   createOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
-  /** Create a organization app meta OID4VC. */
-  createOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Create a organization app meta yoti. */
   createOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Create and store a new brand type. */
@@ -14768,14 +15516,27 @@ export type Mutation = {
   createOrganizationDomainLabel: OrganizationDomainLabel;
   /** Create a OrganizationDomainOAuthProvider. */
   createOrganizationDomainOAuthProvider: OrganizationDomainOAuthProvider;
+  /**
+   * Create the verified-brand binding for an org-owned issuer — the brand that
+   * names its certificates (subject CN) and supplies its display identity.
+   * Required before a PLATFORM issuer can be provisioned. The brand must belong to
+   * the issuer's organization and be ACTIVE (approved). Idempotent per issuer —
+   * binding again re-points the existing binding to the new brand.
+   */
+  createOrganizationIssuer: OrganizationIssuer;
   /** Create and store a new address. */
   createOrganizationNotification: OrganizationNotification;
   /** Create and store a new notification event. */
   createOrganizationNotificationEvent: OrganizationNotificationEvent;
+  /**
+   * Import a registration certificate the trust's registrar issued. Its shape,
+   * entitlement and expiry are checked; its signature is left to the wallet.
+   */
+  createOrganizationRegistration: OrganizationRegistration;
   /** Create and store a new secret type. */
   createOrganizationSecret: OrganizationSecret;
-  /** Create an organization trust issuer key. */
-  createOrganizationTrustIssuerKey: OrganizationTrustIssuerKey;
+  /** Enrol an organization in a trust. */
+  createOrganizationTrust: OrganizationTrust;
   /** Create and store a new user type. */
   createOrganizationUser: OrganizationUser;
   /** Create a pricing catalog entry. */
@@ -14838,21 +15599,21 @@ export type Mutation = {
   createStudioPlanInterval: StudioPlanInterval;
   /** Create a StudioPlanOrganization. */
   createStudioPlanOrganization: StudioPlanOrganization;
+  /** Create a trust. */
+  createTrust: Trust;
   /** Create a trust anchor DID. */
   createTrustAnchorDid: TrustAnchorDid;
   /** Create a trust anchor Idemix. */
   createTrustAnchorIdemix: TrustAnchorIdemix;
-  /** Create a trust anchor X.509. */
+  /**
+   * Create a trust anchor X.509. A MANAGED anchor is created with its (empty)
+   * managed material, ready for anchor certificates.
+   */
   createTrustAnchorX509: TrustAnchorX509;
-  /** Create a trust anchor X.509 root certificate. */
-  createTrustAnchorX509RootCertificate: TrustAnchorX509RootCertificate;
   /** Create a trust app. */
   createTrustApp: TrustApp;
-  /**
-   * Create a new trust draft. Creates the TrustVersion envelope and the first
-   * DRAFT version.
-   */
-  createTrustDraft: Trust;
+  /** Create a trust handler. */
+  createTrustHandler: TrustHandler;
   /** Create a trust issuer. */
   createTrustIssuer: TrustIssuer;
   /** Create a trust issuer key. */
@@ -14913,6 +15674,8 @@ export type Mutation = {
   deleteAuthenticationHandler?: Maybe<Scalars['Null']['output']>;
   /** Delete a AuthenticationHandlerConfigurationNLWallet. */
   deleteAuthenticationHandlerConfigurationNLWallet?: Maybe<Scalars['Null']['output']>;
+  /** Delete a AuthenticationHandlerConfigurationOID4VC. */
+  deleteAuthenticationHandlerConfigurationOID4VC?: Maybe<Scalars['Null']['output']>;
   /** Delete a Label. */
   deleteAuthenticationLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow authentication scope. */
@@ -15009,6 +15772,8 @@ export type Mutation = {
   deleteIssuanceMapping?: Maybe<Scalars['Null']['output']>;
   /** Unbind an organization secret from an issuance flow. */
   deleteIssuanceSecret?: Maybe<Scalars['Null']['output']>;
+  /** Delete an issuer. */
+  deleteIssuer?: Maybe<Scalars['Null']['output']>;
   /** Delete an identity issuer label. */
   deleteIssuerLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an issuer locale. */
@@ -15051,8 +15816,6 @@ export type Mutation = {
   deleteOrganizationAppMetaDatakeeper?: Maybe<Scalars['Null']['output']>;
   /** Delete a organization app meta kiwa. */
   deleteOrganizationAppMetaKiwa?: Maybe<Scalars['Null']['output']>;
-  /** Delete a organization app meta OID4VC. */
-  deleteOrganizationAppMetaOid4vc?: Maybe<Scalars['Null']['output']>;
   /** Delete a organization app meta yoti. */
   deleteOrganizationAppMetaYoti?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
@@ -15067,14 +15830,18 @@ export type Mutation = {
   deleteOrganizationDomainLabel?: Maybe<Scalars['Null']['output']>;
   /** Delete an OrganizationDomainOAuthProvider. */
   deleteOrganizationDomainOAuthProvider?: Maybe<Scalars['Null']['output']>;
+  /** Delete an issuer's verified-brand binding. */
+  deleteOrganizationIssuer?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing organization address. */
   deleteOrganizationNotification?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing organization notification event. */
   deleteOrganizationNotificationEvent?: Maybe<Scalars['Null']['output']>;
+  /** Remove a registration no flow handler configuration names. */
+  deleteOrganizationRegistration?: Maybe<Scalars['Null']['output']>;
   /** Delete a secret. */
   deleteOrganizationSecret?: Maybe<Scalars['Null']['output']>;
-  /** Delete an organization trust issuer key. */
-  deleteOrganizationTrustIssuerKey?: Maybe<Scalars['Null']['output']>;
+  /** Withdraw an enrolment. */
+  deleteOrganizationTrust?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing user. */
   deleteOrganizationUser?: Maybe<Scalars['Null']['output']>;
   /** Delete a pricing catalog entry. */
@@ -15135,16 +15902,18 @@ export type Mutation = {
   deleteStudioPlanInterval?: Maybe<Scalars['Null']['output']>;
   /** Delete a StudioPlanOrganization. */
   deleteStudioPlanOrganization?: Maybe<Scalars['Null']['output']>;
+  /** Delete a trust. */
+  deleteTrust?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust anchor DID. */
   deleteTrustAnchorDid?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust anchor Idemix. */
   deleteTrustAnchorIdemix?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust anchor X.509. */
   deleteTrustAnchorX509?: Maybe<Scalars['Null']['output']>;
-  /** Delete a trust anchor X.509 root certificate. */
-  deleteTrustAnchorX509RootCertificate?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust app. */
   deleteTrustApp?: Maybe<Scalars['Null']['output']>;
+  /** Delete a trust handler. */
+  deleteTrustHandler?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust issuer. */
   deleteTrustIssuer?: Maybe<Scalars['Null']['output']>;
   /** Delete a trust issuer key. */
@@ -15163,18 +15932,10 @@ export type Mutation = {
   deleteUser?: Maybe<Scalars['Null']['output']>;
   /** Delete an existing userInvitation. */
   deleteUserInvitation?: Maybe<Scalars['Null']['output']>;
-  /** Deprecate a credential (RFC 0012). */
+  /** Deprecate a credential. */
   deprecateCredential: Credential;
-  /** Deprecate an issuer (RFC 0012). */
-  deprecateIssuer: Issuer;
-  /** Deprecate a trust framework. */
-  deprecateTrust: Trust;
-  /** Discard a credential draft (RFC 0012). */
-  discardCredentialDraft: Credential;
-  /** Discard an issuer draft (RFC 0012). */
-  discardIssuerDraft: Issuer;
-  /** Discard a trust draft, transitioning it from DRAFT to DISCARDED. */
-  discardTrustDraft: Trust;
+  /** Discard a credential draft. */
+  discardCredentialDraft: CredentialVersion;
   /** Duplicate a flow. */
   duplicateAuthentication: Authentication;
   /** Duplicate a flow. */
@@ -15185,6 +15946,78 @@ export type Mutation = {
   duplicateSignature: Signature;
   /** Duplicate a plan. */
   duplicateStudioPlan: StudioPlan;
+  /**
+   * The signing request for a handler of an authentication whose trust has its access
+   * certificates issued outside the platform. Creates the handler's verifier key
+   * if it has none and binds it to the handler, then returns the request to take
+   * to that ecosystem's registrar; upload what it signs with
+   * `ingestAuthenticationHandlerCertificate`. Synchronous, and safe to repeat — it
+   * re-signs for the key already in use. Refused for a trust the platform mints
+   * for, where `provisionAuthenticationHandlerCertificate` is the path.
+   */
+  generateAuthenticationHandlerCertificateSigningRequest: HandlerCertificateSigningRequest;
+  /**
+   * The signing request for a handler of a disclosure whose trust has its access
+   * certificates issued outside the platform. Creates the handler's verifier key
+   * if it has none and binds it to the handler, then returns the request to take
+   * to that ecosystem's registrar; upload what it signs with
+   * `ingestDisclosureHandlerCertificate`. Synchronous, and safe to repeat — it
+   * re-signs for the key already in use. Refused for a trust the platform mints
+   * for, where `provisionDisclosureHandlerCertificate` is the path.
+   */
+  generateDisclosureHandlerCertificateSigningRequest: HandlerCertificateSigningRequest;
+  /**
+   * The signing request for a handler of an issuance whose trust has its access
+   * certificates issued outside the platform. Creates the slot's signing key if it
+   * has none and binds it to the handler, then returns the request to take
+   * to that ecosystem's registrar; upload what it signs with
+   * `ingestIssuanceHandlerCertificate`. Synchronous, and safe to repeat — it
+   * re-signs for the key already in use. Refused for a trust the platform mints
+   * for, where `provisionIssuanceHandlerCertificate` is the path. `role` picks the
+   * handler's slot, as for `provisionIssuanceHandlerCertificate`.
+   */
+  generateIssuanceHandlerCertificateSigningRequest: HandlerCertificateSigningRequest;
+  /**
+   * Bind the access certificate an external registrar signed for a handler of an
+   * authentication, verified against the handler's own verifier key before it replaces
+   * whatever is bound. Poll `activeProvisioningTask` with entityType
+   * `authenticationHandler` for progress. Refused for a trust the platform mints for.
+   */
+  ingestAuthenticationHandlerCertificate: ProvisioningTask;
+  /**
+   * Bind the access certificate an external registrar signed for a handler of a
+   * disclosure, verified against the handler's own verifier key before it replaces
+   * whatever is bound. Poll `activeProvisioningTask` with entityType
+   * `disclosureHandler` for progress. Refused for a trust the platform mints for.
+   */
+  ingestDisclosureHandlerCertificate: ProvisioningTask;
+  /**
+   * Ingest bring-your-own (external) issuer certificates. Append-only — nothing is
+   * ever replaced. An intermediate CA is added to the trust attachment. A leaf
+   * creates a new external signing key (its public key taken from the leaf), with
+   * the status-list signer bound to it when uploaded alongside. With
+   * `trustIssuerKeyUuid`, only a status-list signer may be uploaded, and only onto
+   * a key that has none yet. The platform holds no private key for external
+   * material.
+   */
+  ingestExternalIssuerCertificates: ProvisioningTask;
+  /**
+   * Bind the access certificate an external registrar signed for one slot of a
+   * handler of an issuance, verified against the slot's own signing key before it
+   * replaces whatever is bound. `role` picks the slot, as for
+   * `provisionIssuanceHandlerCertificate`. Poll `activeProvisioningTask` with
+   * entityType `issuanceHandler` for progress. Refused for a trust the platform
+   * mints for.
+   */
+  ingestIssuanceHandlerCertificate: ProvisioningTask;
+  /**
+   * Upload a trust anchor certificate (async, admin). The certificate service
+   * stores it in the certificate pool; on completion the anchor certificate is
+   * linked ACTIVE under the given role. Re-uploading a certificate already linked
+   * under that role keeps its current state. Poll `activeProvisioningTask` with
+   * entityType "trustAnchorCertificate" and the managed anchor's uuid.
+   */
+  ingestTrustAnchorCertificate: ProvisioningTask;
   /** Log in a user using Client Credentials. */
   loginByClientCredentials: UserToken;
   /** Log in a user using OpenId token. */
@@ -15197,32 +16030,83 @@ export type Mutation = {
   moveSignatureCredential: SignatureGroup;
   /**
    * Activate an authentication. Provisions required handler app infrastructure,
-   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * then transitions to ACTIVE. Poll `activeProvisioningTask` for progress.
    * If no provisioning is needed, the task resolves immediately.
    */
   provisionAuthenticationActivation: ProvisioningTask;
   /**
+   * Mint a fresh verifier certificate for a handler of an ACTIVE authentication and
+   * swap it in once ready; the handler keeps its current certificate until then.
+   * Poll `activeProvisioningTask` with entityType `authenticationHandler` for
+   * progress.
+   */
+  provisionAuthenticationHandlerCertificate: ProvisioningTask;
+  /**
    * Activate a disclosure. Provisions required handler app infrastructure,
-   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * then transitions to ACTIVE. Poll `activeProvisioningTask` for progress.
    * If no provisioning is needed, the task resolves immediately.
    */
   provisionDisclosureActivation: ProvisioningTask;
   /**
+   * Mint a fresh verifier certificate for a handler of an ACTIVE disclosure and
+   * swap it in once ready; the handler keeps its current certificate until then.
+   * Poll `activeProvisioningTask` with entityType `disclosureHandler` for
+   * progress.
+   */
+  provisionDisclosureHandlerCertificate: ProvisioningTask;
+  /**
    * Activate an issuance. Provisions required handler app infrastructure,
-   * then transitions to ACTIVE. Subscribe to `provisioningProgressUpdated` for progress.
+   * then transitions to ACTIVE. Poll `activeProvisioningTask` for progress.
    * If no provisioning is needed, the task resolves immediately.
    */
   provisionIssuanceActivation: ProvisioningTask;
-  /** Publish a credential (RFC 0012). */
-  publishCredential: Credential;
-  /** Publish an issuer (RFC 0012). */
-  publishIssuer: Issuer;
-  /** Publish a trust draft, transitioning it from DRAFT to LIVE. */
-  publishTrust: Trust;
+  /**
+   * Mint a fresh certificate in one slot of a handler of an ACTIVE issuance and
+   * swap it in once ready; the handler keeps its current certificate until then.
+   * `role` picks the slot: VERIFICATION for the certificate a disclosure-based
+   * handler sends its request with, ISSUANCE for the one that signs its issuer
+   * metadata. Poll `activeProvisioningTask` with entityType `issuanceHandler` for
+   * progress.
+   */
+  provisionIssuanceHandlerCertificate: ProvisioningTask;
+  /**
+   * Mint a fresh intermediate CA for one trust attachment (async), and nothing
+   * else — the attachment's signing keys are untouched and keep signing under the
+   * intermediate their certificates already chain to. Once it mints, the ACTIVE
+   * intermediate it replaces becomes DEPRECATED: no longer the parent of new
+   * chains, still trusted for verification. The next `provisionTrustIssuerKey`
+   * mints beneath the new intermediate. Fails when the trust's CA is `pathlen:0`
+   * and so signs issuer leaves directly, leaving no intermediate to rotate.
+   * Returns a `ProvisioningTask` whose `uuid` the UI polls (see
+   * `activeProvisioningTask`).
+   */
+  provisionTrustIssuerIntermediateCa: ProvisioningTask;
+  /**
+   * Provision a new platform signing key for one trust attachment (async), serving
+   * both oid4vc formats. Mints its document-signer and status-list certificates
+   * under the attachment's ACTIVE intermediate CA, or a fresh intermediate when
+   * none is valid. The key is created only once its chain mints; the ACTIVE key
+   * (and intermediate) it replaces then become DEPRECATED — no longer signing new
+   * credentials, still trusted for verification and still signing their own
+   * status lists, whose certificates each provision renews before they lapse.
+   * Returns a `ProvisioningTask` whose `uuid` the UI polls (see
+   * `activeProvisioningTask`). Activation is a separate, deliberate action.
+   */
+  provisionTrustIssuerKey: ProvisioningTask;
+  /** Publish a credential draft, transitioning it from DRAFT to LIVE. */
+  publishCredential: CredentialVersion;
   /** Register a user with OpenID token. */
   registerByOpenIdToken: UserToken;
   /** Register a user with password. */
   registerByPassword: UserToken;
+  /**
+   * Register an existing Vault PKI issuer as a trust's provisioning CA (async,
+   * admin). Its certificate is read from Vault and pooled; on completion the CA is
+   * recorded ACTIVE. Re-registering a CA already recorded for that purpose keeps
+   * its current state. Poll `activeProvisioningTask` with entityType
+   * "trustProvisioningCa" and the X.509 anchor's uuid.
+   */
+  registerTrustProvisioningCa: ProvisioningTask;
   /** Renew access token. */
   renewAccessToken: UserToken;
   /** Resend an existing userInvitation. */
@@ -15267,14 +16151,16 @@ export type Mutation = {
   updateAuthenticationHandler: AuthenticationHandler;
   /** Update a AuthenticationHandlerConfigurationNLWallet. */
   updateAuthenticationHandlerConfigurationNLWallet: AuthenticationHandlerConfigurationNlWallet;
+  /** Update a AuthenticationHandlerConfigurationOID4VC. */
+  updateAuthenticationHandlerConfigurationOID4VC: AuthenticationHandlerConfigurationOid4Vc;
   /** Update billing method. */
   updateBillingMethod: BillingMethod;
   /** Update billing plan. */
   updateBillingPlan: BillingPlan;
   /** Update billing wallet */
   updateBillingWallet: BillingWallet;
-  /** Update a credential draft (RFC 0012). */
-  updateCredentialDraft: Credential;
+  /** Update a credential draft. */
+  updateCredentialDraft: CredentialVersion;
   /** Update a credential Datakeeper format. */
   updateCredentialFormatDatakeeper: CredentialFormatDatakeeper;
   /** Update a credential Digidentity format. */
@@ -15299,6 +16185,12 @@ export type Mutation = {
   updateDisclosure: Disclosure;
   /** Update brand */
   updateDisclosureBrand: DisclosureBrand;
+  /**
+   * Configure the accepted trust (and optional issuer) of a disclosure credential.
+   * A null issuer accepts any issuer under the trust; visibility/app-association
+   * readiness is enforced when the disclosure is activated.
+   */
+  updateDisclosureCredential: DisclosureCredential;
   /** Update an domain. */
   updateDisclosureDomain: DisclosureDomain;
   /** Update a flow group. */
@@ -15319,6 +16211,12 @@ export type Mutation = {
   updateIssuance: Issuance;
   /** Update brand */
   updateIssuanceBrand: IssuanceBrand;
+  /**
+   * Configure the issuing trust issuer (issuer + trust) of an issuance credential.
+   * The pair must be a real trust issuer; provisioning/activation readiness is
+   * enforced when the flow is activated.
+   */
+  updateIssuanceCredential: IssuanceCredential;
   /** Update a flow credential meta datakeeper. */
   updateIssuanceCredentialMetaDatakeeper: IssuanceCredentialMetaDatakeeper;
   /** Update a flow credential meta oid4vc. */
@@ -15333,8 +16231,8 @@ export type Mutation = {
   updateIssuanceHandlerConfigurationNLWallet: IssuanceHandlerConfigurationNlWallet;
   /** Update an IssuanceHandlerConfigurationOID4VC. */
   updateIssuanceHandlerConfigurationOID4VC: IssuanceHandlerConfigurationOid4Vc;
-  /** Update an issuer draft (RFC 0012). */
-  updateIssuerDraft: Issuer;
+  /** Update an issuer. */
+  updateIssuer: Issuer;
   /** Update an issuer locale. */
   updateIssuerLocale: IssuerLocale;
   /** Update an existing label */
@@ -15371,8 +16269,6 @@ export type Mutation = {
   updateOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Update a organization app meta kiwa. */
   updateOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
-  /** Update a organization app meta OID4VC. */
-  updateOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Update a organization app meta yoti. */
   updateOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Update an brand. */
@@ -15381,12 +16277,17 @@ export type Mutation = {
   updateOrganizationClient: OrganizationClient;
   /** Update an domain. */
   updateOrganizationDomain: OrganizationDomain;
+  /**
+   * Update an issuer's verified-brand binding. The brand must belong to the
+   * issuer's organization and be ACTIVE (approved).
+   */
+  updateOrganizationIssuer: OrganizationIssuer;
   /** Update an existing organization address. */
   updateOrganizationNotification: OrganizationNotification;
   /** Update an secret. */
   updateOrganizationSecret: OrganizationSecret;
-  /** Update an organization trust issuer key. */
-  updateOrganizationTrustIssuerKey: OrganizationTrustIssuerKey;
+  /** Update an enrolment. */
+  updateOrganizationTrust: OrganizationTrust;
   /** Update a user. */
   updateOrganizationUser: OrganizationUser;
   /** Update a user password. */
@@ -15419,6 +16320,12 @@ export type Mutation = {
   updateSignature: Signature;
   /** Update brand */
   updateSignatureBrand: SignatureBrand;
+  /**
+   * Configure the accepted trust (and optional issuer) of a signature credential.
+   * A null issuer accepts any issuer under the trust; visibility/app-association
+   * readiness is enforced when the signature is activated.
+   */
+  updateSignatureCredential: SignatureCredential;
   /** Update an domain. */
   updateSignatureDomain: SignatureDomain;
   /** Update a flow group. */
@@ -15435,20 +16342,18 @@ export type Mutation = {
   updateStudioPlanControlOverride: StudioPlanControlOverride;
   /** Update a StudioPlanInterval. */
   updateStudioPlanInterval: StudioPlanInterval;
+  /** Update a trust. */
+  updateTrust: Trust;
   /** Update a trust anchor DID. */
   updateTrustAnchorDid: TrustAnchorDid;
-  /** Update a trust anchor X.509 root certificate. */
-  updateTrustAnchorX509RootCertificate: TrustAnchorX509RootCertificate;
-  /** Update an existing trust draft. */
-  updateTrustDraft: Trust;
+  /** Update a trust issuer (e.g. publish by setting visibility to PUBLIC). */
+  updateTrustIssuer: TrustIssuer;
   /** Update a trust issuer key. */
   updateTrustIssuerKey: TrustIssuerKey;
   /** Update a trust issuer key algorithm Idemix. */
   updateTrustIssuerKeyAlgorithmIdemix: TrustIssuerKeyAlgorithmIdemix;
   /** Update a trust issuer key DID binding. */
   updateTrustIssuerKeyDidBinding: TrustIssuerKeyDidBinding;
-  /** Update a trust issuer key X.509 certificate. */
-  updateTrustIssuerKeyX509Cert: TrustIssuerKeyX509Cert;
   /** Update a trust locale. */
   updateTrustLocale: TrustLocale;
   /** Update a user. */
@@ -15495,6 +16400,12 @@ export type MutationActionAuthenticationArgs = {
 };
 
 
+export type MutationActionAuthenticationHandlerArgs = {
+  input: ActionAuthenticationHandlerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionBillingWalletArgs = {
   input: ActionBillingWalletInput;
   uuid: Scalars['UUID']['input'];
@@ -15513,6 +16424,12 @@ export type MutationActionDisclosureArgs = {
 };
 
 
+export type MutationActionDisclosureHandlerArgs = {
+  input: ActionDisclosureHandlerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionHandlerArgs = {
   input: ActionHandlerInput;
   uuid: Scalars['UUID']['input'];
@@ -15525,8 +16442,20 @@ export type MutationActionIssuanceArgs = {
 };
 
 
+export type MutationActionIssuanceHandlerArgs = {
+  input: ActionIssuanceHandlerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionIssuanceRunArgs = {
   input: ActionIssuanceRunInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionIssuerArgs = {
+  input: ActionIssuerInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15585,8 +16514,20 @@ export type MutationActionOrganizationDomainArgs = {
 };
 
 
+export type MutationActionOrganizationIdentityReviewArgs = {
+  input: ActionOrganizationIdentityReviewInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationActionOrganizationNotificationArgs = {
   input: ActionOrganizationNotificationInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionOrganizationTrustArgs = {
+  input: ActionOrganizationTrustInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15621,17 +16562,43 @@ export type MutationActionStudioPlanArgs = {
 };
 
 
+export type MutationActionTrustArgs = {
+  input: ActionTrustInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionTrustAnchorX509ManagedCertificateArgs = {
+  input: ActionTrustAnchorX509ManagedCertificateInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionTrustAnchorX509ProvisioningCaCustodyArgs = {
+  input: ActionTrustAnchorX509ProvisioningCaCustodyInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionTrustIssuerArgs = {
+  input: ActionTrustIssuerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionTrustIssuerIntermediateCaCertificateArgs = {
+  input: ActionTrustIssuerIntermediateCaCertificateInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationActionTrustIssuerKeyArgs = {
+  input: ActionTrustIssuerKeyInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationCloneCredentialFromVersionArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationCloneIssuerFromVersionArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationCloneTrustFromVersionArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -15728,6 +16695,11 @@ export type MutationCreateAuthenticationHandlerArgs = {
 
 export type MutationCreateAuthenticationHandlerConfigurationNlWalletArgs = {
   input: CreateAuthenticationHandlerConfigurationNlWalletInput;
+};
+
+
+export type MutationCreateAuthenticationHandlerConfigurationOid4VcArgs = {
+  input: CreateAuthenticationHandlerConfigurationOid4VcInput;
 };
 
 
@@ -15991,8 +16963,8 @@ export type MutationCreateIssuanceSecretArgs = {
 };
 
 
-export type MutationCreateIssuerDraftArgs = {
-  input: CreateIssuerDraftInput;
+export type MutationCreateIssuerArgs = {
+  input: CreateIssuerInput;
 };
 
 
@@ -16147,11 +17119,6 @@ export type MutationCreateOrganizationAppMetaKiwaArgs = {
 };
 
 
-export type MutationCreateOrganizationAppMetaOid4vcArgs = {
-  input: CreateOrganizationAppMetaOid4vcInput;
-};
-
-
 export type MutationCreateOrganizationAppMetaYotiArgs = {
   input: CreateOrganizationAppMetaYotiInput;
 };
@@ -16187,6 +17154,11 @@ export type MutationCreateOrganizationDomainOAuthProviderArgs = {
 };
 
 
+export type MutationCreateOrganizationIssuerArgs = {
+  input: CreateOrganizationIssuerInput;
+};
+
+
 export type MutationCreateOrganizationNotificationArgs = {
   input: CreateOrganizationNotificationInput;
 };
@@ -16197,13 +17169,18 @@ export type MutationCreateOrganizationNotificationEventArgs = {
 };
 
 
+export type MutationCreateOrganizationRegistrationArgs = {
+  input: CreateOrganizationRegistrationInput;
+};
+
+
 export type MutationCreateOrganizationSecretArgs = {
   input: CreateOrganizationSecretInput;
 };
 
 
-export type MutationCreateOrganizationTrustIssuerKeyArgs = {
-  input: CreateOrganizationTrustIssuerKeyInput;
+export type MutationCreateOrganizationTrustArgs = {
+  input: CreateOrganizationTrustInput;
 };
 
 
@@ -16362,6 +17339,11 @@ export type MutationCreateStudioPlanOrganizationArgs = {
 };
 
 
+export type MutationCreateTrustArgs = {
+  input: CreateTrustInput;
+};
+
+
 export type MutationCreateTrustAnchorDidArgs = {
   input: CreateTrustAnchorDidInput;
 };
@@ -16377,18 +17359,13 @@ export type MutationCreateTrustAnchorX509Args = {
 };
 
 
-export type MutationCreateTrustAnchorX509RootCertificateArgs = {
-  input: CreateTrustAnchorX509RootCertificateInput;
-};
-
-
 export type MutationCreateTrustAppArgs = {
   input: CreateTrustAppInput;
 };
 
 
-export type MutationCreateTrustDraftArgs = {
-  input: CreateTrustDraftInput;
+export type MutationCreateTrustHandlerArgs = {
+  input: CreateTrustHandlerInput;
 };
 
 
@@ -16538,6 +17515,11 @@ export type MutationDeleteAuthenticationHandlerArgs = {
 
 
 export type MutationDeleteAuthenticationHandlerConfigurationNlWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteAuthenticationHandlerConfigurationOid4VcArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -16782,6 +17764,11 @@ export type MutationDeleteIssuanceSecretArgs = {
 };
 
 
+export type MutationDeleteIssuerArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteIssuerLabelArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -16887,11 +17874,6 @@ export type MutationDeleteOrganizationAppMetaKiwaArgs = {
 };
 
 
-export type MutationDeleteOrganizationAppMetaOid4vcArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
 export type MutationDeleteOrganizationAppMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -16927,6 +17909,11 @@ export type MutationDeleteOrganizationDomainOAuthProviderArgs = {
 };
 
 
+export type MutationDeleteOrganizationIssuerArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteOrganizationNotificationArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -16937,12 +17924,17 @@ export type MutationDeleteOrganizationNotificationEventArgs = {
 };
 
 
+export type MutationDeleteOrganizationRegistrationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteOrganizationSecretArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteOrganizationTrustIssuerKeyArgs = {
+export type MutationDeleteOrganizationTrustArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17097,6 +18089,11 @@ export type MutationDeleteStudioPlanOrganizationArgs = {
 };
 
 
+export type MutationDeleteTrustArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteTrustAnchorDidArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -17112,12 +18109,12 @@ export type MutationDeleteTrustAnchorX509Args = {
 };
 
 
-export type MutationDeleteTrustAnchorX509RootCertificateArgs = {
+export type MutationDeleteTrustAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationDeleteTrustAppArgs = {
+export type MutationDeleteTrustHandlerArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17173,29 +18170,7 @@ export type MutationDeprecateCredentialArgs = {
 };
 
 
-export type MutationDeprecateIssuerArgs = {
-  input: DeprecateIssuerInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDeprecateTrustArgs = {
-  input: DeprecateTrustInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
 export type MutationDiscardCredentialDraftArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDiscardIssuerDraftArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationDiscardTrustDraftArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17230,6 +18205,48 @@ export type MutationDuplicateStudioPlanArgs = {
 };
 
 
+export type MutationGenerateAuthenticationHandlerCertificateSigningRequestArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationGenerateDisclosureHandlerCertificateSigningRequestArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationGenerateIssuanceHandlerCertificateSigningRequestArgs = {
+  role: TrustRole;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationIngestAuthenticationHandlerCertificateArgs = {
+  input: IngestExternalHandlerCertificateInput;
+};
+
+
+export type MutationIngestDisclosureHandlerCertificateArgs = {
+  input: IngestExternalHandlerCertificateInput;
+};
+
+
+export type MutationIngestExternalIssuerCertificatesArgs = {
+  input: IngestExternalIssuerCertificatesInput;
+};
+
+
+export type MutationIngestIssuanceHandlerCertificateArgs = {
+  input: IngestExternalHandlerCertificateInput;
+  role: TrustRole;
+};
+
+
+export type MutationIngestTrustAnchorCertificateArgs = {
+  input: IngestTrustAnchorCertificateInput;
+};
+
+
 export type MutationLoginByClientCredentialsArgs = {
   input: LoginByClientCredentialsInput;
 };
@@ -17260,7 +18277,17 @@ export type MutationProvisionAuthenticationActivationArgs = {
 };
 
 
+export type MutationProvisionAuthenticationHandlerCertificateArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationProvisionDisclosureActivationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationProvisionDisclosureHandlerCertificateArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17270,17 +18297,23 @@ export type MutationProvisionIssuanceActivationArgs = {
 };
 
 
+export type MutationProvisionIssuanceHandlerCertificateArgs = {
+  role: TrustRole;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationProvisionTrustIssuerIntermediateCaArgs = {
+  input: ProvisionTrustIssuerIntermediateCaInput;
+};
+
+
+export type MutationProvisionTrustIssuerKeyArgs = {
+  input: ProvisionTrustIssuerKeyInput;
+};
+
+
 export type MutationPublishCredentialArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationPublishIssuerArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationPublishTrustArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17292,6 +18325,11 @@ export type MutationRegisterByOpenIdTokenArgs = {
 
 export type MutationRegisterByPasswordArgs = {
   input: RegisterByPasswordInput;
+};
+
+
+export type MutationRegisterTrustProvisioningCaArgs = {
+  input: RegisterTrustProvisioningCaInput;
 };
 
 
@@ -17424,6 +18462,12 @@ export type MutationUpdateAuthenticationHandlerConfigurationNlWalletArgs = {
 };
 
 
+export type MutationUpdateAuthenticationHandlerConfigurationOid4VcArgs = {
+  input: UpdateAuthenticationHandlerConfigurationOid4VcInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateBillingMethodArgs = {
   input: UpdateBillingMethodInput;
   uuid: Scalars['UUID']['input'];
@@ -17520,6 +18564,12 @@ export type MutationUpdateDisclosureBrandArgs = {
 };
 
 
+export type MutationUpdateDisclosureCredentialArgs = {
+  input: UpdateDisclosureCredentialInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateDisclosureDomainArgs = {
   input: UpdateDisclosureDomainInput;
   uuid: Scalars['UUID']['input'];
@@ -17580,6 +18630,12 @@ export type MutationUpdateIssuanceBrandArgs = {
 };
 
 
+export type MutationUpdateIssuanceCredentialArgs = {
+  input: UpdateIssuanceCredentialInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateIssuanceCredentialMetaDatakeeperArgs = {
   input: UpdateIssuanceCredentialMetaDatakeeperInput;
   uuid: Scalars['UUID']['input'];
@@ -17622,8 +18678,8 @@ export type MutationUpdateIssuanceHandlerConfigurationOid4VcArgs = {
 };
 
 
-export type MutationUpdateIssuerDraftArgs = {
-  input: UpdateIssuerDraftInput;
+export type MutationUpdateIssuerArgs = {
+  input: UpdateIssuerInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17736,12 +18792,6 @@ export type MutationUpdateOrganizationAppMetaKiwaArgs = {
 };
 
 
-export type MutationUpdateOrganizationAppMetaOid4vcArgs = {
-  input: UpdateOrganizationAppMetaOid4vcInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
 export type MutationUpdateOrganizationAppMetaYotiArgs = {
   input: UpdateOrganizationAppMetaYotiInput;
   uuid: Scalars['UUID']['input'];
@@ -17766,6 +18816,12 @@ export type MutationUpdateOrganizationDomainArgs = {
 };
 
 
+export type MutationUpdateOrganizationIssuerArgs = {
+  input: UpdateOrganizationIssuerInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateOrganizationNotificationArgs = {
   input: UpdateOrganizationNotificationInput;
   uuid: Scalars['UUID']['input'];
@@ -17778,8 +18834,8 @@ export type MutationUpdateOrganizationSecretArgs = {
 };
 
 
-export type MutationUpdateOrganizationTrustIssuerKeyArgs = {
-  input: UpdateOrganizationTrustIssuerKeyInput;
+export type MutationUpdateOrganizationTrustArgs = {
+  input: UpdateOrganizationTrustInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17880,6 +18936,12 @@ export type MutationUpdateSignatureBrandArgs = {
 };
 
 
+export type MutationUpdateSignatureCredentialArgs = {
+  input: UpdateSignatureCredentialInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateSignatureDomainArgs = {
   input: UpdateSignatureDomainInput;
   uuid: Scalars['UUID']['input'];
@@ -17928,20 +18990,20 @@ export type MutationUpdateStudioPlanIntervalArgs = {
 };
 
 
+export type MutationUpdateTrustArgs = {
+  input: UpdateTrustInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateTrustAnchorDidArgs = {
   input: UpdateTrustAnchorDidInput;
   uuid: Scalars['UUID']['input'];
 };
 
 
-export type MutationUpdateTrustAnchorX509RootCertificateArgs = {
-  input: UpdateTrustAnchorX509RootCertificateInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateTrustDraftArgs = {
-  input: UpdateTrustDraftInput;
+export type MutationUpdateTrustIssuerArgs = {
+  input: UpdateTrustIssuerInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -17960,12 +19022,6 @@ export type MutationUpdateTrustIssuerKeyAlgorithmIdemixArgs = {
 
 export type MutationUpdateTrustIssuerKeyDidBindingArgs = {
   input: UpdateTrustIssuerKeyDidBindingInput;
-  uuid: Scalars['UUID']['input'];
-};
-
-
-export type MutationUpdateTrustIssuerKeyX509CertArgs = {
-  input: UpdateTrustIssuerKeyX509CertInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -18175,6 +19231,17 @@ export type Organization = Model & {
   description?: Maybe<Scalars['NonEmpty']['output']>;
   /** The public email address of the organization. */
   email?: Maybe<Scalars['Email']['output']>;
+  /** Every requirement on the ladder, in order, evaluated now. */
+  identityRequirements: Array<OrganizationIdentityRequirement>;
+  /**
+   * Why the identity review is not approved — the reason it was rejected, or the reason
+   * an approval was revoked. Cleared when a review is requested again.
+   */
+  identityReviewRejectReason?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The state of the identity review. */
+  identityReviewState: OrganizationReviewState;
+  /** The organization's standing on the identity ladder. */
+  identityStatus: OrganizationIdentityStatus;
   /** The chamber of commerce registration number. */
   kvk?: Maybe<Scalars['NonEmpty']['output']>;
   /** Labels created by this organization */
@@ -18520,8 +19587,6 @@ export type OrganizationAppMeta = Model & {
   datakeeper?: Maybe<OrganizationAppMetaDatakeeper>;
   /** The kiwa organization app meta */
   kiwa?: Maybe<OrganizationAppMetaKiwa>;
-  /** The OID4VC organization app meta */
-  oid4vc?: Maybe<OrganizationAppMetaOid4vc>;
   /** The organization app the meta belongs to. */
   organizationApp: OrganizationApp;
   /** The update time */
@@ -18652,57 +19717,6 @@ export type OrganizationAppMetaKiwaSortInput = {
   field: OrganizationAppMetaKiwaSortEnum;
 };
 
-/** Organization app meta OID4VC. */
-export type OrganizationAppMetaOid4vc = Model & {
-  __typename?: 'OrganizationAppMetaOid4vc';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The organization app meta the OID4VC meta belongs to. */
-  organizationAppMeta: OrganizationAppMeta;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-  /** The verifier certificate identifier */
-  verifierCertIdentifier?: Maybe<Scalars['String']['output']>;
-  /** The verifier key identifier */
-  verifierKeyIdentifier?: Maybe<Scalars['String']['output']>;
-};
-
-/** The organization app meta OID4VC connection request. */
-export type OrganizationAppMetaOid4vcConnection = {
-  __typename?: 'OrganizationAppMetaOid4vcConnection';
-  edges: Array<Maybe<OrganizationAppMetaOid4vcEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The organization app meta OID4VC edge request. */
-export type OrganizationAppMetaOid4vcEdge = {
-  __typename?: 'OrganizationAppMetaOid4vcEdge';
-  cursor: Scalars['String']['output'];
-  node: OrganizationAppMetaOid4vc;
-};
-
-/** Fields which can be used to filter organization app meta OID4VC on. Value must be camel case. */
-export enum OrganizationAppMetaOid4vcFilteringField {
-  OrganizationAppMetaUuid = 'organizationAppMetaUuid',
-  Uuid = 'uuid'
-}
-
-/** Fields which can be used to sort organization app meta OID4VC on. Value must be camel case. */
-export enum OrganizationAppMetaOid4vcSortEnum {
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt'
-}
-
-/** Input options for sorting organization app meta OID4VC. */
-export type OrganizationAppMetaOid4vcSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: OrganizationAppMetaOid4vcSortEnum;
-};
-
 /** Fields which can be used to sort organization app meta on. Value must be camel case. */
 export enum OrganizationAppMetaSortEnum {
   CreatedAt = 'createdAt'
@@ -18721,7 +19735,6 @@ export enum OrganizationAppMetaType {
   Datakeeper = 'DATAKEEPER',
   Kiwa = 'KIWA',
   None = 'NONE',
-  Oid4Vc = 'OID4VC',
   Yoti = 'YOTI'
 }
 
@@ -19305,6 +20318,8 @@ export enum OrganizationFilteringField {
   CountryCode = 'countryCode',
   Description = 'description',
   Email = 'email',
+  IdentityReviewState = 'identityReviewState',
+  IdentityStatus = 'identityStatus',
   Kvk = 'kvk',
   LegalName = 'legalName',
   NaceCode = 'naceCode',
@@ -19314,6 +20329,78 @@ export enum OrganizationFilteringField {
   Type = 'type',
   Uuid = 'uuid'
 }
+
+/** A single requirement on the organization identity ladder. Evaluated on read, never stored. */
+export type OrganizationIdentityRequirement = {
+  __typename?: 'OrganizationIdentityRequirement';
+  /** The requirement code. An i18n key, never prose. */
+  code: OrganizationIdentityRequirementCode;
+  /** How the requirement is met. */
+  kind: OrganizationIdentityRequirementKind;
+  /** Whether the requirement is satisfied right now. */
+  satisfied: Scalars['Boolean']['output'];
+  /** The status this requirement belongs to. */
+  status: OrganizationIdentityStatus;
+};
+
+/** OrganizationIdentityRequirementCode */
+export enum OrganizationIdentityRequirementCode {
+  Category = 'CATEGORY',
+  Country = 'COUNTRY',
+  Description = 'DESCRIPTION',
+  IdentityReview = 'IDENTITY_REVIEW',
+  LegalName = 'LEGAL_NAME',
+  PrivacyPolicy = 'PRIVACY_POLICY',
+  RegistryIdentifier = 'REGISTRY_IDENTIFIER',
+  Website = 'WEBSITE'
+}
+
+/**
+ * How an organization identity requirement is met: FIELD is a column the organization
+ * supplies, REVIEW is a decision staff record.
+ */
+export enum OrganizationIdentityRequirementKind {
+  Field = 'FIELD',
+  Review = 'REVIEW'
+}
+
+/** OrganizationIdentityReviewAction */
+export enum OrganizationIdentityReviewAction {
+  Approve = 'APPROVE',
+  Reject = 'REJECT',
+  Request = 'REQUEST',
+  Revoke = 'REVOKE'
+}
+
+/** OrganizationIdentityStatus */
+export enum OrganizationIdentityStatus {
+  Declared = 'DECLARED',
+  Unverified = 'UNVERIFIED',
+  Verified = 'VERIFIED'
+}
+
+/**
+ * The verified-brand binding for an org-owned issuer — the brand that names its
+ * certificates (subject CN) and supplies its display identity. The binding lives
+ * in studio; the issuer it points at lives in catalog.
+ */
+export type OrganizationIssuer = Model & {
+  __typename?: 'OrganizationIssuer';
+  catalogIssuerUuid: Scalars['UUID']['output'];
+  /** The creation time. */
+  createdAt: Scalars['DateTime']['output'];
+  /**
+   * The verified brand this binding points at — naming the issuer's certificates
+   * (subject CN) and supplying its display identity.
+   */
+  organizationBrand: OrganizationBrand;
+  organizationBrandUuid: Scalars['UUID']['output'];
+  organizationUuid: Scalars['UUID']['output'];
+  /** The update time. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
 
 /** User organization address type definition. */
 export type OrganizationNotification = Model & {
@@ -19481,6 +20568,95 @@ export type OrganizationQuotaSortInput = {
   field: OrganizationQuotaSortEnum;
 };
 
+/**
+ * OrganizationRegistration definition. A registration certificate a trust's
+ * registrar issued to the organization. Its entitlement makes it a relying-party
+ * registration, stating which credentials and claims it may request, or a
+ * provider one, stating which credential types it may issue. A flow handler's
+ * configuration names the one its request (verifier_info) or issuer metadata
+ * (issuer_info) is sent with.
+ */
+export type OrganizationRegistration = Model & {
+  __typename?: 'OrganizationRegistration';
+  /** The uuid of the trust whose registrar issued it. */
+  catalogTrustUuid: Scalars['UUID']['output'];
+  /** The creation time. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The organization. */
+  organization: Organization;
+  /** The uuid of the organization. */
+  organizationUuid: Scalars['UUID']['output'];
+  /** The purpose the registrar recorded. */
+  purposeStatement?: Maybe<Scalars['String']['output']>;
+  /** The registration certificate, a compact rc-wrp+jwt. */
+  registrationJwt: Scalars['String']['output'];
+  /**
+   * The role it was imported for: VERIFICATION for a relying party, ISSUANCE for a
+   * provider of attestations. Its entitlement must grant it, relaxed on DEMO trusts.
+   */
+  role: TrustRole;
+  /** Where the registration comes from. */
+  source: RegistrationSource;
+  /** The trust whose registrar issued it. */
+  trust: Trust;
+  /** The update time. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The registrar's signing certificate chain a registration certificate carries. */
+export type OrganizationRegistrationCertificates = {
+  __typename?: 'OrganizationRegistrationCertificates';
+  /** The chain from its x5c header, parsed, subject-first. */
+  certificates: Array<CertificateChainEntry>;
+};
+
+/** The organization registration connection definition. */
+export type OrganizationRegistrationConnection = {
+  __typename?: 'OrganizationRegistrationConnection';
+  edges: Array<Maybe<OrganizationRegistrationEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The organization registration edge definition. */
+export type OrganizationRegistrationEdge = {
+  __typename?: 'OrganizationRegistrationEdge';
+  cursor: Scalars['String']['output'];
+  node: OrganizationRegistration;
+};
+
+/** Fields which can be used to filter organization registrations on. Value must be camel case. */
+export enum OrganizationRegistrationFilteringField {
+  CatalogTrustUuid = 'catalogTrustUuid',
+  CreatedAt = 'createdAt',
+  OrganizationUuid = 'organizationUuid',
+  Role = 'role',
+  Source = 'source',
+  Uuid = 'uuid'
+}
+
+/** Fields which can be used to sort organization registrations on. Value must be camel case. */
+export enum OrganizationRegistrationSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
+}
+
+/** Input options for sorting organization registrations. */
+export type OrganizationRegistrationSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: OrganizationRegistrationSortEnum;
+};
+
+/** OrganizationReviewState */
+export enum OrganizationReviewState {
+  Approved = 'APPROVED',
+  Pending = 'PENDING',
+  Unapproved = 'UNAPPROVED'
+}
+
 /** Organization secret definition. */
 export type OrganizationSecret = Model & {
   __typename?: 'OrganizationSecret';
@@ -19507,7 +20683,8 @@ export type OrganizationSecret = Model & {
 /** The algorithms */
 export enum OrganizationSecretAlgorithm {
   Hs384 = 'HS384',
-  None = 'NONE'
+  None = 'NONE',
+  Sha256 = 'SHA256'
 }
 
 /** An Connection */
@@ -19552,6 +20729,7 @@ export type OrganizationSecretSortInput = {
 
 /** The types */
 export enum OrganizationSecretType {
+  Hmac = 'HMAC',
   Oauth = 'OAUTH'
 }
 
@@ -19572,64 +20750,110 @@ export type OrganizationSortInput = {
 };
 
 /**
- * OrganizationTrustIssuerKey definition.
- *
- * Binds an organization to a catalog TrustIssuerKey and stores the
- * Vault Transit key name used for signing. The public key material
- * (JWK, x5c) lives on TrustIssuerKey in the catalog database.
+ * OrganizationTrust definition. An organization's enrolment in a trust: one row per
+ * pair, carrying a state per role and the categories enrolled for.
  */
-export type OrganizationTrustIssuerKey = Model & {
-  __typename?: 'OrganizationTrustIssuerKey';
+export type OrganizationTrust = Model & {
+  __typename?: 'OrganizationTrust';
+  /**
+   * Whether the organization is admitted to the framework. Set on enrolment from
+   * the trust's visibility, then moved by an administrator.
+   */
+  admission: OrganizationTrustAdmission;
+  /**
+   * The attestation categories the organization enrolled for. A flow may name a
+   * category only when it is both offered by the trust and enrolled here.
+   */
+  attestationCategories: Array<AttestationCategory>;
   /** The creation time. */
   createdAt: Scalars['DateTime']['output'];
+  /** The state for issuance. */
+  issuanceState: OrganizationTrustState;
   /** The organization. */
   organization: Organization;
-  /** The organization UUID. */
+  /** The uuid of the organization. */
   organizationUuid: Scalars['UUID']['output'];
-  /** The Vault Transit private key identifier. */
-  privateKeyIdentifier: Scalars['String']['output'];
-  /** The trust issuer key UUID (cross-db reference to catalog). */
-  trustIssuerKeyUuid: Scalars['UUID']['output'];
+  /** Why admission was refused, when it was. */
+  rejectReason?: Maybe<Scalars['NonEmpty']['output']>;
+  /** The trust. */
+  trust: Trust;
+  /** The uuid of the trust. */
+  trustUuid: Scalars['UUID']['output'];
   /** The update time. */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID. */
   uuid: Scalars['UUID']['output'];
+  /** The state for verification. */
+  verificationState: OrganizationTrustState;
 };
 
-/** The OrganizationTrustIssuerKey connection definition. */
-export type OrganizationTrustIssuerKeyConnection = {
-  __typename?: 'OrganizationTrustIssuerKeyConnection';
-  edges: Array<Maybe<OrganizationTrustIssuerKeyEdge>>;
+/** OrganizationTrustAction */
+export enum OrganizationTrustAction {
+  Activate = 'ACTIVATE',
+  Approve = 'APPROVE',
+  Deactivate = 'DEACTIVATE',
+  Reject = 'REJECT',
+  Revoke = 'REVOKE'
+}
+
+/**
+ * Whether the organization is admitted to the framework at all. A PUBLIC framework
+ * admits on enrolment; a CONTROLLED one opens PENDING for an administrator to
+ * decide, and no role may be turned on until it is ENABLED.
+ */
+export enum OrganizationTrustAdmission {
+  Enabled = 'ENABLED',
+  Pending = 'PENDING',
+  Unapproved = 'UNAPPROVED'
+}
+
+/** The organization trust connection definition. */
+export type OrganizationTrustConnection = {
+  __typename?: 'OrganizationTrustConnection';
+  edges: Array<Maybe<OrganizationTrustEdge>>;
   pageInfo: PageInfo;
 };
 
-/** The OrganizationTrustIssuerKey edge definition. */
-export type OrganizationTrustIssuerKeyEdge = {
-  __typename?: 'OrganizationTrustIssuerKeyEdge';
+/** The organization trust edge definition. */
+export type OrganizationTrustEdge = {
+  __typename?: 'OrganizationTrustEdge';
   cursor: Scalars['String']['output'];
-  node: OrganizationTrustIssuerKey;
+  node: OrganizationTrust;
 };
 
-/** Fields which can be used to filter OrganizationTrustIssuerKey on. Value must be camel case. */
-export enum OrganizationTrustIssuerKeyFilteringField {
+/** Fields which can be used to filter organization trusts on. Value must be camel case. */
+export enum OrganizationTrustFilteringField {
+  Admission = 'admission',
   CreatedAt = 'createdAt',
+  IssuanceState = 'issuanceState',
   OrganizationUuid = 'organizationUuid',
-  TrustIssuerKeyUuid = 'trustIssuerKeyUuid',
-  Uuid = 'uuid'
+  TrustUuid = 'trustUuid',
+  Uuid = 'uuid',
+  VerificationState = 'verificationState'
 }
 
-/** Fields which can be used to sort OrganizationTrustIssuerKey on. Value must be camel case. */
-export enum OrganizationTrustIssuerKeySortEnum {
-  CreatedAt = 'createdAt'
+/** Fields which can be used to sort organization trusts on. Value must be camel case. */
+export enum OrganizationTrustSortEnum {
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt'
 }
 
-/** Input options for sorting OrganizationTrustIssuerKey. */
-export type OrganizationTrustIssuerKeySortInput = {
+/** Input options for sorting organization trusts. */
+export type OrganizationTrustSortInput = {
   /** The direction to sort on. */
   direction: OrderDirection;
   /** The field to sort on. */
-  field: OrganizationTrustIssuerKeySortEnum;
+  field: OrganizationTrustSortEnum;
 };
+
+/**
+ * Organization trust states — what the organization turned on, nothing more.
+ * Whether a role is offered at all is declared on the trust (Trust.roles).
+ */
+export enum OrganizationTrustState {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
 
 /** OrganizationType */
 export enum OrganizationType {
@@ -20655,43 +21879,50 @@ export enum Protocol {
   Yoti = 'YOTI'
 }
 
-/** Progress of a single provisioning child task. */
-export type ProvisioningChildProgress = {
-  __typename?: 'ProvisioningChildProgress';
-  /** Error category (TRANSIENT or PERMANENT) if the task failed. */
-  errorCategory?: Maybe<Scalars['String']['output']>;
-  /** Error code if the task failed. */
-  errorCode?: Maybe<Scalars['String']['output']>;
-  /** Error hint (suggested action) if the task failed. */
-  errorHint?: Maybe<Scalars['String']['output']>;
-  /** Error message if the task failed. */
-  errorMessage?: Maybe<Scalars['String']['output']>;
-  /** Human-readable label for the task. */
-  label: Scalars['NonEmpty']['output'];
-  /** Current status of the child task. */
-  status: ProvisioningTaskStatus;
-  /** The task type (maps to a ProvisioningTaskTemplate). */
-  taskType: ProvisioningTaskType;
-  /** The child job UUID. */
-  uuid: Scalars['UUID']['output'];
+export type ProvisionTrustIssuerIntermediateCaInput = {
+  /**
+   * The trust attachment (TrustIssuer) to mint a fresh intermediate CA for. Its
+   * signing keys are untouched.
+   */
+  trustIssuerUuid: Scalars['UUID']['input'];
 };
 
-/** Progress of a provisioning task group (parent + children). */
-export type ProvisioningProgress = {
-  __typename?: 'ProvisioningProgress';
-  /** Per-child task progress. */
-  children: Array<ProvisioningChildProgress>;
-  /** Overall status of the provisioning task. */
-  status: ProvisioningTaskStatus;
+/** Input for provisioning the platform signing chain of one trust attachment. */
+export type ProvisionTrustIssuerKeyInput = {
+  /**
+   * The trust attachment (TrustIssuer) to provision a new platform signing key
+   * for. The key serves both oid4vc formats (MSO_MDOC and SD_JWT).
+   */
+  trustIssuerUuid: Scalars['UUID']['input'];
 };
+
+/** What a provisioning CA signs for. */
+export enum ProvisioningCaPurpose {
+  Issuer = 'ISSUER',
+  Verifier = 'VERIFIER'
+}
 
 /**
- * A handle to an async provisioning operation.
- * Use the returned UUID with the `provisioningProgressUpdated` subscription.
+ * Lifecycle of a provisioning CA. ACTIVE signs new leaves; DEPRECATED (replaced)
+ * and INACTIVE sign nothing new.
  */
+export enum ProvisioningCaState {
+  Active = 'ACTIVE',
+  Deprecated = 'DEPRECATED',
+  Inactive = 'INACTIVE'
+}
+
+/** A handle to an async provisioning operation. */
 export type ProvisioningTask = {
   __typename?: 'ProvisioningTask';
-  /** Unique identifier for this task. Use with `provisioningProgressUpdated` subscription. */
+  /**
+   * Live status of the task, mapped from the collector job state. Null on a freshly
+   * dispatched handle (the mutation return); populated when polled via
+   * `activeProvisioningTask`, including terminal `FAILED`/`COMPLETED` so the UI can
+   * surface the outcome instead of just a spinner.
+   */
+  status?: Maybe<ProvisioningTaskStatus>;
+  /** Unique identifier for this task. */
   uuid: Scalars['UUID']['output'];
 };
 
@@ -20703,22 +21934,22 @@ export enum ProvisioningTaskStatus {
   Pending = 'PENDING'
 }
 
-/** ProvisioningTaskType — certificate task types. */
-export enum ProvisioningTaskType {
-  NlWalletDemoIssuance = 'NL_WALLET_DEMO_ISSUANCE',
-  NlWalletDemoVerification = 'NL_WALLET_DEMO_VERIFICATION',
-  NlWalletPreprodIssuance = 'NL_WALLET_PREPROD_ISSUANCE',
-  NlWalletPreprodVerification = 'NL_WALLET_PREPROD_VERIFICATION',
-  PkiIssuance = 'PKI_ISSUANCE',
-  PkiVerification = 'PKI_VERIFICATION'
-}
-
 /**
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type Query = {
   __typename?: 'Query';
+  /**
+   * The latest provisioning job bound to the given model (`entityType` +
+   * `entityUuid`, e.g. `"trustIssuer"`), with its live `status` — including terminal
+   * `COMPLETED`/`FAILED` — or null when the model has never been provisioned. Read
+   * from the `ProvisioningBinding` table joined to the live collector job state. The
+   * UI polls this to render a provisioning indicator, surface a failure, and know
+   * when to refetch the model — there is no persisted provisioning field on the
+   * model itself.
+   */
+  activeProvisioningTask?: Maybe<ProvisioningTask>;
   /**
    * Returns a JSON Schema for the given GraphQL input type name.
    * Fields annotated with @excludeFromJsonSchema are excluded.
@@ -20772,6 +22003,8 @@ export type Query = {
   findAuthenticationHandlerConfiguration: AuthenticationHandlerConfiguration;
   /** Retrieve a single credential meta NL Wallet. */
   findAuthenticationHandlerConfigurationNLWallet: AuthenticationHandlerConfigurationNlWallet;
+  /** Retrieve a single AuthenticationHandlerConfigurationOID4VC. */
+  findAuthenticationHandlerConfigurationOID4VC: AuthenticationHandlerConfigurationOid4Vc;
   /** Get Label */
   findAuthenticationLabel: AuthenticationLabel;
   /** Retrieve a single flow authentication scopes. */
@@ -20790,6 +22023,8 @@ export type Query = {
   findBillingWalletTransaction: BillingWalletTransaction;
   /** Find a single billing wallet transaction meta */
   findBillingWalletTransactionMeta: BillingWalletTransactionMeta;
+  /** Find billing wallet transaction meta brand */
+  findBillingWalletTransactionMetaBrand: BillingWalletTransactionMetaBrand;
   /** Find billing wallet transaction meta flow */
   findBillingWalletTransactionMetaFlow: BillingWalletTransactionMetaFlow;
   /** Find billing wallet transaction meta flow attribute */
@@ -20798,6 +22033,13 @@ export type Query = {
   findBillingWalletTransactionMetaPlan: BillingWalletTransactionMetaPlan;
   /** Find billing wallet transaction meta wallet */
   findBillingWalletTransactionMetaWallet: BillingWalletTransactionMetaWallet;
+  /** Retrieve a single certificate from the pool. */
+  findCertificate: Certificate;
+  /**
+   * Retrieve a pooled certificate's PEM. Read synchronously from Vault through the
+   * certificate service.
+   */
+  findCertificatePem: CertificatePem;
   /** Retrieve a single credential. */
   findCredential: Credential;
   /** Retrieve a single credential change log. */
@@ -20923,14 +22165,10 @@ export type Query = {
   findIssuanceSecret: IssuanceSecret;
   /** Retrieve a single issuer. */
   findIssuer: Issuer;
-  /** Retrieve a single issuer change log. */
-  findIssuerChangeLog: IssuerChangeLog;
   /** Get identity issuer label */
   findIssuerLabel: IssuerLabel;
   /** Retrieve a single issuer locale. */
   findIssuerLocale: IssuerLocale;
-  /** Retrieve a single issuer version. */
-  findIssuerVersion: IssuerVersion;
   /** Find a single label */
   findLabel: Label;
   /** Retrieve a single locale config. */
@@ -20973,6 +22211,8 @@ export type Query = {
   findManyAuthenticationDomains: AuthenticationDomainConnection;
   /** Retrieve many credential meta NL Wallet. */
   findManyAuthenticationHandlerConfigurationNLWallets: AuthenticationHandlerConfigurationNlWalletConnection;
+  /** Retrieve many AuthenticationHandlerConfigurationOID4VC. */
+  findManyAuthenticationHandlerConfigurationOID4VCs: AuthenticationHandlerConfigurationOid4VcConnection;
   /** Retrieve many AuthenticationHandlerConfiguration. */
   findManyAuthenticationHandlerConfigurations: AuthenticationHandlerConfigurationConnection;
   /** Retrieve many flow authentication handlers. */
@@ -20993,6 +22233,8 @@ export type Query = {
   findManyBillingMethods: BillingMethodConnection;
   /** Retrieve a list of many billings. */
   findManyBillingPlans: BillingPlanConnection;
+  /** Retrieve a list of many billing wallet transaction meta brands */
+  findManyBillingWalletTransactionMetaBrands: BillingWalletTransactionMetaBrandConnection;
   /** Retrieve a list of many billing wallet transaction meta flow attributes */
   findManyBillingWalletTransactionMetaFlowAttributes: BillingWalletTransactionMetaFlowAttributeConnection;
   /** Retrieve a list of many billing wallet transaction meta flows */
@@ -21129,14 +22371,10 @@ export type Query = {
   findManyIssuanceSecrets: IssuanceSecretConnection;
   /** Retreive many flow issuances. */
   findManyIssuances: IssuanceConnection;
-  /** Retrieve many issuer change logs. */
-  findManyIssuerChangeLogs: IssuerChangeLogConnection;
   /** Retrieve a list of many identity issuer labels. */
   findManyIssuerLabels: IssuerLabelConnection;
   /** Retrieve many issuer locales. */
   findManyIssuerLocales: IssuerLocaleConnection;
-  /** Retrieve many issuer versions. */
-  findManyIssuerVersions: IssuerVersionConnection;
   /** Retrieve many issuers. */
   findManyIssuers: IssuerConnection;
   /** Find many labels */
@@ -21177,8 +22415,6 @@ export type Query = {
   findManyOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeperConnection;
   /** Retrieve many organization app meta kiwa. */
   findManyOrganizationAppMetaKiwa: OrganizationAppMetaKiwaConnection;
-  /** Retrieve many organization app meta OID4VC. */
-  findManyOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vcConnection;
   /** Retrieve many organization app meta yoti. */
   findManyOrganizationAppMetaYoti: OrganizationAppMetaYotiConnection;
   /** Retrieve a list of many Labels. */
@@ -21201,10 +22437,12 @@ export type Query = {
   findManyOrganizationNotifications: OrganizationNotificationConnection;
   /** FindMany OrganizationQuota. */
   findManyOrganizationQuotas: OrganizationQuotaConnection;
+  /** Retrieve many organization registrations. */
+  findManyOrganizationRegistrations: OrganizationRegistrationConnection;
   /** Retrieve a list of many secrets. */
   findManyOrganizationSecrets: OrganizationSecretConnection;
-  /** Retrieve many organization trust issuer keys. */
-  findManyOrganizationTrustIssuerKey: OrganizationTrustIssuerKeyConnection;
+  /** Retrieve many organization trusts. */
+  findManyOrganizationTrusts: OrganizationTrustConnection;
   /** Retrieve a list of many users. */
   findManyOrganizationUsers: OrganizationUserConnection;
   /** Retrieve a list of many organizations. */
@@ -21289,14 +22527,14 @@ export type Query = {
   findManyTrustAnchorDids: TrustAnchorDidConnection;
   /** Retrieve many trust anchor Idemix. */
   findManyTrustAnchorIdemixes: TrustAnchorIdemixConnection;
-  /** Retrieve many trust anchor X.509 root certificates. */
-  findManyTrustAnchorX509RootCertificates: TrustAnchorX509RootCertificateConnection;
+  /** Retrieve many provisioning CAs (admin). */
+  findManyTrustAnchorX509ProvisioningCaCustodies: TrustAnchorX509ProvisioningCaCustodyConnection;
   /** Retrieve many trust anchor X.509. */
   findManyTrustAnchorX509s: TrustAnchorX509Connection;
   /** Retrieve many trust apps. */
   findManyTrustApps: TrustAppConnection;
-  /** Retrieve many trust change logs. */
-  findManyTrustChangeLogs: TrustChangeLogConnection;
+  /** Retrieve many trust handlers. */
+  findManyTrustHandlers: TrustHandlerConnection;
   /** Retrieve many trust issuer key algorithm Idemixes. */
   findManyTrustIssuerKeyAlgorithmIdemixes: TrustIssuerKeyAlgorithmIdemixConnection;
   /** Retrieve many trust issuer key DID bindings. */
@@ -21311,8 +22549,6 @@ export type Query = {
   findManyTrustLabels: TrustLabelConnection;
   /** Retrieve many trust locales. */
   findManyTrustLocales: TrustLocaleConnection;
-  /** Retrieve many trust versions. */
-  findManyTrustVersions: TrustVersionConnection;
   /** Retrieve many trusts. */
   findManyTrusts: TrustConnection;
   /** Retrieve a list of many userInvitations. */
@@ -21353,8 +22589,6 @@ export type Query = {
   findOrganizationAppMetaDatakeeper: OrganizationAppMetaDatakeeper;
   /** Retrieve a single organization app meta kiwa. */
   findOrganizationAppMetaKiwa: OrganizationAppMetaKiwa;
-  /** Retrieve a single organization app meta OID4VC. */
-  findOrganizationAppMetaOid4vc: OrganizationAppMetaOid4vc;
   /** Retrieve a single organization app meta yoti. */
   findOrganizationAppMetaYoti: OrganizationAppMetaYoti;
   /** Get brand */
@@ -21376,10 +22610,17 @@ export type Query = {
   findOrganizationNotificationEvent: OrganizationNotificationEvent;
   /** Find OrganizationQuota. */
   findOrganizationQuota: OrganizationQuota;
+  /** Retrieve a single organization registration. */
+  findOrganizationRegistration: OrganizationRegistration;
+  /**
+   * The registrar's signing certificate chain a registration certificate carries
+   * in its x5c header, parsed.
+   */
+  findOrganizationRegistrationCertificates: OrganizationRegistrationCertificates;
   /** Get secret */
   findOrganizationSecret: OrganizationSecret;
-  /** Retrieve a single organization trust issuer key. */
-  findOrganizationTrustIssuerKey: OrganizationTrustIssuerKey;
+  /** Retrieve a single organization trust. */
+  findOrganizationTrust: OrganizationTrust;
   /** Find user by UUID */
   findOrganizationUser: OrganizationUser;
   /** Find billing */
@@ -21464,12 +22705,10 @@ export type Query = {
   findTrustAnchorIdemix: TrustAnchorIdemix;
   /** Retrieve a single trust anchor X.509. */
   findTrustAnchorX509: TrustAnchorX509;
-  /** Retrieve a single trust anchor X.509 root certificate. */
-  findTrustAnchorX509RootCertificate: TrustAnchorX509RootCertificate;
   /** Retrieve a single trust app. */
   findTrustApp: TrustApp;
-  /** Retrieve a single trust change log. */
-  findTrustChangeLog: TrustChangeLog;
+  /** Retrieve a single trust handler. */
+  findTrustHandler: TrustHandler;
   /** Retrieve a single trust issuer. */
   findTrustIssuer: TrustIssuer;
   /** Retrieve a single trust issuer key. */
@@ -21484,8 +22723,6 @@ export type Query = {
   findTrustLabel: TrustLabel;
   /** Retrieve a single trust locale. */
   findTrustLocale: TrustLocale;
-  /** Retrieve a single trust version. */
-  findTrustVersion: TrustVersion;
   /** Find user by UUID */
   findUser: User;
   /** Find userInvitation by UUID */
@@ -21493,6 +22730,16 @@ export type Query = {
   /** Get payment provider invoice receipt */
   getPaymentProviderInvoiceReceipt: Scalars['URL']['output'];
   studioJsonSchema: Scalars['JSONObject']['output'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryActiveProvisioningTaskArgs = {
+  entityType: Scalars['NonEmpty']['input'];
+  entityUuid: Scalars['UUID']['input'];
 };
 
 
@@ -21698,6 +22945,15 @@ export type QueryFindAuthenticationHandlerConfigurationNlWalletArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
+export type QueryFindAuthenticationHandlerConfigurationOid4VcArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
 export type QueryFindAuthenticationLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
@@ -21779,6 +23035,15 @@ export type QueryFindBillingWalletTransactionMetaArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
+export type QueryFindBillingWalletTransactionMetaBrandArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
 export type QueryFindBillingWalletTransactionMetaFlowArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -21807,6 +23072,24 @@ export type QueryFindBillingWalletTransactionMetaPlanArgs = {
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindBillingWalletTransactionMetaWalletArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindCertificateArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindCertificatePemArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -22382,15 +23665,6 @@ export type QueryFindIssuerArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindIssuerChangeLogArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
 export type QueryFindIssuerLabelArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
@@ -22401,15 +23675,6 @@ export type QueryFindIssuerLabelArgs = {
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindIssuerLocaleArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
-export type QueryFindIssuerVersionArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -22607,6 +23872,15 @@ export type QueryFindManyAuthenticationHandlerConfigurationNlWalletsArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
+export type QueryFindManyAuthenticationHandlerConfigurationOid4VCsArgs = {
+  input?: InputMaybe<FindManyAuthenticationHandlerConfigurationOid4VCsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
 export type QueryFindManyAuthenticationHandlerConfigurationsArgs = {
   input?: InputMaybe<FindManyAuthenticationHandlerConfigurationsInput>;
 };
@@ -22690,6 +23964,15 @@ export type QueryFindManyBillingMethodsArgs = {
  */
 export type QueryFindManyBillingPlansArgs = {
   input?: InputMaybe<FindManyBillingPlansInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindManyBillingWalletTransactionMetaBrandsArgs = {
+  input?: InputMaybe<FindManyBillingWalletTransactionMetaBrandsInput>;
 };
 
 
@@ -23309,15 +24592,6 @@ export type QueryFindManyIssuancesArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindManyIssuerChangeLogsArgs = {
-  input?: InputMaybe<FindManyIssuerChangeLogsInput>;
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
 export type QueryFindManyIssuerLabelsArgs = {
   input?: InputMaybe<FindManyIssuerLabelsInput>;
 };
@@ -23329,15 +24603,6 @@ export type QueryFindManyIssuerLabelsArgs = {
  */
 export type QueryFindManyIssuerLocalesArgs = {
   input?: InputMaybe<FindManyIssuerLocalesInput>;
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
-export type QueryFindManyIssuerVersionsArgs = {
-  input?: InputMaybe<FindManyIssuerVersionsInput>;
 };
 
 
@@ -23525,15 +24790,6 @@ export type QueryFindManyOrganizationAppMetaKiwaArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindManyOrganizationAppMetaOid4vcArgs = {
-  input?: InputMaybe<FindManyOrganizationAppMetaOid4vcInput>;
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
 export type QueryFindManyOrganizationAppMetaYotiArgs = {
   input?: InputMaybe<FindManyOrganizationAppMetaYotiInput>;
 };
@@ -23633,6 +24889,15 @@ export type QueryFindManyOrganizationQuotasArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
+export type QueryFindManyOrganizationRegistrationsArgs = {
+  input?: InputMaybe<FindManyOrganizationRegistrationsInput>;
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
 export type QueryFindManyOrganizationSecretsArgs = {
   input?: InputMaybe<FindManyOrganizationSecretsInput>;
 };
@@ -23642,8 +24907,8 @@ export type QueryFindManyOrganizationSecretsArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindManyOrganizationTrustIssuerKeyArgs = {
-  input?: InputMaybe<FindManyOrganizationTrustIssuerKeysInput>;
+export type QueryFindManyOrganizationTrustsArgs = {
+  input?: InputMaybe<FindManyOrganizationTrustsInput>;
 };
 
 
@@ -24030,8 +25295,8 @@ export type QueryFindManyTrustAnchorIdemixesArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindManyTrustAnchorX509RootCertificatesArgs = {
-  input?: InputMaybe<FindManyTrustAnchorX509RootCertificatesInput>;
+export type QueryFindManyTrustAnchorX509ProvisioningCaCustodiesArgs = {
+  input?: InputMaybe<FindManyTrustAnchorX509ProvisioningCaCustodiesInput>;
 };
 
 
@@ -24057,8 +25322,8 @@ export type QueryFindManyTrustAppsArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindManyTrustChangeLogsArgs = {
-  input?: InputMaybe<FindManyTrustChangeLogsInput>;
+export type QueryFindManyTrustHandlersArgs = {
+  input?: InputMaybe<FindManyTrustHandlersInput>;
 };
 
 
@@ -24122,15 +25387,6 @@ export type QueryFindManyTrustLabelsArgs = {
  */
 export type QueryFindManyTrustLocalesArgs = {
   input?: InputMaybe<FindManyTrustLocalesInput>;
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
-export type QueryFindManyTrustVersionsArgs = {
-  input?: InputMaybe<FindManyTrustVersionsInput>;
 };
 
 
@@ -24327,15 +25583,6 @@ export type QueryFindOrganizationAppMetaKiwaArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindOrganizationAppMetaOid4vcArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
 export type QueryFindOrganizationAppMetaYotiArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -24435,6 +25682,24 @@ export type QueryFindOrganizationQuotaArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
+export type QueryFindOrganizationRegistrationArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
+export type QueryFindOrganizationRegistrationCertificatesArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+/**
+ * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
+ * Fields annotated with `@excludeFromJsonSchema` are excluded.
+ */
 export type QueryFindOrganizationSecretArgs = {
   uuid?: InputMaybe<Scalars['UUID']['input']>;
 };
@@ -24444,7 +25709,7 @@ export type QueryFindOrganizationSecretArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindOrganizationTrustIssuerKeyArgs = {
+export type QueryFindOrganizationTrustArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -24831,15 +26096,6 @@ export type QueryFindTrustAnchorX509Args = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindTrustAnchorX509RootCertificateArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
 export type QueryFindTrustAppArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -24849,7 +26105,7 @@ export type QueryFindTrustAppArgs = {
  * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
-export type QueryFindTrustChangeLogArgs = {
+export type QueryFindTrustHandlerArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -24913,15 +26169,6 @@ export type QueryFindTrustLabelArgs = {
  * Fields annotated with `@excludeFromJsonSchema` are excluded.
  */
 export type QueryFindTrustLocaleArgs = {
-  uuid: Scalars['UUID']['input'];
-};
-
-
-/**
- * Returns a JSON Schema for a GraphQL input type owned by the catalog subgraph.
- * Fields annotated with `@excludeFromJsonSchema` are excluded.
- */
-export type QueryFindTrustVersionArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -25005,6 +26252,25 @@ export type RegisterByPasswordInput = {
   /** The url of the website of the organization. */
   website: Scalars['URL']['input'];
 };
+
+/** Input for registering a Vault PKI issuer as a trust's provisioning CA (admin). */
+export type RegisterTrustProvisioningCaInput = {
+  /**
+   * The Vault PKI issuer id or name. Ops creates the issuer in Vault; its key never
+   * leaves the PKI mount.
+   */
+  pkiIssuerIdentifier: Scalars['NonEmpty']['input'];
+  /** What the CA signs for. */
+  purpose: ProvisioningCaPurpose;
+  /** The trust. Must be PUBLIC or CONTROLLED with a MANAGED X.509 anchor. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
+/** Where a registration comes from: a registrar outside the platform, or the platform. */
+export enum RegistrationSource {
+  External = 'EXTERNAL',
+  Platform = 'PLATFORM'
+}
 
 /** Renew access token input */
 export type RenewAccessTokenInput = {
@@ -25544,22 +26810,22 @@ export type SignatureCredential = Model & {
   __typename?: 'SignatureCredential';
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
-  /** The credential the credentialUuid belongs to. */
-  credential: Credential;
-  /** The uuid of the credential. */
+  /** The credential version the credentialUuid belongs to. */
+  credential: CredentialVersion;
+  /** The uuid of the credential version. */
   credentialUuid: Scalars['UUID']['output'];
-  /** The issuer the issuerUuid belongs to. */
-  issuer: Issuer;
-  /** The uuid of the issuer. */
-  issuerUuid: Scalars['UUID']['output'];
+  /** The issuer the issuerUuid belongs to. Null when any issuer under the trust is accepted. */
+  issuer?: Maybe<Issuer>;
+  /** The uuid of the issuer. Null means any issuer under the trust is accepted. */
+  issuerUuid?: Maybe<Scalars['UUID']['output']>;
   /** The associated fields with this credential */
   signatureAttributes: SignatureAttributeConnection;
   /** The flow signature group the flow signature credential belongs to. */
   signatureGroup: SignatureGroup;
   /** The trust the trustUuid belongs to. */
-  trust: Trust;
-  /** The uuid of the trust. */
-  trustUuid: Scalars['UUID']['output'];
+  trust?: Maybe<Trust>;
+  /** The uuid of the trust. Configured after creation and required at activation. */
+  trustUuid?: Maybe<Scalars['UUID']['output']>;
   /** The timestamp of when the type has been last updated. */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID. */
@@ -25620,13 +26886,15 @@ export type SignatureDomain = Model & {
   /** The user organization domain */
   organizationDomain: OrganizationDomain;
   /** The path value. */
-  redirectPath: Scalars['RedirectPath']['output'];
+  path: Scalars['RedirectPath']['output'];
   /** The port value. */
-  redirectPort: Scalars['RedirectPort']['output'];
+  port: Scalars['RedirectPort']['output'];
   /** The protocol value. */
-  redirectProtocol: Scalars['RedirectProtocol']['output'];
+  protocol: Scalars['RedirectProtocol']['output'];
   /** The flow signature */
   signature: Signature;
+  /** The type of the domain. */
+  type: DomainType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
@@ -25650,15 +26918,16 @@ export type SignatureDomainEdge = {
 /** Fields which can be used to filter domains on. Value must be camel case. */
 export enum SignatureDomainFilteringField {
   OrganizationDomainUuid = 'organizationDomainUuid',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
   SignatureUuid = 'signatureUuid',
+  Type = 'type',
   Uuid = 'uuid'
 }
 
 /** Fields which can be used to sort domains on. Value must be camel case. */
 export enum SignatureDomainSortEnum {
   CreatedAt = 'createdAt',
-  RedirectPath = 'redirectPath',
+  Path = 'path',
   UpdatedAt = 'updatedAt'
 }
 
@@ -25820,6 +27089,10 @@ export type SignatureHandlerConfigurationNlWallet = Model & {
   usecase: Scalars['String']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The UUID of the verification certificate in the catalog certificate pool */
+  verificationCertificateUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault identifier of the verification key */
+  verificationKeyIdentifier?: Maybe<Scalars['String']['output']>;
 };
 
 /** The SignatureHandlerConfigurationNLWallet connection definition. */
@@ -26372,6 +27645,8 @@ export enum StudioPlanFilteringField {
 /** StudioPlanInterval */
 export type StudioPlanInterval = Model & {
   __typename?: 'StudioPlanInterval';
+  /** The default cost per approved brand, per recurring interval */
+  brandCost: Scalars['UInt']['output'];
   /** The default cost per recurring interval */
   cost: Scalars['UInt']['output'];
   /** The creation timestamp. */
@@ -26504,34 +27779,25 @@ export enum StudioPlanState {
   Inactive = 'INACTIVE'
 }
 
-export type Subscription = {
-  __typename?: 'Subscription';
-  /**
-   * Subscribe to provisioning task progress updates.
-   * Yields per-child state changes. Stream ends when the parent reaches a terminal state.
-   */
-  provisioningProgressUpdated: ProvisioningProgress;
-};
-
-
-export type SubscriptionProvisioningProgressUpdatedArgs = {
-  taskUuid: Scalars['UUID']['input'];
-};
-
 /** Transition Organization Type Input */
 export type TransitionOrganizationTypeInput = {
   /** The type */
   type: OrganizationType;
 };
 
-/**
- * Trust framework version (RFC 0012). A single versioned snapshot of a trust
- * framework definition, managed through lifecycle mutations.
- */
+/** Trust framework definition. A single mutable identity row (RFC 20260717a). */
 export type Trust = Model & {
   __typename?: 'Trust';
+  /**
+   * Who signs the access (reader) certificates used in this ecosystem. PLATFORM
+   * means the platform mints them under its own verifier CA; EXTERNAL means this
+   * ecosystem's registrar signs them against a signing request and they can only
+   * be imported. The platform holds the leaf key either way, so this is not key
+   * custody.
+   */
+  accessCertificateProvisioning: CertificateProvisioning;
   /** The verification anchor type */
-  anchor: Anchor;
+  anchor: TrustAnchor;
   /** The DID anchor configuration */
   anchorDid?: Maybe<TrustAnchorDid>;
   /** The Idemix anchor configuration */
@@ -26540,72 +27806,92 @@ export type Trust = Model & {
   anchorX509?: Maybe<TrustAnchorX509>;
   /** The collection of app trusts */
   appTrusts: TrustAppConnection;
-  /** The uuid of the version this was based on */
-  basedOnUuid?: Maybe<Scalars['UUID']['output']>;
-  /** Optional note describing changes in this version */
-  changeNote?: Maybe<Scalars['String']['output']>;
+  /**
+   * The attestation categories issuable under this framework. Empty on frameworks
+   * outside eIDAS attestation-category governance.
+   */
+  attestationCategories: Array<AttestationCategory>;
+  /** The extension recipe every leaf minted for, or imported into, this trust follows */
+  certificateProfile: CertificateProfile;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The uuid of the user who created this version */
-  createdByUserUuid: Scalars['UUID']['output'];
   /** The trust environment */
   environment: TrustEnvironment;
-  /** The timestamp of the last edit */
-  lastEditedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The uuid of the user who last edited this version */
-  lastEditedByUserUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The collection of trust handlers */
+  handlerTrusts: TrustHandlerConnection;
+  /** Who picks a flow credential's issuer under this trust */
+  issuerSelection: TrustIssuerSelection;
   /** The collection of locales */
   locales: TrustLocaleConnection;
+  /**
+   * The identity status an organization must reach before it may enrol in this
+   * trust. Follows from the trust's environment.
+   */
+  minimumOrganizationIdentityStatus: OrganizationIdentityStatus;
   /** The name of the trust framework */
   name: Scalars['NonEmpty']['output'];
-  /** The publication timestamp */
-  publishedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The uuid of the user who published this version */
-  publishedByUserUuid?: Maybe<Scalars['UUID']['output']>;
-  /** The version lifecycle status */
-  status: VersionStatus;
+  /** The owning organization. Null for platform-managed trusts. */
+  organization?: Maybe<Organization>;
+  /** The owning organization uuid. Null for platform-managed trusts. */
+  organizationUuid?: Maybe<Scalars['UUID']['output']>;
+  /**
+   * Whether this ecosystem's registrar issues registration certificates and its
+   * wallets demand them. A verifying handler sends one covering every claim it
+   * requests; an issuing handler signs its metadata with its access certificate
+   * and includes one covering every type it issues. Flows on such a trust cannot
+   * activate until the handler's configuration names one.
+   */
+  registrationCertificateRequired: Scalars['Boolean']['output'];
+  /**
+   * The roles the framework offers an enrolled organization. An organization can
+   * only turn on a role listed here.
+   */
+  roles: Array<TrustRole>;
+  /** The source of the trust anchor material */
+  source: TrustSource;
+  /** The operator state. Not enforced yet. */
+  state: State;
   /** The collection of trust issuers */
   trustIssuers: TrustIssuerConnection;
-  /** The trust version envelope */
-  trustVersion: TrustVersion;
-  /** The trust version envelope uuid */
-  trustVersionUuid: Scalars['UUID']['output'];
-  /** The trust type */
-  type: TrustType;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The version number */
-  versionNumber: Scalars['Int']['output'];
+  /** The visibility of the trust */
+  visibility: Visibility;
 };
 
 
-/**
- * Trust framework version (RFC 0012). A single versioned snapshot of a trust
- * framework definition, managed through lifecycle mutations.
- */
+/** Trust framework definition. A single mutable identity row (RFC 20260717a). */
 export type TrustAppTrustsArgs = {
   input?: InputMaybe<FindManyTrustAppsInput>;
 };
 
 
-/**
- * Trust framework version (RFC 0012). A single versioned snapshot of a trust
- * framework definition, managed through lifecycle mutations.
- */
+/** Trust framework definition. A single mutable identity row (RFC 20260717a). */
+export type TrustHandlerTrustsArgs = {
+  input?: InputMaybe<FindManyTrustHandlersInput>;
+};
+
+
+/** Trust framework definition. A single mutable identity row (RFC 20260717a). */
 export type TrustLocalesArgs = {
   input?: InputMaybe<FindManyTrustLocalesInput>;
 };
 
 
-/**
- * Trust framework version (RFC 0012). A single versioned snapshot of a trust
- * framework definition, managed through lifecycle mutations.
- */
+/** Trust framework definition. A single mutable identity row (RFC 20260717a). */
 export type TrustTrustIssuersArgs = {
   input?: InputMaybe<FindManyTrustIssuersInput>;
 };
+
+/** Trust verification anchor types. */
+export enum TrustAnchor {
+  Did = 'DID',
+  Idemix = 'IDEMIX',
+  None = 'NONE',
+  X509 = 'X509'
+}
 
 /**
  * Trust anchor DID definition. 1:1 relation with a Trust when the anchor type
@@ -26717,23 +28003,16 @@ export type TrustAnchorX509 = Model & {
   __typename?: 'TrustAnchorX509';
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The collection of root certificates */
-  rootCertificates: TrustAnchorX509RootCertificateConnection;
+  /** The source of the anchor material. */
+  source: TrustSource;
+  /** The managed anchor material. Present when the source is MANAGED. */
+  sourceManaged?: Maybe<TrustAnchorX509Managed>;
   /** The trust this anchor belongs to. */
   trust: Trust;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-};
-
-
-/**
- * Trust anchor X.509 definition. 1:1 relation with a Trust when the anchor type
- * is X509.
- */
-export type TrustAnchorX509RootCertificatesArgs = {
-  input?: InputMaybe<FindManyTrustAnchorX509RootCertificatesInput>;
 };
 
 /** The trust anchor X.509 connection definition. */
@@ -26753,84 +28032,181 @@ export type TrustAnchorX509Edge = {
 /** Fields which can be used to filter trust anchor X.509 on. Value must be camel case. */
 export enum TrustAnchorX509FilteringField {
   CreatedAt = 'createdAt',
+  Source = 'source',
   TrustUuid = 'trustUuid'
 }
 
-/** Trust anchor X.509 root certificate definition. */
-export type TrustAnchorX509RootCertificate = Model & {
-  __typename?: 'TrustAnchorX509RootCertificate';
-  /** The Authority Key Identifier */
-  aki: Scalars['NonEmpty']['output'];
+/**
+ * Managed (directly curated) X.509 anchor material. 1:1 with a TrustAnchorX509
+ * whose source is MANAGED.
+ */
+export type TrustAnchorX509Managed = Model & {
+  __typename?: 'TrustAnchorX509Managed';
+  /** The anchor certificates. */
+  certificates: TrustAnchorX509ManagedCertificateConnection;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The certificate name */
-  name: Scalars['NonEmpty']['output'];
-  /** The not-after validity date */
-  notAfter: Scalars['DateTime']['output'];
-  /** The not-before validity date */
-  notBefore: Scalars['DateTime']['output'];
-  /** Whether the certificate is revoked */
-  revoked: Scalars['Boolean']['output'];
-  /** The revocation timestamp */
-  revokedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The trust anchor X.509 this certificate belongs to. */
+  /** The X.509 anchor this managed material belongs to. */
   trustAnchorX509: TrustAnchorX509;
-  /** The collection of trust issuer key X.509 certificates */
-  trustIssuerKeyX509Certs: TrustIssuerKeyX509CertConnection;
-  /** The status of the entry in the trusted list */
-  trustedListEntryStatus: TrustedListEntryStatus;
-  /** The URI of the trusted list this certificate belongs to */
-  trustedListUri?: Maybe<Scalars['String']['output']>;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The X.509 certificate chain (PEM) */
-  x5c: Scalars['NonEmpty']['output'];
 };
 
 
-/** Trust anchor X.509 root certificate definition. */
-export type TrustAnchorX509RootCertificateTrustIssuerKeyX509CertsArgs = {
-  input?: InputMaybe<FindManyTrustIssuerKeyX509CertsInput>;
+/**
+ * Managed (directly curated) X.509 anchor material. 1:1 with a TrustAnchorX509
+ * whose source is MANAGED.
+ */
+export type TrustAnchorX509ManagedCertificatesArgs = {
+  input?: InputMaybe<FindManyTrustAnchorX509ManagedCertificatesInput>;
 };
 
-/** The trust anchor X.509 root certificate connection definition. */
-export type TrustAnchorX509RootCertificateConnection = {
-  __typename?: 'TrustAnchorX509RootCertificateConnection';
-  edges: Array<Maybe<TrustAnchorX509RootCertificateEdge>>;
+/**
+ * One anchor certificate of a managed X.509 anchor, linking a certificate in the
+ * shared certificate pool to the anchor under a role.
+ */
+export type TrustAnchorX509ManagedCertificate = Model & {
+  __typename?: 'TrustAnchorX509ManagedCertificate';
+  /** The anchor certificate in the certificate pool. */
+  certificate: Certificate;
+  /** The UUID of the certificate in the certificate pool. */
+  certificateUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The display name of the anchor certificate. */
+  name: Scalars['NonEmpty']['output'];
+  /** What the anchor is trusted for. */
+  role: AnchorRole;
+  /**
+   * The state. ACTIVE and DEPRECATED (replaced, verify-only) anchors are trusted;
+   * INACTIVE anchors are not.
+   */
+  state: State;
+  /** The managed anchor this certificate belongs to. */
+  trustAnchorX509Managed: TrustAnchorX509Managed;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/**
+ * Lifecycle actions for a managed trust anchor certificate. DEPRECATE is the
+ * rotation step: the anchor keeps verifying what was issued under it.
+ */
+export enum TrustAnchorX509ManagedCertificateAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE',
+  Deprecate = 'DEPRECATE'
+}
+
+/** The managed trust anchor certificate connection definition. */
+export type TrustAnchorX509ManagedCertificateConnection = {
+  __typename?: 'TrustAnchorX509ManagedCertificateConnection';
+  edges: Array<Maybe<TrustAnchorX509ManagedCertificateEdge>>;
   pageInfo: PageInfo;
 };
 
-/** The trust anchor X.509 root certificate edge definition. */
-export type TrustAnchorX509RootCertificateEdge = {
-  __typename?: 'TrustAnchorX509RootCertificateEdge';
+/** The managed trust anchor certificate edge definition. */
+export type TrustAnchorX509ManagedCertificateEdge = {
+  __typename?: 'TrustAnchorX509ManagedCertificateEdge';
   cursor: Scalars['String']['output'];
-  node: TrustAnchorX509RootCertificate;
+  node: TrustAnchorX509ManagedCertificate;
 };
 
-/** Fields which can be used to filter trust anchor X.509 root certificates on. Value must be camel case. */
-export enum TrustAnchorX509RootCertificateFilteringField {
-  Aki = 'aki',
+/** Fields which can be used to filter on. Value must be camel case. */
+export enum TrustAnchorX509ManagedCertificateFilteringField {
+  CertificateUuid = 'certificateUuid',
   CreatedAt = 'createdAt',
-  Revoked = 'revoked',
-  TrustAnchorX509Uuid = 'trustAnchorX509Uuid',
-  TrustedListEntryStatus = 'trustedListEntryStatus'
+  Role = 'role',
+  State = 'state'
 }
 
-/** Fields which can be used to sort trust anchor X.509 root certificates on. Value must be camel case. */
-export enum TrustAnchorX509RootCertificateSortEnum {
+/** Fields which can be used to sort on. Value must be camel case. */
+export enum TrustAnchorX509ManagedCertificateSortEnum {
   CreatedAt = 'createdAt',
-  Name = 'name',
-  NotAfter = 'notAfter'
+  Name = 'name'
 }
 
-/** Input options for sorting trust anchor X.509 root certificates. */
-export type TrustAnchorX509RootCertificateSortInput = {
+/** Input options for sorting. */
+export type TrustAnchorX509ManagedCertificateSortInput = {
   /** The direction to sort on. */
   direction: OrderDirection;
   /** The field to sort on. */
-  field: TrustAnchorX509RootCertificateSortEnum;
+  field: TrustAnchorX509ManagedCertificateSortEnum;
+};
+
+/**
+ * A CA the platform signs new leaves with for a trust's X.509 anchor, keyed by
+ * purpose. The key lives in a Vault PKI issuer; this row holds the pointer.
+ */
+export type TrustAnchorX509ProvisioningCaCustody = Model & {
+  __typename?: 'TrustAnchorX509ProvisioningCaCustody';
+  /** The UUID of the CA certificate in the certificate pool. */
+  catalogCertificateUuid: Scalars['UUID']['output'];
+  /** The catalog X.509 anchor this CA belongs to. */
+  catalogTrustAnchorX509Uuid: Scalars['UUID']['output'];
+  /** The CA certificate in the certificate pool. */
+  certificate: Certificate;
+  /** The creation time. */
+  createdAt: Scalars['DateTime']['output'];
+  /** The owning organization, or null for a platform-wide CA. */
+  organizationUuid?: Maybe<Scalars['UUID']['output']>;
+  /** The Vault PKI issuer that holds the CA key. */
+  pkiIssuerIdentifier: Scalars['NonEmpty']['output'];
+  /** What the CA signs for. */
+  purpose: ProvisioningCaPurpose;
+  /** The state. Only ACTIVE CAs are picked to sign new leaves. */
+  state: ProvisioningCaState;
+  /** The update time. */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID. */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** Lifecycle actions for a provisioning CA. */
+export enum TrustAnchorX509ProvisioningCaCustodyAction {
+  Activate = 'ACTIVATE',
+  Deactivate = 'DEACTIVATE',
+  Deprecate = 'DEPRECATE'
+}
+
+/** The provisioning CA connection definition. */
+export type TrustAnchorX509ProvisioningCaCustodyConnection = {
+  __typename?: 'TrustAnchorX509ProvisioningCaCustodyConnection';
+  edges: Array<Maybe<TrustAnchorX509ProvisioningCaCustodyEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The provisioning CA edge definition. */
+export type TrustAnchorX509ProvisioningCaCustodyEdge = {
+  __typename?: 'TrustAnchorX509ProvisioningCaCustodyEdge';
+  cursor: Scalars['String']['output'];
+  node: TrustAnchorX509ProvisioningCaCustody;
+};
+
+/** Fields which can be used to filter on. Value must be camel case. */
+export enum TrustAnchorX509ProvisioningCaCustodyFilteringField {
+  CatalogTrustAnchorX509Uuid = 'catalogTrustAnchorX509Uuid',
+  CreatedAt = 'createdAt',
+  OrganizationUuid = 'organizationUuid',
+  Purpose = 'purpose',
+  State = 'state'
+}
+
+/** Fields which can be used to sort on. Value must be camel case. */
+export enum TrustAnchorX509ProvisioningCaCustodySortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting. */
+export type TrustAnchorX509ProvisioningCaCustodySortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: TrustAnchorX509ProvisioningCaCustodySortEnum;
 };
 
 /** Fields which can be used to sort trust anchor X.509 on. Value must be camel case. */
@@ -26896,63 +28272,6 @@ export type TrustAppSortInput = {
   field: TrustAppSortEnum;
 };
 
-/**
- * Trust change log entry (RFC 0012). Created internally by lifecycle operations
- * to record an audit trail of version transitions.
- */
-export type TrustChangeLog = Model & {
-  __typename?: 'TrustChangeLog';
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** Metadata describing the change */
-  metadata: Scalars['JSONObject']['output'];
-  /** The uuid of the user who performed the action */
-  performedByUserUuid: Scalars['UUID']['output'];
-  /** The trust version envelope */
-  trustVersion: TrustVersion;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-  /** The version number at the time of the change */
-  versionNumber: Scalars['Int']['output'];
-};
-
-/** The trust change log connection definition. */
-export type TrustChangeLogConnection = {
-  __typename?: 'TrustChangeLogConnection';
-  edges: Array<Maybe<TrustChangeLogEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The trust change log edge definition. */
-export type TrustChangeLogEdge = {
-  __typename?: 'TrustChangeLogEdge';
-  cursor: Scalars['String']['output'];
-  node: TrustChangeLog;
-};
-
-/** Fields which can be used to filter trust change logs on. Value must be camel case. */
-export enum TrustChangeLogFilteringField {
-  CreatedAt = 'createdAt',
-  PerformedByUserUuid = 'performedByUserUuid',
-  TrustVersionUuid = 'trustVersionUuid',
-  VersionNumber = 'versionNumber'
-}
-
-/** Fields which can be used to sort trust change logs on. Value must be camel case. */
-export enum TrustChangeLogSortEnum {
-  CreatedAt = 'createdAt'
-}
-
-/** Input options for sorting trust change logs. */
-export type TrustChangeLogSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: TrustChangeLogSortEnum;
-};
-
 /** The trust connection definition. */
 export type TrustConnection = {
   __typename?: 'TrustConnection';
@@ -26975,15 +28294,70 @@ export enum TrustEnvironment {
 
 /** Fields which can be used to filter trusts on. Value must be camel case. */
 export enum TrustFilteringField {
+  AccessCertificateProvisioning = 'accessCertificateProvisioning',
   Anchor = 'anchor',
+  CertificateProfile = 'certificateProfile',
   CreatedAt = 'createdAt',
   Environment = 'environment',
+  IssuerSelection = 'issuerSelection',
   Name = 'name',
-  Status = 'status',
-  TrustVersionUuid = 'trustVersionUuid',
-  Type = 'type',
+  OrganizationUuid = 'organizationUuid',
+  RegistrationCertificateRequired = 'registrationCertificateRequired',
+  Source = 'source',
+  State = 'state',
+  Uuid = 'uuid',
+  Visibility = 'visibility'
+}
+
+/** Trust handler definition. */
+export type TrustHandler = Model & {
+  __typename?: 'TrustHandler';
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The handler this trust handler belongs to. */
+  handler: Handler;
+  /** The trust this trust handler belongs to. */
+  trust: Trust;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The trust handler connection definition. */
+export type TrustHandlerConnection = {
+  __typename?: 'TrustHandlerConnection';
+  edges: Array<Maybe<TrustHandlerEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The trust handler edge definition. */
+export type TrustHandlerEdge = {
+  __typename?: 'TrustHandlerEdge';
+  cursor: Scalars['String']['output'];
+  node: TrustHandler;
+};
+
+/** Fields which can be used to filter trust handler on. Value must be camel case. */
+export enum TrustHandlerFilteringField {
+  CreatedAt = 'createdAt',
+  HandlerUuid = 'handlerUuid',
+  TrustUuid = 'trustUuid',
   Uuid = 'uuid'
 }
+
+/** Fields which can be used to sort trust handler on. Value must be camel case. */
+export enum TrustHandlerSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting trust handler. */
+export type TrustHandlerSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: TrustHandlerSortEnum;
+};
 
 /** Trust issuer definition. */
 export type TrustIssuer = Model & {
@@ -26992,24 +28366,44 @@ export type TrustIssuer = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The collection of credential trust issuers */
   credentialTrustIssuers: CredentialTrustIssuerConnection;
+  /**
+   * The collection of intermediate (issuing) CA certificates. Not format-scoped —
+   * one intermediate serves every issuance encoding for this trust issuer.
+   */
+  intermediateCaCertificates: TrustIssuerIntermediateCaCertificateConnection;
   /** The issuer this trust issuer belongs to. */
   issuer: Issuer;
   /** The collection of keys */
   keys: TrustIssuerKeyConnection;
   /** The collection of scope resources */
   scopeResources: ScopeResourceConnection;
+  /**
+   * The provisioning lifecycle of this attachment's certificate chain. INACTIVE
+   * (nothing provisioned, or a first mint failed), PROVISIONING (first chain
+   * minting), or ACTIVE (a chain is in effect). A re-mint on an already-ACTIVE
+   * attachment keeps it ACTIVE — the old certificate keeps serving.
+   */
+  state: TrustIssuerState;
   /** The trust this trust issuer belongs to. */
   trust: Trust;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+  /** The visibility of the trust issuer. */
+  visibility: Visibility;
 };
 
 
 /** Trust issuer definition. */
 export type TrustIssuerCredentialTrustIssuersArgs = {
   input?: InputMaybe<FindManyCredentialTrustIssuersInput>;
+};
+
+
+/** Trust issuer definition. */
+export type TrustIssuerIntermediateCaCertificatesArgs = {
+  input?: InputMaybe<FindManyTrustIssuerIntermediateCaCertificatesInput>;
 };
 
 
@@ -27042,9 +28436,72 @@ export type TrustIssuerEdge = {
 export enum TrustIssuerFilteringField {
   CreatedAt = 'createdAt',
   IssuerUuid = 'issuerUuid',
+  State = 'state',
   TrustUuid = 'trustUuid',
-  Uuid = 'uuid'
+  Uuid = 'uuid',
+  Visibility = 'visibility'
 }
+
+/**
+ * Trust issuer intermediate CA certificate. Append-only linkage binding a trust
+ * issuer to an intermediate (issuing) CA certificate in the shared certificate
+ * pool. Not format-scoped — one intermediate serves every issuance encoding.
+ */
+export type TrustIssuerIntermediateCaCertificate = Model & {
+  __typename?: 'TrustIssuerIntermediateCaCertificate';
+  /** The intermediate CA certificate in the certificate pool. */
+  certificate: Certificate;
+  /** The UUID of the CA certificate in the certificate pool. */
+  certificateUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /**
+   * The state. ACTIVE is the parent of new chains. DEPRECATED — replaced by a newer
+   * intermediate — is still trusted for verification. INACTIVE is not trusted.
+   */
+  state: State;
+  /** The trust issuer this intermediate CA certificate belongs to. */
+  trustIssuer: TrustIssuer;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The trust issuer intermediate CA certificate connection definition. */
+export type TrustIssuerIntermediateCaCertificateConnection = {
+  __typename?: 'TrustIssuerIntermediateCaCertificateConnection';
+  edges: Array<Maybe<TrustIssuerIntermediateCaCertificateEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The trust issuer intermediate CA certificate edge definition. */
+export type TrustIssuerIntermediateCaCertificateEdge = {
+  __typename?: 'TrustIssuerIntermediateCaCertificateEdge';
+  cursor: Scalars['String']['output'];
+  node: TrustIssuerIntermediateCaCertificate;
+};
+
+/** Fields which can be used to filter on. Value must be camel case. */
+export enum TrustIssuerIntermediateCaCertificateFilteringField {
+  CertificateUuid = 'certificateUuid',
+  CreatedAt = 'createdAt',
+  State = 'state',
+  TrustIssuerUuid = 'trustIssuerUuid'
+}
+
+/** Fields which can be used to sort on. Value must be camel case. */
+export enum TrustIssuerIntermediateCaCertificateSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting. */
+export type TrustIssuerIntermediateCaCertificateSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: TrustIssuerIntermediateCaCertificateSortEnum;
+};
 
 /** Trust issuer key definition. */
 export type TrustIssuerKey = Model & {
@@ -27055,20 +28512,44 @@ export type TrustIssuerKey = Model & {
   algorithmIdemix?: Maybe<TrustIssuerKeyAlgorithmIdemix>;
   /** The DID binding anchor. */
   anchorDidBinding?: Maybe<TrustIssuerKeyDidBinding>;
-  /** The X.509 certificate anchor. */
-  anchorX509Cert?: Maybe<TrustIssuerKeyX509Cert>;
+  /** The X.509 certificate history (append-only, leaf certificates). */
+  anchorX509Certs: TrustIssuerKeyX509CertConnection;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
   /** The JSON Web Key. */
   jwk?: Maybe<Scalars['JSONObject']['output']>;
   /** The key identifier. */
   kid?: Maybe<Scalars['String']['output']>;
+  /**
+   * The state. ACTIVE signs new credentials. DEPRECATED — set by provisioning when
+   * a new key replaces it — signs only its own status lists and is still trusted
+   * for verification. INACTIVE signs nothing new and is not trusted.
+   */
+  state: State;
+  /** The status-list (token status list) signer certificate history (append-only). */
+  statusListCertificates: TrustIssuerStatusListCertificateConnection;
+  /** The attestation categories this key supports. */
+  supportedAttestationCategories: Array<AttestationCategory>;
+  /** The credential formats this key signs. */
+  supportedFormats: Array<Format>;
   /** The trust issuer this key belongs to. */
   trustIssuer: TrustIssuer;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
+};
+
+
+/** Trust issuer key definition. */
+export type TrustIssuerKeyAnchorX509CertsArgs = {
+  input?: InputMaybe<FindManyTrustIssuerKeyX509CertsInput>;
+};
+
+
+/** Trust issuer key definition. */
+export type TrustIssuerKeyStatusListCertificatesArgs = {
+  input?: InputMaybe<FindManyTrustIssuerStatusListCertificatesInput>;
 };
 
 /** Trust issuer key algorithm Idemix definition. */
@@ -27186,6 +28667,7 @@ export enum TrustIssuerKeyFilteringField {
   Algorithm = 'algorithm',
   CreatedAt = 'createdAt',
   Kid = 'kid',
+  State = 'state',
   TrustIssuerUuid = 'trustIssuerUuid',
   Uuid = 'uuid'
 }
@@ -27204,29 +28686,24 @@ export type TrustIssuerKeySortInput = {
   field: TrustIssuerKeySortEnum;
 };
 
-/** Trust issuer key X.509 certificate definition. */
+/**
+ * Trust issuer key X.509 certificate definition. Append-only history binding a
+ * trust issuer key to leaf certificates in the certificate pool.
+ */
 export type TrustIssuerKeyX509Cert = Model & {
   __typename?: 'TrustIssuerKeyX509Cert';
+  /** The leaf certificate in the certificate pool. */
+  certificate: Certificate;
+  /** The UUID of the leaf certificate in the certificate pool. */
+  certificateUuid: Scalars['UUID']['output'];
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
-  /** The not after date. */
-  notAfter: Scalars['DateTime']['output'];
-  /** The not before date. */
-  notBefore: Scalars['DateTime']['output'];
-  /** Whether the certificate is revoked. */
-  revoked: Scalars['Boolean']['output'];
-  /** The revocation time. */
-  revokedAt?: Maybe<Scalars['DateTime']['output']>;
-  /** The trust anchor X.509 root certificate. */
-  trustAnchorX509RootCertificate: TrustAnchorX509RootCertificate;
   /** The trust issuer key this X.509 certificate belongs to. */
   trustIssuerKey: TrustIssuerKey;
   /** The update time */
   updatedAt: Scalars['DateTime']['output'];
   /** The UUID */
   uuid: Scalars['UUID']['output'];
-  /** The X.509 certificate chain. */
-  x5c: Array<Scalars['NonEmpty']['output']>;
 };
 
 /** The trust issuer key X.509 certificate connection definition. */
@@ -27245,16 +28722,14 @@ export type TrustIssuerKeyX509CertEdge = {
 
 /** Fields which can be used to filter trust issuer key X.509 certificate on. Value must be camel case. */
 export enum TrustIssuerKeyX509CertFilteringField {
+  CertificateUuid = 'certificateUuid',
   CreatedAt = 'createdAt',
-  Revoked = 'revoked',
-  TrustAnchorX509RootCertificateUuid = 'trustAnchorX509RootCertificateUuid',
   TrustIssuerKeyUuid = 'trustIssuerKeyUuid'
 }
 
 /** Fields which can be used to sort trust issuer key X.509 certificate on. Value must be camel case. */
 export enum TrustIssuerKeyX509CertSortEnum {
-  CreatedAt = 'createdAt',
-  NotAfter = 'notAfter'
+  CreatedAt = 'createdAt'
 }
 
 /** Input options for sorting trust issuer key X.509 certificate. */
@@ -27264,6 +28739,32 @@ export type TrustIssuerKeyX509CertSortInput = {
   /** The field to sort on. */
   field: TrustIssuerKeyX509CertSortEnum;
 };
+
+/** The input for filtering the issuer in nested filtering. */
+export type TrustIssuerNestedFilteringIssuerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering the issuer */
+  input: FindManyIssuersInput;
+};
+
+/** The input for filtering the trust in nested filtering. */
+export type TrustIssuerNestedFilteringTrustField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering the trust */
+  input: FindManyTrustsInput;
+};
+
+/**
+ * Who picks a flow credential's issuer under a trust. ORGANIZATION: the organization
+ * does. CREDENTIAL: the credential names its issuer, so the issuer is the credential's
+ * trust issuer binding and cannot be chosen.
+ */
+export enum TrustIssuerSelection {
+  Credential = 'CREDENTIAL',
+  Organization = 'ORGANIZATION'
+}
 
 /** Fields which can be used to sort trust issuer on. Value must be camel case. */
 export enum TrustIssuerSortEnum {
@@ -27276,6 +28777,71 @@ export type TrustIssuerSortInput = {
   direction: OrderDirection;
   /** The field to sort on. */
   field: TrustIssuerSortEnum;
+};
+
+/** The provisioning lifecycle state of a trust attachment's certificate chain. */
+export enum TrustIssuerState {
+  /** A certificate chain is in effect and serving. */
+  Active = 'ACTIVE',
+  /** Nothing provisioned yet, or the first mint failed (reverted from PROVISIONING). */
+  Inactive = 'INACTIVE',
+  /** The first certificate chain is currently minting. */
+  Provisioning = 'PROVISIONING'
+}
+
+/**
+ * Trust issuer status-list certificate. Append-only linkage binding a trust issuer
+ * key to a status-list (token status list) signer certificate in the shared
+ * certificate pool. Hangs off the signing key; never format-tagged.
+ */
+export type TrustIssuerStatusListCertificate = Model & {
+  __typename?: 'TrustIssuerStatusListCertificate';
+  /** The status-list signer certificate in the certificate pool. */
+  certificate: Certificate;
+  /** The UUID of the status-list signer certificate in the certificate pool. */
+  certificateUuid: Scalars['UUID']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The trust issuer key this status-list certificate belongs to. */
+  trustIssuerKey: TrustIssuerKey;
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
+};
+
+/** The trust issuer status-list certificate connection definition. */
+export type TrustIssuerStatusListCertificateConnection = {
+  __typename?: 'TrustIssuerStatusListCertificateConnection';
+  edges: Array<Maybe<TrustIssuerStatusListCertificateEdge>>;
+  pageInfo: PageInfo;
+};
+
+/** The trust issuer status-list certificate edge definition. */
+export type TrustIssuerStatusListCertificateEdge = {
+  __typename?: 'TrustIssuerStatusListCertificateEdge';
+  cursor: Scalars['String']['output'];
+  node: TrustIssuerStatusListCertificate;
+};
+
+/** Fields which can be used to filter on. Value must be camel case. */
+export enum TrustIssuerStatusListCertificateFilteringField {
+  CertificateUuid = 'certificateUuid',
+  CreatedAt = 'createdAt',
+  TrustIssuerKeyUuid = 'trustIssuerKeyUuid'
+}
+
+/** Fields which can be used to sort on. Value must be camel case. */
+export enum TrustIssuerStatusListCertificateSortEnum {
+  CreatedAt = 'createdAt'
+}
+
+/** Input options for sorting. */
+export type TrustIssuerStatusListCertificateSortInput = {
+  /** The direction to sort on. */
+  direction: OrderDirection;
+  /** The field to sort on. */
+  field: TrustIssuerStatusListCertificateSortEnum;
 };
 
 /** Trust label definition. */
@@ -27382,11 +28948,36 @@ export type TrustLocaleSortInput = {
   field: TrustLocaleSortEnum;
 };
 
+/** The input for filtering trust apps in nested filtering. */
+export type TrustNestedFilteringTrustAppField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering trust apps */
+  input: FindManyTrustAppsInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** The input for filtering trust handlers in nested filtering. */
+export type TrustNestedFilteringTrustHandlerField = {
+  /** The query connector */
+  connector?: InputMaybe<FilteringConnector>;
+  /** The input for filtering trust handlers */
+  input: FindManyTrustHandlersInput;
+  /** The type of filtering */
+  type?: InputMaybe<NestedFilteringType>;
+};
+
+/** What a trust framework offers an enrolled organization. */
+export enum TrustRole {
+  Issuance = 'ISSUANCE',
+  Verification = 'VERIFICATION'
+}
+
 /** Fields which can be used to sort trusts on. Value must be camel case. */
 export enum TrustSortEnum {
   CreatedAt = 'createdAt',
-  Name = 'name',
-  VersionNumber = 'versionNumber'
+  Name = 'name'
 }
 
 /** Input options for sorting trusts. */
@@ -27397,112 +28988,13 @@ export type TrustSortInput = {
   field: TrustSortEnum;
 };
 
-/** Trust framework category types per EUDI ARF. */
-export enum TrustType {
-  Attestation = 'ATTESTATION',
-  EudiEaa = 'EUDI_EAA',
-  EudiPid = 'EUDI_PID',
-  EudiPubeaa = 'EUDI_PUBEAA',
-  EudiQeaa = 'EUDI_QEAA'
-}
-
 /**
- * Trust version envelope (RFC 0012). Tracks the identity of a trust framework
- * definition across its full version history.
+ * The source of trust anchor material. ETSI_TL anchors are synced from an ETSI
+ * trusted list; MANAGED anchors are curated directly.
  */
-export type TrustVersion = Model & {
-  __typename?: 'TrustVersion';
-  /** The collection of change logs */
-  changeLogs: TrustChangeLogConnection;
-  /** The creation time */
-  createdAt: Scalars['DateTime']['output'];
-  /** The reason for deprecation */
-  deprecationReason?: Maybe<Scalars['String']['output']>;
-  /** The current draft trust version */
-  draft?: Maybe<Trust>;
-  /** Whether a draft version exists */
-  hasDraft: Scalars['Boolean']['output'];
-  /** Whether a live version exists */
-  hasLive: Scalars['Boolean']['output'];
-  /** Whether the trust framework is deprecated */
-  isDeprecated: Scalars['Boolean']['output'];
-  /** The current live trust version */
-  live?: Maybe<Trust>;
-  /** The organization this trust version belongs to */
-  organization: Organization;
-  /** The organization uuid */
-  organizationUuid: Scalars['UUID']['output'];
-  /** The unique slug within the organization */
-  slug: Scalars['NonEmpty']['output'];
-  /** The collection of all trust versions */
-  trusts: TrustConnection;
-  /** The update time */
-  updatedAt: Scalars['DateTime']['output'];
-  /** The UUID */
-  uuid: Scalars['UUID']['output'];
-};
-
-
-/**
- * Trust version envelope (RFC 0012). Tracks the identity of a trust framework
- * definition across its full version history.
- */
-export type TrustVersionChangeLogsArgs = {
-  input?: InputMaybe<FindManyTrustChangeLogsInput>;
-};
-
-
-/**
- * Trust version envelope (RFC 0012). Tracks the identity of a trust framework
- * definition across its full version history.
- */
-export type TrustVersionTrustsArgs = {
-  input?: InputMaybe<FindManyTrustsInput>;
-};
-
-/** The trust version connection definition. */
-export type TrustVersionConnection = {
-  __typename?: 'TrustVersionConnection';
-  edges: Array<Maybe<TrustVersionEdge>>;
-  pageInfo: PageInfo;
-};
-
-/** The trust version edge definition. */
-export type TrustVersionEdge = {
-  __typename?: 'TrustVersionEdge';
-  cursor: Scalars['String']['output'];
-  node: TrustVersion;
-};
-
-/** Fields which can be used to filter trust versions on. Value must be camel case. */
-export enum TrustVersionFilteringField {
-  CreatedAt = 'createdAt',
-  HasDraft = 'hasDraft',
-  HasLive = 'hasLive',
-  IsDeprecated = 'isDeprecated',
-  OrganizationUuid = 'organizationUuid',
-  Slug = 'slug'
-}
-
-/** Fields which can be used to sort trust versions on. Value must be camel case. */
-export enum TrustVersionSortEnum {
-  CreatedAt = 'createdAt',
-  Slug = 'slug'
-}
-
-/** Input options for sorting trust versions. */
-export type TrustVersionSortInput = {
-  /** The direction to sort on. */
-  direction: OrderDirection;
-  /** The field to sort on. */
-  field: TrustVersionSortEnum;
-};
-
-/** Status of an entry in a Trusted List or LoTE. */
-export enum TrustedListEntryStatus {
-  Suspended = 'SUSPENDED',
-  Valid = 'VALID',
-  Withdrawn = 'WITHDRAWN'
+export enum TrustSource {
+  EtsiTl = 'ETSI_TL',
+  Managed = 'MANAGED'
 }
 
 /** Update Input */
@@ -27528,6 +29020,8 @@ export type UpdateAppLocaleInput = {
   locale?: InputMaybe<Scalars['Locale']['input']>;
   /** The name */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
+  /** The name including its definite article where appropriate (e.g. "the NL Wallet"). */
+  nameWithArticle?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
@@ -27623,11 +29117,13 @@ export type UpdateAuthenticationBrandInput = {
 /** Update Input */
 export type UpdateAuthenticationDomainInput = {
   /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  path?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  port?: InputMaybe<Scalars['RedirectPort']['input']>;
   /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  protocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  /** The type of the domain. */
+  type?: InputMaybe<DomainType>;
 };
 
 /** Update Input */
@@ -27642,6 +29138,17 @@ export type UpdateAuthenticationHandlerConfigurationNlWalletInput = {
   maxRetentionDuration?: InputMaybe<Scalars['Int']['input']>;
   /** Purpose statement */
   purposeStatement?: InputMaybe<Scalars['JSONObject']['input']>;
+};
+
+/** Update Input */
+export type UpdateAuthenticationHandlerConfigurationOid4VcInput = {
+  /** The OID4VC verification profile */
+  profile?: InputMaybe<Oid4vcVerificationProfile>;
+  /**
+   * The registration certificate the handler's request is sent with. It must cover
+   * everything the handler requests. Omitted keeps it; null clears it.
+   */
+  verificationRegistrationUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Update Input */
@@ -27688,7 +29195,7 @@ export type UpdateBillingWalletInput = {
   minimumBalance?: InputMaybe<Scalars['Int']['input']>;
 };
 
-/** The input for updating a credential draft (RFC 0012). */
+/** The input for updating a credential draft. */
 export type UpdateCredentialDraftInput = {
   /** The categories of the credential. */
   categories?: InputMaybe<Array<CategoryType>>;
@@ -27818,14 +29325,28 @@ export type UpdateDisclosureBrandInput = {
   isDefault: Scalars['Boolean']['input'];
 };
 
+/**
+ * The input for configuring the accepted trust (and optional issuer) of a
+ * disclosure credential. The trust is required; a null issuer accepts any issuer
+ * under that trust. Visibility/app-association readiness is enforced at activation.
+ */
+export type UpdateDisclosureCredentialInput = {
+  /** The uuid of the accepted issuer under the trust. Null accepts any issuer. */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust whose credentials are accepted. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
 /** Update Input */
 export type UpdateDisclosureDomainInput = {
   /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  path?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  port?: InputMaybe<Scalars['RedirectPort']['input']>;
   /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  protocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  /** The type of the domain. */
+  type?: InputMaybe<DomainType>;
 };
 
 /** Update Input */
@@ -27860,6 +29381,11 @@ export type UpdateDisclosureHandlerConfigurationNlWalletInput = {
 export type UpdateDisclosureHandlerConfigurationOid4VcInput = {
   /** The OID4VC verification profile */
   profile?: InputMaybe<Oid4vcVerificationProfile>;
+  /**
+   * The registration certificate the handler's request is sent with. It must cover
+   * everything the handler requests. Omitted keeps it; null clears it.
+   */
+  verificationRegistrationUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Update Input */
@@ -27928,6 +29454,23 @@ export type UpdateIssuanceBrandInput = {
   isDefault: Scalars['Boolean']['input'];
 };
 
+/**
+ * The input for configuring the issuing trust issuer of an issuance credential.
+ * Both are required together — the pair must form a real trust issuer.
+ */
+export type UpdateIssuanceCredentialInput = {
+  /**
+   * The eIDAS class to issue under. Required when the trust declares
+   * `attestationCategories`, omitted when it declares none — enforced at flow
+   * activation, so configuration stays permissive.
+   */
+  attestationCategory?: InputMaybe<AttestationCategory>;
+  /** The uuid of the issuer that issues this credential. */
+  issuerUuid: Scalars['UUID']['input'];
+  /** The uuid of the trust the issuer issues under. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
 /** The input for updating a flow credential meta datakeeper */
 export type UpdateIssuanceCredentialMetaDatakeeperInput = {
   /** The expiration duration, in seconds */
@@ -27949,11 +29492,13 @@ export type UpdateIssuanceCredentialMetaYiviInput = {
 /** Update Input */
 export type UpdateIssuanceDomainInput = {
   /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  path?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  port?: InputMaybe<Scalars['RedirectPort']['input']>;
   /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  protocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  /** The type of the domain. */
+  type?: InputMaybe<DomainType>;
 };
 
 /** Update Input */
@@ -27976,8 +29521,19 @@ export type UpdateIssuanceHandlerConfigurationNlWalletInput = {
 export type UpdateIssuanceHandlerConfigurationOid4VcInput = {
   /** The OID4VC issuance flow */
   flow?: InputMaybe<Oid4vcIssuanceFlow>;
+  /**
+   * The provider registration the handler's signed issuer metadata carries. It must
+   * cover every type the handler issues. Omitted keeps it; null clears it.
+   */
+  issuanceRegistrationUuid?: InputMaybe<Scalars['UUID']['input']>;
   /** The OID4VC issuance profile */
   profile?: InputMaybe<Oid4vcIssuanceProfile>;
+  /**
+   * The relying-party registration a disclosure-based handler's request is sent
+   * with. It must cover every claim the handler requests. Omitted keeps it; null
+   * clears it.
+   */
+  verificationRegistrationUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 /** Update Input */
@@ -28006,16 +29562,14 @@ export type UpdateIssuanceInput = {
   sharingPolicy?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** The input for updating an issuer draft (RFC 0012). */
-export type UpdateIssuerDraftInput = {
+/** The input for updating an issuer. */
+export type UpdateIssuerInput = {
   /** The base64 encoded logo. */
   base64Logo?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The change note. */
-  changeNote?: InputMaybe<Scalars['String']['input']>;
   /** The name of the issuer. */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The last known update time for optimistic concurrency. */
-  updatedAt: Scalars['DateTime']['input'];
+  /** The slug. */
+  slug?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
 /** Update Input */
@@ -28183,14 +29737,6 @@ export type UpdateOrganizationAppMetaKiwaInput = {
 };
 
 /** Update Input */
-export type UpdateOrganizationAppMetaOid4vcInput = {
-  /** The verifier certificate identifier */
-  verifierCertIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The verifier key identifier */
-  verifierKeyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
-/** Update Input */
 export type UpdateOrganizationAppMetaYotiInput = {
   /** The org domain registered at Yoti */
   domain?: InputMaybe<Scalars['URL']['input']>;
@@ -28244,6 +29790,12 @@ export type UpdateOrganizationInput = {
   website?: InputMaybe<Scalars['URL']['input']>;
 };
 
+/** Input for updating an issuer's verified-brand binding. */
+export type UpdateOrganizationIssuerInput = {
+  /** The UUID of the verified organization brand naming this issuer's certificates. */
+  organizationBrandUuid: Scalars['UUID']['input'];
+};
+
 /** Input type used to update user organization address types. */
 export type UpdateOrganizationNotificationInput = {
   /** The email address */
@@ -28262,10 +29814,13 @@ export type UpdateOrganizationSecretInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
-/** The input for updating an organization trust issuer key. */
-export type UpdateOrganizationTrustIssuerKeyInput = {
-  /** The Vault Transit private key identifier. */
-  privateKeyIdentifier?: InputMaybe<Scalars['NonEmpty']['input']>;
+/** The input for updating an enrolment. */
+export type UpdateOrganizationTrustInput = {
+  /**
+   * The attestation categories the organization enrols for. Each must be one the
+   * trust offers. Replaces the list.
+   */
+  attestationCategories: Array<AttestationCategory>;
 };
 
 /** Input type to update user properties. */
@@ -28417,14 +29972,28 @@ export type UpdateSignatureBrandInput = {
   isDefault: Scalars['Boolean']['input'];
 };
 
+/**
+ * The input for configuring the accepted trust (and optional issuer) of a
+ * signature credential. The trust is required; a null issuer accepts any issuer
+ * under that trust. Visibility/app-association readiness is enforced at activation.
+ */
+export type UpdateSignatureCredentialInput = {
+  /** The uuid of the accepted issuer under the trust. Null accepts any issuer. */
+  issuerUuid?: InputMaybe<Scalars['UUID']['input']>;
+  /** The uuid of the trust whose credentials are accepted. */
+  trustUuid: Scalars['UUID']['input'];
+};
+
 /** Update Input */
 export type UpdateSignatureDomainInput = {
   /** The path value. */
-  redirectPath?: InputMaybe<Scalars['RedirectPath']['input']>;
+  path?: InputMaybe<Scalars['RedirectPath']['input']>;
   /** The port value. */
-  redirectPort?: InputMaybe<Scalars['RedirectPort']['input']>;
+  port?: InputMaybe<Scalars['RedirectPort']['input']>;
   /** The protocol value. */
-  redirectProtocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  protocol?: InputMaybe<Scalars['RedirectProtocol']['input']>;
+  /** The type of the domain. */
+  type?: InputMaybe<DomainType>;
 };
 
 /** Update Input */
@@ -28493,6 +30062,8 @@ export type UpdateStudioPlanInput = {
 
 /** Update Input */
 export type UpdateStudioPlanIntervalInput = {
+  /** The default cost per approved brand, per recurring interval */
+  brandCost?: InputMaybe<Scalars['UInt']['input']>;
   /** The default cost per recurring interval */
   cost?: InputMaybe<Scalars['UInt']['input']>;
   /** The default currency */
@@ -28513,42 +30084,47 @@ export type UpdateTrustAnchorDidInput = {
   resolverUri?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Update Input */
-export type UpdateTrustAnchorX509RootCertificateInput = {
-  /** The Authority Key Identifier */
-  aki?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The certificate name */
-  name?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The not-after validity date */
-  notAfter?: InputMaybe<Scalars['DateTime']['input']>;
-  /** The not-before validity date */
-  notBefore?: InputMaybe<Scalars['DateTime']['input']>;
-  /** Whether the certificate is revoked */
-  revoked?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The revocation timestamp */
-  revokedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  /** The status of the entry in the trusted list */
-  trustedListEntryStatus?: InputMaybe<TrustedListEntryStatus>;
-  /** The URI of the trusted list this certificate belongs to */
-  trustedListUri?: InputMaybe<Scalars['String']['input']>;
-  /** The X.509 certificate chain (PEM) */
-  x5c?: InputMaybe<Scalars['NonEmpty']['input']>;
-};
-
-/** The input for updating a trust draft. */
-export type UpdateTrustDraftInput = {
-  /** The verification anchor type */
-  anchor?: InputMaybe<Anchor>;
-  /** Optional note describing changes in this version */
-  changeNote?: InputMaybe<Scalars['String']['input']>;
+/**
+ * The input for updating a trust. The anchor type and source are fixed at
+ * creation: the anchor row hangs off them.
+ */
+export type UpdateTrustInput = {
+  /**
+   * Who signs the access (reader) certificates used in this ecosystem. PLATFORM
+   * means the platform mints them under its own verifier CA; EXTERNAL means this
+   * ecosystem's registrar signs them against a signing request and they can only
+   * be imported. The platform holds the leaf key either way, so this is not key
+   * custody.
+   */
+  accessCertificateProvisioning?: InputMaybe<CertificateProvisioning>;
+  /** The attestation categories issuable under this framework. Replaces the list. */
+  attestationCategories?: InputMaybe<Array<AttestationCategory>>;
+  /** The extension recipe every leaf minted for, or imported into, this trust follows */
+  certificateProfile?: InputMaybe<CertificateProfile>;
   /** The trust environment */
   environment?: InputMaybe<TrustEnvironment>;
+  /** Who picks a flow credential's issuer under this trust */
+  issuerSelection?: InputMaybe<TrustIssuerSelection>;
   /** The name of the trust framework */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
-  /** The trust type */
-  type?: InputMaybe<TrustType>;
-  /** Optimistic locking timestamp */
-  updatedAt: Scalars['DateTime']['input'];
+  /**
+   * Whether this ecosystem's registrar issues registration certificates and its
+   * wallets demand them. A verifying handler sends one covering every claim it
+   * requests; an issuing handler signs its metadata with its access certificate
+   * and includes one covering every type it issues. Flows on such a trust cannot
+   * activate until the handler's configuration names one.
+   */
+  registrationCertificateRequired?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The roles the framework offers an enrolled organization. Replaces the list. */
+  roles?: InputMaybe<Array<TrustRole>>;
+  /** The visibility of the trust */
+  visibility?: InputMaybe<Visibility>;
+};
+
+/** The input for updating a trust issuer. */
+export type UpdateTrustIssuerInput = {
+  /** The visibility of the trust issuer. */
+  visibility?: InputMaybe<Visibility>;
 };
 
 /** Update Input */
@@ -28563,30 +30139,13 @@ export type UpdateTrustIssuerKeyDidBindingInput = {
   did?: InputMaybe<Scalars['NonEmpty']['input']>;
 };
 
-/** Update Input */
+/**
+ * Update Input. A key's public material (algorithm, kid, jwk) is fixed once
+ * created; its lifecycle state changes through `actionTrustIssuerKey`.
+ */
 export type UpdateTrustIssuerKeyInput = {
-  /** The algorithm. */
-  algorithm?: InputMaybe<Algorithm>;
-  /** The JSON Web Key. */
-  jwk?: InputMaybe<Scalars['JSONObject']['input']>;
-  /** The key identifier. */
-  kid?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Update Input */
-export type UpdateTrustIssuerKeyX509CertInput = {
-  /** The not after date. */
-  notAfter?: InputMaybe<Scalars['DateTime']['input']>;
-  /** The not before date. */
-  notBefore?: InputMaybe<Scalars['DateTime']['input']>;
-  /** Whether the certificate is revoked. */
-  revoked?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The revocation time. */
-  revokedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  /** The UUID of the trust anchor X.509 root certificate. */
-  trustAnchorX509RootCertificateUuid?: InputMaybe<Scalars['UUID']['input']>;
-  /** The X.509 certificate chain. */
-  x5c?: InputMaybe<Array<Scalars['NonEmpty']['input']>>;
+  /** The credential formats this key signs. */
+  supportedFormats?: InputMaybe<Array<Format>>;
 };
 
 /** Update Input */
@@ -28647,7 +30206,7 @@ export type UseMappingVerificationInput = {
 
 /** An input where a mappingVerification link may be used */
 export type UseMappingVerificationLinkInput = {
-  /** The credential uuid */
+  /** The credential version uuid */
   credentialUuid: Scalars['UUID']['input'];
   /** Optionally define what mappingVerification attributes should be included */
   mappingVerificationAttributes?: InputMaybe<Array<UseMappingVerificationAttributeInput>>;
@@ -28832,4 +30391,17 @@ export enum VersionStatus {
   Draft = 'DRAFT',
   Live = 'LIVE',
   Superseded = 'SUPERSEDED'
+}
+
+/**
+ * Visibility of catalog entities, as an access ladder. A PRIVATE trust is readable
+ * only by the organization that curates it, directly or through the issuers, apps
+ * and handlers attached to it; CONTROLLED and PUBLIC trusts are readable by all,
+ * but joining a CONTROLLED trust is not self-service — enrolling opens a request an
+ * administrator admits.
+ */
+export enum Visibility {
+  Controlled = 'CONTROLLED',
+  Private = 'PRIVATE',
+  Public = 'PUBLIC'
 }

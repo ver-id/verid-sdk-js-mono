@@ -19,7 +19,6 @@ export function useDisclosure() {
   const intentOptions = reactive({
     challenge: '',
     brandUuid: '',
-    requireExplicitConsent: undefined,
   });
 
   // State
@@ -90,12 +89,11 @@ export function useDisclosure() {
     error.value = null;
 
     try {
-      const payload: { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean } = {};
+      const payload: { challenge?: string; brandUuid?: string } = {};
       
       // Add optional parameters if provided
       if (intentOptions.challenge) payload.challenge = intentOptions.challenge;
       if (intentOptions.brandUuid) payload.brandUuid = intentOptions.brandUuid;
-      if (intentOptions.requireExplicitConsent !== undefined) payload.requireExplicitConsent = intentOptions.requireExplicitConsent;
 
       const id = await disclosureClient.createDisclosureIntent(payload, codeChallenge.value);
       

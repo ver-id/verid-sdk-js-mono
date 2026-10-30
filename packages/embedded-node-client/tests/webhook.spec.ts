@@ -9,7 +9,7 @@ function sign(rawBody: string, secret: string): string {
 
 function validPayload(): string {
   return JSON.stringify({
-    type: 'verification.completed',
+    type: 'v1.flow.completed',
     version: 1,
     code: 'auth-code-abc',
     state: 'state-xyz',
@@ -30,7 +30,7 @@ describe('verifyEmbeddedWebhook', () => {
     if (result.ok) {
       expect(result.payload.code).toBe('auth-code-abc');
       expect(result.payload.state).toBe('state-xyz');
-      expect(result.payload.type).toBe('verification.completed');
+      expect(result.payload.type).toBe('v1.flow.completed');
       expect(result.payload.version).toBe(1);
       expect(result.payload.intent_id).toBe('');
     }
@@ -54,7 +54,7 @@ describe('verifyEmbeddedWebhook', () => {
     const rawBody = validPayload();
     const signature = sign(rawBody, SECRET);
     const tampered = JSON.stringify({
-      type: 'verification.completed',
+      type: 'v1.flow.completed',
       version: 1,
       code: 'malicious-code',
       state: 'state-xyz',
@@ -88,7 +88,7 @@ describe('verifyEmbeddedWebhook', () => {
   });
 
   it('rejects a malformed payload even with a valid signature', () => {
-    const rawBody = JSON.stringify({ type: 'verification.completed', version: 1 });
+    const rawBody = JSON.stringify({ type: 'v1.flow.completed', version: 1 });
     const result = verifyEmbeddedWebhook({
       rawBody,
       signature: sign(rawBody, SECRET),

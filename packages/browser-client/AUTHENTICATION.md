@@ -132,7 +132,7 @@ Create an authentication intent with optional customization:
 ```ts
 const intentId = await authenticationClient.createAuthenticationIntent(
   {
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional: Custom challenge for the authentication
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional: Custom challenge for the authentication
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional: Brand-specific customization
   },
   codeChallenge,

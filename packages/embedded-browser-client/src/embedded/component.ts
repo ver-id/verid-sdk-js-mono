@@ -1,18 +1,8 @@
-import { parseEmbeddedMessage, type EmbeddedInitMessage } from '@ver-id/core';
-import type { VeridEmbeddedError, VeridEmbeddedComponent } from './types.js';
-
-/**
- * Optional iframe presentation attributes.
- *
- * @public
- */
-export interface EmbeddedIframeOptions {
-  className?: string;
-  style?: Partial<CSSStyleDeclaration>;
-  allow?: string;
-  sandbox?: string;
-  title?: string;
-}
+import type {
+  VeridEmbeddedError,
+  VeridEmbeddedComponent,
+  VeridEmbeddedEventMap,
+} from './types.js';
 
 /**
  * Parameters for {@link mountVeridEmbeddedComponent}.
@@ -20,10 +10,10 @@ export interface EmbeddedIframeOptions {
  * @public
  */
 export interface VeridEmbeddedComponentParams {
-  /** Where to render the iframe: a container to create one in, or an existing iframe. */
-  container: HTMLElement | HTMLIFrameElement;
-  /** Ver.iD gateway URL. */
-  gatewayUri: string;
+  /** Where the Ver.iD card renders: the host element is added inside it. */
+  container: HTMLElement;
+  /** Ver.iD's loader script (`embedded.js`), as the backend's bootstrap carries it. */
+  loaderUri: string;
   /** Flow uuid (OAuth client_id). */
   clientId: string;
   /** Scopes to request. */
@@ -36,110 +26,103 @@ export interface VeridEmbeddedComponentParams {
   webhookUri: string;
   /** Issuance only: the intent id created server-side. */
   intentId?: string;
-  /** Optional iframe attributes. */
-  iframe?: EmbeddedIframeOptions;
 }
 
-const DEFAULT_IFRAME_ALLOW = 'camera; microphone';
-const DEFAULT_IFRAME_SANDBOX = 'allow-scripts allow-same-origin';
-const DEFAULT_IFRAME_TITLE = 'Ver.iD embedded flow';
+/** The event the loader starts the flow on; on a phone, a later one reopens the drawer. */
+const OPEN_EVENT = 'verid:open';
 
-/** Mounts the Ver.iD iframe and re-dispatches inbound messages as typed `CustomEvent`s. */
+/** The loader's lifecycle events on the host element, and the component's names for them. */
+const LIFECYCLE_EVENTS: ReadonlyMap<string, keyof VeridEmbeddedEventMap> = new Map([
+  ['verid:ready', 'ready'],
+  ['verid:complete', 'complete'],
+  ['verid:error', 'error'],
+  ['verid:cancel', 'cancel'],
+] as const);
+
+/** Each loader script this client added, settled once it has run. */
+const loaderScripts = new WeakMap<HTMLScriptElement, Promise<void>>();
+
+/**
+ * Adds Ver.iD's loader to the page, once. It reads the host element, preloads the iframe,
+ * and starts the flow on {@link OPEN_EVENT}. Settles when the loader has run, which is when
+ * it listens; a script the page added itself is taken as already run.
+ */
+function loadEmbeddedScript(src: string): Promise<void> {
+  const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
+  if (existing !== null) {
+    return loaderScripts.get(existing) ?? Promise.resolve();
+  }
+  const script = document.createElement('script');
+  script.src = src;
+  const loaded = new Promise<void>((resolve, reject) => {
+    script.addEventListener('load', () => resolve());
+    script.addEventListener('error', () => reject(new Error(`Could not load ${src}`)));
+  });
+  loaderScripts.set(script, loaded);
+  document.head.appendChild(script);
+  return loaded;
+}
+
+/** The element the loader renders into, carrying the flow's parameters as `data-*`. */
+function createHost(params: VeridEmbeddedComponentParams): HTMLElement {
+  const host = document.createElement('div');
+  host.setAttribute('data-verid-embed', '');
+  host.dataset.clientId = params.clientId;
+  host.dataset.scope = params.scope;
+  host.dataset.state = params.state;
+  host.dataset.codeChallenge = params.codeChallenge;
+  host.dataset.webhookUri = params.webhookUri;
+  if (params.intentId !== undefined) {
+    host.dataset.intentId = params.intentId;
+  }
+  return host;
+}
+
+/**
+ * Hands the flow to Ver.iD's loader through the host element and re-dispatches the loader's
+ * `verid:` lifecycle events as typed `CustomEvent`s.
+ */
 export class VeridEmbeddedComponentImpl extends EventTarget implements VeridEmbeddedComponent {
-  readonly iframe: HTMLIFrameElement;
+  readonly host: HTMLElement;
 
-  readonly #gatewayOrigin: string;
-  readonly #initMessage: EmbeddedInitMessage;
-  readonly #ownsIframe: boolean;
-  readonly #onMessage = (event: MessageEvent): void => this.#handleMessage(event);
-  readonly #onLoad = (): void => this.#postInit();
+  readonly #loaderReady: Promise<void>;
+  readonly #onLifecycle = (source: Event): void => {
+    const type = LIFECYCLE_EVENTS.get(source.type);
+    if (type !== undefined) {
+      this.dispatchEvent(new CustomEvent(type, { detail: (source as CustomEvent).detail }));
+    }
+  };
   #destroyed = false;
 
   constructor(params: VeridEmbeddedComponentParams) {
     super();
 
-    this.#gatewayOrigin = new URL(params.gatewayUri).origin;
-    this.#initMessage = {
-      type: 'ronan:init',
-      clientId: params.clientId,
-      scope: params.scope,
-      state: params.state,
-      intentId: params.intentId ?? '',
-      codeChallenge: params.codeChallenge,
-      webhookUri: params.webhookUri,
-    };
-
-    if (params.container instanceof HTMLIFrameElement) {
-      this.iframe = params.container;
-      this.#ownsIframe = false;
-    } else {
-      this.iframe = document.createElement('iframe');
-      params.container.appendChild(this.iframe);
-      this.#ownsIframe = true;
+    this.host = createHost(params);
+    for (const loaderEvent of LIFECYCLE_EVENTS.keys()) {
+      this.host.addEventListener(loaderEvent, this.#onLifecycle);
     }
-
-    this.#applyIframeOptions(params.iframe);
-    this.iframe.addEventListener('load', this.#onLoad);
-    window.addEventListener('message', this.#onMessage);
-    this.iframe.src = params.gatewayUri;
+    // In the page before the loader runs, so the loader preloads the iframe.
+    params.container.appendChild(this.host);
+    this.#loaderReady = loadEmbeddedScript(params.loaderUri);
   }
 
-  #applyIframeOptions(options: EmbeddedIframeOptions | undefined): void {
-    this.iframe.allow = options?.allow ?? DEFAULT_IFRAME_ALLOW;
-    this.iframe.setAttribute('sandbox', options?.sandbox ?? DEFAULT_IFRAME_SANDBOX);
-    this.iframe.title = options?.title ?? DEFAULT_IFRAME_TITLE;
-    if (options?.className !== undefined) {
-      this.iframe.className = options.className;
-    }
-    if (options?.style) {
-      Object.assign(this.iframe.style, options.style);
-    }
-  }
-
-  #postInit(): void {
-    const target = this.iframe.contentWindow;
-    if (target === null) {
-      return;
-    }
-    target.postMessage(this.#initMessage, this.#gatewayOrigin);
-  }
-
-  #handleMessage(event: MessageEvent): void {
-    if (event.origin !== this.#gatewayOrigin) {
-      return;
-    }
-    if (event.source !== this.iframe.contentWindow) {
-      return;
-    }
-
-    const parsed = parseEmbeddedMessage(event.data);
-    if (!parsed.ok) {
-      this.#dispatchError({ error: 'invalid_message', error_description: parsed.reason });
-      return;
-    }
-
-    switch (parsed.message.type) {
-      case 'ronan:ready':
-        this.dispatchEvent(new CustomEvent('ready'));
-        return;
-      case 'ronan:complete':
-        this.dispatchEvent(new CustomEvent('complete'));
-        return;
-      case 'ronan:error':
-        this.#dispatchError(
-          parsed.message.error_description === undefined
-            ? { error: parsed.message.error }
-            : { error: parsed.message.error, error_description: parsed.message.error_description },
-        );
-        return;
-      case 'ronan:cancel':
-        this.dispatchEvent(new CustomEvent('cancel'));
-        return;
-    }
-  }
-
-  #dispatchError(detail: VeridEmbeddedError): void {
-    this.dispatchEvent(new CustomEvent('error', { detail }));
+  open(): void {
+    this.#loaderReady.then(
+      () => {
+        if (!this.#destroyed) {
+          this.host.dispatchEvent(new Event(OPEN_EVENT, { bubbles: true }));
+        }
+      },
+      (error: Error) => {
+        if (!this.#destroyed) {
+          const detail: VeridEmbeddedError = {
+            error: 'loader_unavailable',
+            error_description: error.message,
+          };
+          this.dispatchEvent(new CustomEvent('error', { detail }));
+        }
+      },
+    );
   }
 
   destroy(): void {
@@ -147,10 +130,9 @@ export class VeridEmbeddedComponentImpl extends EventTarget implements VeridEmbe
       return;
     }
     this.#destroyed = true;
-    window.removeEventListener('message', this.#onMessage);
-    this.iframe.removeEventListener('load', this.#onLoad);
-    if (this.#ownsIframe) {
-      this.iframe.remove();
+    for (const loaderEvent of LIFECYCLE_EVENTS.keys()) {
+      this.host.removeEventListener(loaderEvent, this.#onLifecycle);
     }
+    this.host.remove();
   }
 }

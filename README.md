@@ -117,13 +117,13 @@ For comprehensive configurations and examples, see the [node-client.](./packages
 
 ### [@ver-id/embedded-browser-client](./packages/embedded-browser-client) + [@ver-id/embedded-node-client](./packages/embedded-node-client)
 
-A matched pair of SDKs that run a Ver.iD flow **inside an iframe on your own page** instead of redirecting the user away. The browser half mounts and supervises the frame; the Node half holds the PKCE verifier, receives a signed webhook, and exchanges the authorization code. Neither works without the other.
+A matched pair of SDKs that run a Ver.iD flow **inside your own page** instead of redirecting the user away. The browser half loads Ver.iD's embedded card and reports its lifecycle; the Node half holds the PKCE verifier, receives a signed webhook, and exchanges the authorization code. Neither works without the other.
 
 **Features:**
 
 - In-page identity flows — no full-page redirect, no popup
 - PKCE verifier and client secret never leave the server
-- Origin-pinned `postMessage` lifecycle events (`ready`, `complete`, `error`, `cancel`)
+- Lifecycle events (`ready`, `complete`, `error`, `cancel`), reported only to the flow's allowed embed origins
 - HMAC-signed server-to-server webhook carrying the authorization code
 - Same authentication, disclosure and issuance clients as the redirect SDKs
 
@@ -151,7 +151,7 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
   webhookUri: 'https://your-public-host/api/disclosure/embedded/webhook',
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 // The code_verifier stays server-side, cached under bootstrap.state.
 res.json(bootstrap);
 ```
@@ -168,6 +168,9 @@ const veridComponent = mountVeridEmbeddedComponent({
   container: document.getElementById('verid-embed'),
   ...bootstrap,
 });
+
+// Nothing starts until open(): call it from your own button, or right away to start on load.
+document.getElementById('verid-continue').addEventListener('click', () => veridComponent.open());
 
 veridComponent.addEventListener('complete', () => {
   // A lifecycle signal, not a result: the token arrives on your backend via the
@@ -238,7 +241,7 @@ For comprehensive configurations and examples, see the [graphql-client](packages
 ### [@ver-id/core](./packages/core)
 
 The shared foundation every client above is built on: the abstract flow clients, the OAuth client,
-the cache contract, the embedded wire protocol, the error hierarchy and the shared types. It is
+the cache contract, the embedded webhook parser, the error hierarchy and the shared types. It is
 published as its own package and listed as a dependency of the other clients, so a fix lands once
 instead of being duplicated into five bundles.
 
@@ -334,7 +337,7 @@ VERID_EMBEDDED_DISCLOSURE_SCOPES=disclosure
 VITE_VERID_EMBEDDED_DISCLOSURE_FLOW_ID=<flow id>
 ```
 
-Set `VERID_GATEWAY_URI` when the Ver.iD flow UI is hosted separately from the OAuth issuer; it otherwise defaults to the issuer origin. Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
+Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
 
 
 ## Changelogs

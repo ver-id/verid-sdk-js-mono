@@ -190,7 +190,12 @@ export abstract class VeridFlowBaseClient {
     }
   }
 
-  /** Exchanges the authorization code for tokens using cached PKCE state. */
+  /**
+   * Exchanges the authorization code for tokens using cached PKCE state.
+   *
+   * The verifier is removed only once the exchange succeeds, so a retry after a failed
+   * exchange can still finalize.
+   */
   protected async finalizeFlow(
     params: FlowBaseFinalizeParams,
     assertResponseFunc: (response: unknown, name: string, errorType: typeof Error) => void,
@@ -210,8 +215,6 @@ export abstract class VeridFlowBaseClient {
       );
     }
 
-    await this.cacheManager.remove(state);
-
     const response = await this.oauthClient.authorizationCodeGrant({
       binding: this.authCodeDeliveryBinding(),
       parameters: callbackParams,
@@ -221,6 +224,8 @@ export abstract class VeridFlowBaseClient {
     });
 
     assertResponseFunc(response, 'OAuth response', Error);
+
+    await this.cacheManager.remove(state);
 
     return response;
   }

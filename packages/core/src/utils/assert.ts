@@ -573,8 +573,7 @@ export function assertIssuanceFlatV1JwtPayload(
 
   assertJwtPayload(value, name, ctor);
 
-  // Check credentialBatchUuid (RFC 0013)
-  assertUUID(value.credentialBatchUuid, `"credentialBatchUuid" in ${name}`, ctor);
+  assertUUID(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
 
   // Check output property
   assert('output' in value, `Invalid "output" in ${name}: should be defined.`, ctor);
@@ -602,9 +601,6 @@ export function assertIssuanceFlatV1JwtPayload(
 
     // Validate each data item using common helper
     assertOutputDataItems(item.data as unknown[], index, name, ctor);
-
-    // Validate mapping
-    assertObject(item.mapping, `"OutputItem.mapping" at index ${index} in ${name}`, ctor);
   }
 }
 
@@ -837,10 +833,9 @@ export function assertIssuanceV1JwtPayload(
   assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
   assertObject((value.parameter as any).payload, `"parameter.payload" in ${name}`, ctor);
   assertObject(value.meta, `"meta" in ${name}`, ctor);
-  assertObject(value.mapping, `"mapping" in ${name}`, ctor);
   assertString(value.issuanceUuid, `"issuanceUuid" in ${name}`, ctor);
   assertString(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
-  assertUUID(value.credentialBatchUuid, `"credentialBatchUuid" in ${name}`, ctor);
+  assertUUID(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
 
   assertArray(value.credentials, `"credentials" in ${name}`, ctor);
   assertCredentials(value.credentials as unknown[], name, ctor);

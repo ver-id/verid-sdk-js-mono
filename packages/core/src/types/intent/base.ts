@@ -4,6 +4,8 @@ export interface BaseIntent {
   scope: string;
   code_challenge: string;
   client_id: string;
+  /** Echoed back in the result token's `parameter.challenge`; must be a UUID. */
+  challenge?: UUID;
 }
 
 /**

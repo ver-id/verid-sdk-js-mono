@@ -15,7 +15,6 @@ import {
   generateEmbeddedIssuanceResultSnippet,
 } from '../services/index.js';
 import {
-  EMBEDDED_CONFIG,
   embeddedScopeFor,
   embeddedWebhookUri,
   isWebhookPubliclyReachable,
@@ -85,7 +84,7 @@ export async function startEmbeddedIssuanceSession(
       });
     }
 
-    const { challenge, brandUuid, requireExplicitConsent } = req.body;
+    const { challenge, brandUuid } = req.body;
     const intentPayload = (req.body.payload ?? {}) as IssuanceIntentPayload['payload'];
 
     // Issuance has no intent-less variant — the intent carries what is issued.
@@ -129,9 +128,6 @@ export async function startEmbeddedIssuanceSession(
 
     if (challenge) intent.challenge = challenge;
     if (brandUuid) intent.brandUuid = brandUuid;
-    if (requireExplicitConsent !== undefined) {
-      intent.requireExplicitConsent = requireExplicitConsent;
-    }
 
     const intentResponse = await issuanceClient.createIssuanceIntent(
       intent,
@@ -145,13 +141,11 @@ export async function startEmbeddedIssuanceSession(
       state,
       codeChallenge,
       intentId: intentResponse.intent_id,
-      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
     });
 
     const codeSnippet = generateEmbeddedIssuanceStartSnippet(scope, webhookUri, {
       ...(challenge ? { challenge } : {}),
       ...(brandUuid ? { brandUuid } : {}),
-      ...(requireExplicitConsent !== undefined ? { requireExplicitConsent } : {}),
       payload: intent.payload,
     });
 
@@ -201,6 +195,14 @@ export async function handleEmbeddedIssuanceWebhook(
   }
 
   const { state } = verification.payload;
+
+  // A redelivery of a webhook this server already finalized: the result is stored,
+  // so acknowledge it and Ver.iD stops delivering. The SDK removed the verifier on
+  // success, so finalizing again would fail.
+  if (embeddedResultStore.get(state)?.status === 'ready') {
+    return res.json({ received: true });
+  }
+
   const issuanceClient = clientService.getEmbeddedIssuanceClient();
 
   if (!issuanceClient) {

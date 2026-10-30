@@ -18,7 +18,7 @@ const bootstrap = await disclosureClient.createEmbeddedSession({
   webhookUri: '${webhookUri}',
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, gatewayUri }
+// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
 // The code_verifier is NOT in here — it stays cached server-side, keyed by state.
 res.json(bootstrap);`;
 }
@@ -29,7 +29,7 @@ res.json(bootstrap);`;
 export function generateStartWithIntentSnippet(
   scope: string,
   webhookUri: string,
-  payload: { challenge?: string; brandUuid?: string; requireExplicitConsent?: boolean }
+  payload: { challenge?: string; brandUuid?: string }
 ): string {
   const params: string[] = [];
 
@@ -38,9 +38,6 @@ export function generateStartWithIntentSnippet(
   }
   if (payload.brandUuid) {
     params.push(`    brandUuid: '${payload.brandUuid}'`);
-  }
-  if (payload.requireExplicitConsent !== undefined) {
-    params.push(`    requireExplicitConsent: ${payload.requireExplicitConsent}`);
   }
 
   const payloadStr = params.length > 0 ? `{\n${params.join(',\n')}\n  }` : '{}';

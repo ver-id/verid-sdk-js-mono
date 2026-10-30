@@ -27,13 +27,6 @@ export const EMBEDDED_CONFIG = {
    */
   webhookPublicUrl: process.env.VERID_WEBHOOK_PUBLIC_URL ?? '',
 
-  /**
-   * Optional override for the Ver.iD gateway URL handed to the browser.
-   *
-   * Defaults to the `issuerUri` origin; override when the Ver.iD flow UI is
-   * hosted separately from the OAuth issuer, as in a Garden profile.
-   */
-  gatewayUri: process.env.VERID_GATEWAY_URI ?? '',
 
   /** How long a finalized embedded result stays available for polling. */
   resultTtlMs: process.env.VERID_EMBEDDED_RESULT_TTL_MS

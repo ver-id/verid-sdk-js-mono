@@ -178,28 +178,6 @@
           Optional Parameters
         </h4>
         
-        <div class="form-group">
-          <label>Require Explicit Consent (Optional):</label>
-          <div>
-            <label style="margin-right: 15px; font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="true"
-              >
-              True
-            </label>
-            <label style="font-weight: normal;">
-              <input
-                v-model="intentOptions.requireExplicitConsent"
-                type="radio"
-                :value="false"
-              >
-              False
-            </label>
-          </div>
-          <small>Force user to explicitly consent during issuance</small>
-        </div>
         
         <div class="form-group">
           <label for="challenge">Challenge (Optional):</label>
@@ -455,7 +433,6 @@ const getCreateIntentCode = computed(() => {
   const optionalParams: string[] = [];
   if (intentOptions.challenge) optionalParams.push(`  challenge: '${intentOptions.challenge}',`);
   if (intentOptions.brandUuid) optionalParams.push(`  brandUuid: '${intentOptions.brandUuid}',`);
-  if (intentOptions.requireExplicitConsent) optionalParams.push(`  requireExplicitConsent: ${intentOptions.requireExplicitConsent},`);
   
   const params = optionalParams.length > 0 
     ? `{\n  payload: ${payloadContent},\n${optionalParams.join('\n')}\n}`

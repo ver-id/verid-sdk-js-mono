@@ -125,9 +125,8 @@ const intentId = await issuanceClient.createIssuanceIntent(
         // ... other attribute mappings
       },
     },
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-    requireExplicitConsent: true, // Optional: default is false
   },
   codeChallenge,
 );
@@ -146,9 +145,8 @@ const intentId = await issuanceClient.createIssuanceIntent(
         value: 'John',
       }],
     },
-    challenge: '<OPTIONAL_CHALLENGE_STRING>', // Optional
+    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
     brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-    requireExplicitConsent: true, // Optional: default is false
   },
   codeChallenge,
 );
@@ -171,7 +169,6 @@ Required (choose **one**):
 Optional:
 - `challenge` - Custom challenge string for additional security
 - `brandUuid` - Brand-specific customization for the issuance experience
-- `requireExplicitConsent` - Whether to require explicit user consent (default: false)
 
 #### Step 3: Generate Issuance URL with Intent
 

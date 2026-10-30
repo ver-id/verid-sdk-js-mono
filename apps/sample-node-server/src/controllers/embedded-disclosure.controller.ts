@@ -16,7 +16,6 @@ import {
   generateEmbeddedDisclosureResultSnippet,
 } from '../services/index.js';
 import {
-  EMBEDDED_CONFIG,
   embeddedScopeFor,
   embeddedWebhookUri,
   isWebhookPubliclyReachable,
@@ -92,25 +91,20 @@ export async function startEmbeddedDisclosureSession(
     const bootstrap = await disclosureClient.createEmbeddedSession({
       scope,
       webhookUri,
-      ...(EMBEDDED_CONFIG.gatewayUri ? { gatewayUri: EMBEDDED_CONFIG.gatewayUri } : {}),
     });
 
     let codeSnippet: string;
     let intentId: string | undefined;
 
     if (req.body.useIntent) {
-      const { challenge, brandUuid, requireExplicitConsent } = req.body;
+      const { challenge, brandUuid } = req.body;
       const payload: {
         challenge?: string;
         brandUuid?: string;
-        requireExplicitConsent?: boolean;
       } = {};
 
       if (challenge) payload.challenge = challenge;
       if (brandUuid) payload.brandUuid = brandUuid;
-      if (requireExplicitConsent !== undefined) {
-        payload.requireExplicitConsent = requireExplicitConsent;
-      }
 
       const clientSecret = process.env.VERID_CLIENT_SECRET;
       assert(
@@ -181,6 +175,14 @@ export async function handleEmbeddedDisclosureWebhook(
   }
 
   const { state } = verification.payload;
+
+  // A redelivery of a webhook this server already finalized: the result is stored,
+  // so acknowledge it and Ver.iD stops delivering. The SDK removed the verifier on
+  // success, so finalizing again would fail.
+  if (embeddedResultStore.get(state)?.status === 'ready') {
+    return res.json({ received: true });
+  }
+
   const disclosureClient = clientService.getEmbeddedDisclosureClient();
 
   if (!disclosureClient) {
