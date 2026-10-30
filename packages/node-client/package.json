@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/node-client",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Ver.iD Node.js SDK for decentralized identity authentication, disclosure, and issuance flows",
   "license": "MIT",
   "author": "Ver.iD",
@@ -59,7 +59,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ver-id/core": "^0.1.0"
+    "@ver-id/core": "^0.2.0"
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": ">=3.0.0",

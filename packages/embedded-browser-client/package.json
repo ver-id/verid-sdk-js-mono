@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/embedded-browser-client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ver.iD embedded-mode browser SDK: loads Ver.iD's embedded card into your page and surfaces the flow lifecycle as typed events",
   "license": "MIT",
   "author": "Ver.iD",
