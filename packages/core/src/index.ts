@@ -8,14 +8,14 @@ export type { ICacheManager } from './interface/ICacheManager.js';
 // Cache exports
 export * from './cache/index.js';
 
-// Flow client exports
+// Client base classes
+export * from './client/index.js';
+
+// Flow definitions
 export * from './flow/index.js';
 
 // OAuth client exports
 export * from './oauth/index.js';
-
-// Embedded protocol exports
-export * from './embedded/index.js';
 
 // Error exports
 export * from './error/index.js';

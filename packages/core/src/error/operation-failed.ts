@@ -24,11 +24,7 @@ export class OperationFailedError extends VeridError {
    * @param code - Optional error code for additional context
    */
   constructor(message: string, err?: unknown, code?: string) {
-    const errorMessage =
-      err !== undefined
-        ? `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`
-        : message.trim();
-    super(errorMessage);
+    super(message.trim(), err);
     if (code !== undefined) {
       this.code = code;
     }

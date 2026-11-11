@@ -1,7 +1,7 @@
 import { BaseCacheManager } from '../base.js';
 import type { CacheEntry, CacheManagerOptions } from '../options.js';
 import { assertString } from '../../utils/index.js';
-import { InvalidArgumentError } from '../../error/index.js';
+import { InvalidArgumentError, OperationFailedError } from '../../error/index.js';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'fs';
 import { mkdir, readdir, rename, stat, unlink, writeFile } from 'fs/promises';
 import { createHash, randomUUID } from 'crypto';
@@ -184,12 +184,15 @@ export class FileStorageCacheManager extends BaseCacheManager {
     await mkdir(this.cacheDir, { recursive: true, mode: 0o700 });
 
     try {
-      await writeFile(temp, this.encodeEntry(prefixedKey, value), { encoding: 'utf-8', mode: 0o600 });
+      await writeFile(temp, this.encodeEntry(prefixedKey, value), {
+        encoding: 'utf-8',
+        mode: 0o600,
+      });
       // atomic replace
       await rename(temp, target);
     } catch (err) {
       await this.unlinkQuietly(temp);
-      throw new Error(`Failed to persist cache: ${err instanceof Error ? err.message : String(err)}`);
+      throw new OperationFailedError('Failed to persist cache', err);
     }
 
     await this.pruneExpired().catch(() => {

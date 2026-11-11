@@ -16,10 +16,6 @@ export class TokenGrantError extends VeridError {
    * @param err - Optional underlying error that caused the failure
    */
   constructor(message: string, err?: unknown) {
-    const errorMessage =
-      err !== undefined
-        ? `${message.trim()}: ${err instanceof Error ? err.message : String(err)}`
-        : message.trim();
-    super(errorMessage);
+    super(message.trim(), err);
   }
 }

@@ -1,37 +1,46 @@
+// Clients
 export {
   VeridEmbeddedDisclosureClient,
   VeridEmbeddedAuthenticationClient,
   VeridEmbeddedIssuanceClient,
-} from './clients/index.js';
-export type { EmbeddedClientConfig, FinalizeEmbeddedParams } from './clients/index.js';
+} from './client/index.js';
 export type {
-  EmbeddedIssuanceSessionParams,
-  EmbeddedIssuanceSessionBootstrap,
-} from './clients/index.js';
-
-export {
-  verifyEmbeddedWebhook,
-  embeddedWebhookRejectionError,
-} from './embedded/webhook.js';
-export type {
-  EmbeddedWebhookVerification,
-  EmbeddedWebhookRejectionReason,
-  VerifyEmbeddedWebhookParams,
-} from './embedded/webhook.js';
-export type {
-  EmbeddedSessionParams,
-  EmbeddedSessionBootstrap,
-} from './embedded/session.js';
+  EmbeddedClientConfig,
+  EmbeddedFinishSessionParams,
+  EmbeddedWebhookHeaders,
+  VeridEmbeddedOutcome,
+  VeridEmbeddedSession,
+  VeridEmbeddedUnknownEvent,
+} from './client/index.js';
 
 // Cache managers
-export { FileStorageCacheManager, MemoryStorageCacheManager } from './cache/index.js';
-export type { ICacheManager } from '@ver-id/core';
-
-// Shared protocol from core
-export { parseEmbeddedWebhookPayload } from '@ver-id/core';
+export {
+  FileStorageCacheManager,
+  MemoryStorageCacheManager,
+  RedisCacheManager,
+  DynamoDBCacheManager,
+} from './cache/index.js';
 export type {
-  EmbeddedWebhookPayload,
-  ParseEmbeddedWebhookResult,
+  RedisCacheManagerConfig,
+  RedisCompatibleClient,
+  DynamoDBCacheManagerConfig,
+  DynamoDBCompatibleClient,
+} from './cache/index.js';
+export type { ICacheManager } from '@ver-id/core';
+export type { CacheManagerOptions } from '@ver-id/core/cache';
+
+// Sessions and results
+export type {
+  AuthenticationResult,
+  AuthenticationSessionInput,
+  DisclosureResult,
+  DisclosureSessionInput,
+  IssuanceResult,
+  IssuanceSessionExtra,
+  IssuanceSessionInput,
+  VeridSessionInput,
+  VeridTokenResult,
+  VeridUnknownTokenResult,
 } from '@ver-id/core';
 
 // Errors
@@ -43,23 +52,22 @@ export {
   AuthorizationResponseError,
   TokenGrantError,
   OperationFailedError,
-  UnknownError,
+  SessionFinishError,
 } from '@ver-id/core/error';
 
-// Common assert helpers + response types for decode()
+// Result payloads
 export {
-  assertDisclosureV1JwtPayload,
-  assertOpenIdJwtPayload,
-  assertIssuanceV1JwtPayload,
-  assertSignatureV1JwtPayload,
-} from '@ver-id/core/utils';
+  OutputCredentialType,
+  OpenIdJwtCompanyIdentifierType,
+  OpenIdJwtCompanyType,
+  OpenIdJwtNINIdentifierType,
+} from '@ver-id/core/types';
 export type {
-  DisclosureResponse,
-  AuthenticationResponse,
-  IssuanceResponse,
-  ClientAuth,
-  Jwt,
-  DisclosureV1JwtPayload,
-  IssuanceV1JwtPayload,
   OpenIdJwtPayload,
+  DisclosureV1JwtPayload,
+  AttestedFlatV1JwtPayload,
+  IssuanceV1JwtPayload,
+  IssuanceFlatV1JwtPayload,
+  OutputCredential,
+  OutputAttribute,
 } from '@ver-id/core/types';

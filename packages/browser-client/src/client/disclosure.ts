@@ -1,82 +1,16 @@
-import {
-  VeridDisclosureClient as CoreDisclosureClient,
-  DisclosureClientConfig,
-  DisclosureFinalizeParams as CoreDisclosureFinalizeParams,
-  DisclosureResponse,
-  ICacheManager,
-  FlowAuthCodeDeliveryBinding,
-} from '@ver-id/core';
-import { SessionStorageCacheManager } from '../cache/session-storage.js';
-
-// Re-export types from core
-export type {
-  DisclosureIntentPayload,
-  DisclosureClientConfig,
-  DisclosureRequestParams,
-} from '@ver-id/core';
+import { disclosureFlow, type DisclosureSessionInput, type DisclosureResult } from '@ver-id/core';
+import { BrowserFlowClient, type BrowserClientConfig } from './base.js';
 
 /**
- * Configuration for the browser disclosure client.
- *
- * `options` is optional and defaults to caching with a `SessionStorageCacheManager`.
- */
-export type BrowserDisclosureClientConfig = Omit<DisclosureClientConfig, 'options'> & {
-  /** The registered redirect URI for the flow. */
-  redirectUri: string;
-  options?: {
-    cacheManager?: ICacheManager;
-  };
-};
-
-/**
- * Parameters to Disclosure finalize.
- */
-export interface DisclosureFinalizeParams extends Omit<CoreDisclosureFinalizeParams, 'callbackParams'> {
-  callbackParams?: URL | URLSearchParams | string;
-}
-
-/**
- * Browser disclosure client for OpenID Connect flows.
+ * Browser disclosure client.
  *
  * @public
  */
-export class VeridDisclosureClient extends CoreDisclosureClient {
-  private readonly redirectUri: string;
-
-  constructor(config: BrowserDisclosureClientConfig) {
-    super({
-      issuerUri: config.issuerUri,
-      clientId: config.clientId,
-      options: {
-        cacheManager: config.options?.cacheManager ?? new SessionStorageCacheManager(),
-      },
-    });
-    this.redirectUri = config.redirectUri;
-  }
-
-  protected override authCodeDeliveryBinding(): FlowAuthCodeDeliveryBinding {
-    return { kind: 'redirect', redirectUri: this.redirectUri };
-  }
-
-  /**
-   * Finalizes the disclosure flow, defaulting to window.location if no params are provided.
-   * Exchanges the authorization code for tokens including the access token.
-   *
-   * @param params - Parameters for finalizing the disclosure flow
-   * @returns The disclosure response containing access_token and token metadata
-   * @example
-   * ```typescript
-   * // Reads the callback params from window.location by default
-   * const disclosureResponse = await client.finalize();
-   * const jwt = await client.decode(disclosureResponse, assertDisclosureV1JwtPayload);
-   * ```
-   */
-  async finalize(params?: DisclosureFinalizeParams): Promise<DisclosureResponse> {
-    let callbackParams = params?.callbackParams;
-
-    if (!callbackParams) {
-      callbackParams = window.location.href;
-    }
-    return this.finalizeDisclosure({ ...params, callbackParams });
+export class VeridBrowserDisclosureClient extends BrowserFlowClient<
+  DisclosureSessionInput,
+  DisclosureResult
+> {
+  constructor(config: BrowserClientConfig) {
+    super(config, disclosureFlow);
   }
 }

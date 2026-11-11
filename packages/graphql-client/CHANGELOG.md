@@ -1,3 +1,54 @@
+## 0.14.0 (2026-11-11)
+
+### 🚀 Features
+
+- The exported schema types now follow the platform's current schema: `requireExplicitConsent` and the `NL_WALLET_DEMO` enum value are removed, and the embedded appearance types are added. The SDK is now released from Ver.iD's internal repository; GitHub is a read-only mirror.
+
+### 🧱 Updated Dependencies
+
+- Updated @ver-id/core to 0.3.0
+
+### ❤️ Thank You
+
+- kuldeep
+
+## 0.13.0 (2026-10-30)
+
+### 🩹 Fixes
+
+- **@ver-id/graphql-client:** read credential name and locales from the live version ([534360c](https://github.com/ver-id/verid-sdk-js-mono/commit/534360c))
+
+### 🧱 Updated Dependencies
+
+- Updated @ver-id/core to 0.2.0
+
+### ❤️ Thank You
+
+- kuldeep
+
+## 0.12.0 (2026-08-13)
+
+### 🚀 Features
+
+- ⚠️  publish @ver-id/core as a standalone package ([b9b6a1c](https://github.com/ver-id/verid-sdk-js-mono/commit/b9b6a1c))
+
+### ⚠️  Breaking Changes
+
+- publish @ver-id/core as a standalone package  ([b9b6a1c](https://github.com/ver-id/verid-sdk-js-mono/commit/b9b6a1c))
+  The published packages are no longer self-contained bundles.
+  @ver-id/core is now a separate runtime dependency, declared by each client and
+  installed automatically like any other transitive dependency.
+  No source changes are required. Every export is still available under the same
+  name from the same package, and constructor options are unchanged. This is
+  marked breaking because the published artifact's dependency footprint changed,
+  which matters if you vendor dependencies, install from an offline mirror, or
+  maintain an allowlist of permitted packages: @ver-id/core now has to be
+  permitted alongside the client you install.
+
+### ❤️ Thank You
+
+- Maurits van Riezen
+
 ## 0.11.3 (2026-08-13)
 
 ### 🚀 Features

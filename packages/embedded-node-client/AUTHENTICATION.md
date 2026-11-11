@@ -1,208 +1,83 @@
 ## Authentication (embedded mode)
 
-Execute an authentication flow to use decentralized identity apps for shifting from traditional, password-based methods to a secure, password-less system utilizing QR codes. In **embedded mode** the Ver.iD flow runs inside an iframe on your own page instead of a full-page redirect — the browser half ([`@ver-id/embedded-browser-client`](../embedded-browser-client)) loads Ver.iD's embedded card into your page, while this package (the confidential backend half) owns PKCE, verifies the signed webhook, and exchanges the authorization code for tokens. The `code_verifier` and the authorization `code` never reach the browser.
+Run a password-less login inside your own page: the user signs in with their wallet, and your
+backend receives a verified OpenID Connect ID token. The browser half is
+[`@ver-id/embedded-browser-client`](../embedded-browser-client/AUTHENTICATION.md).
 
-### Create an Authentication client
+The [README](./README.md) covers configuration, cache managers, webhook handling and errors in
+full. This guide shows what is specific to authentication.
 
-```ts
-import { VeridEmbeddedAuthenticationClient } from '@ver-id/embedded-node-client';
-
-const authenticationClient = new VeridEmbeddedAuthenticationClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
-});
-```
-
-**Note:** Embedded clients take **no** `redirectUri`. Embedded flows are registered without one; the authorization code is bound to the client purely through PKCE, and the token exchange sends no `redirect_uri`.
-
-#### Caching options
-
-The authentication client caches flow context (state and code verifiers) using a cache manager. The default is `FileStorageCacheManager`, which persists data in a JSON file at `~/.verid-cache/cache.json`. This is controlled with the `cacheManager` option when creating the client.
+### Create an authentication client
 
 ```ts
 import {
+  MemoryStorageCacheManager,
   VeridEmbeddedAuthenticationClient,
-  FileStorageCacheManager,
 } from '@ver-id/embedded-node-client';
 
 const authenticationClient = new VeridEmbeddedAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
-  options: {
-    cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
-  },
+  clientSecret: process.env.VERID_CLIENT_SECRET!,
+  webhookUri: 'https://app.example.com/api/verid/webhook',
+  webhookSecret: process.env.VERID_WEBHOOK_SECRET!,
+  cacheManager: new MemoryStorageCacheManager(), // RedisCacheManager or DynamoDBCacheManager for several instances
 });
 ```
 
-**Important:** The cache manager stores flow context **such as state and code verifier**. Because the browser must be able to hand the flow off to the same backend that started it, the verifier lives only on the server, keyed by `state`.
-
-**File Storage Benefits:**
-
-- **Persistence**: Data survives server restarts and process terminations
-- **Security**: Files are created with restrictive permissions (0o600)
-- **Atomicity**: Atomic file writes prevent corruption during concurrent access
-- **Cross-session**: Enables authentication flows that span multiple HTTP requests
-
-For distributed / multi-instance deployments, provide a shared store (Redis, DynamoDB, or your own `ICacheManager`) so every instance can read the verifier back on the webhook. See the package README for the full list of built-in stores.
-
-#### Creating a custom cache
-
-The client can be configured to use a custom cache store implemented by your application. Provide an object to the `cacheManager` property of the client configuration. Each function may return a Promise or a static value.
-
-| Signature                          | Return type                       | Description                                                                                   |
-| ---------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found        |
-| `save(key: string, value: string)` | Promise<void> or void             | Sets an item into the cache                                                                   |
-| `remove(key)`                      | Promise<void> or void             | Removes a single item from the cache at the specified key, or no-op if the item was not found |
-
-### Start an embedded session
-
-The backend starts a session and returns a **bootstrap** — the public values the browser needs to mount the embedded card. By default `createEmbeddedSession` generates the PKCE `state`/`codeChallenge`, persists the `code_verifier` against the `state` in the cache manager, and returns only the public bootstrap (never the verifier). If you supply an existing `state`/`codeChallenge` pair, that pair is reused as-is and the already-cached verifier is left untouched.
-
-Expose this from an endpoint your frontend calls:
+### Start a session
 
 ```ts
-// POST /api/verid/start
-app.post('/api/verid/start', async (_req, res) => {
-  const bootstrap = await authenticationClient.createEmbeddedSession({
-    scope: 'openid',
-    webhookUri: 'https://app.example.com/api/verid/webhook',
+app.post('/api/verid/session', async (_req, res) => {
+  const { sessionContext, state } = await authenticationClient.createSession({
+    scope: 'openid profile', // required; `openid` is added when missing
+    challenge: '<OPTIONAL_CHALLENGE_UUID>',
+    brandUuid: '<OPTIONAL_BRAND_UUID>',
   });
-
-  res.json(bootstrap);
-  // bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
+  await loginAttempts.save(state);
+  res.json({ sessionContext });
 });
 ```
 
-**Once per attempt.** Call `createEmbeddedSession` (and create the intent, where you use one) for every attempt: a bootstrap starts one flow, and Ver.iD refuses a second flow on the same intent. When the person starts again after a `cancel`, an `error` or a page reload, your frontend asks for a new bootstrap.
+`scope` lists the scopes to request, separated by spaces. Each one must be registered on the flow,
+and the flow must request more than `openid` alone: `openid profile` is the working default.
 
-`EmbeddedSessionParams`:
-
-- `scope` — the scopes to request (e.g. `'openid'`). Requested scopes must be registered in the authentication flow.
-- `webhookUri` — your backend endpoint that Ver.iD will POST the signed result to. Must be a valid URL; anything else throws `InvalidArgumentError`.
-- `state` — optional caller-supplied state; otherwise one is generated. Required whenever `codeChallenge` is supplied.
-- `codeChallenge` — optional existing PKCE challenge to run the session against instead of generating a new one. Pass it together with the `state` it was cached under (the pair returned by `generateCodeChallenge()`). Supplying it without `state` throws `InvalidArgumentError` ("State must be provided when using an external code challenge.").
-- `intentId` — optional authentication intent created via `createAuthenticationIntent()`. Because the intent is created against a challenge, pass **both** the `state` and the `codeChallenge` it was created against alongside it, so the session reuses that pair instead of generating a new one.
-
-The returned `EmbeddedSessionBootstrap` is safe to send to the browser as-is:
+### Finish the session from the webhook
 
 ```ts
-{
-  clientId: string;
-  scope: string;
-  state: string;
-  codeChallenge: string; // public — the verifier stays on the server
-  webhookUri: string;
-  loaderUri: string; // Ver.iD's embedded.js, as the issuer advertises it
-}
-```
-
-### Hand the bootstrap to the browser
-
-Your frontend fetches the bootstrap and passes it straight into the browser client, which loads Ver.iD's embedded card into your page and surfaces the flow lifecycle as events. The flow starts when the page calls the component's `open()`, from its own button or on page load. See [`@ver-id/embedded-browser-client`](../embedded-browser-client/AUTHENTICATION.md) for the browser side.
-
-```ts
-// Frontend
-import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
-
-const bootstrap = await fetch('/api/verid/start', { method: 'POST' }).then((r) => r.json());
-const veridComponent = mountVeridEmbeddedComponent({
-  container: document.getElementById('verid-embed')!,
-  ...bootstrap,
-});
-```
-
-### Finalize authentication from the signed webhook
-
-When the user completes the flow, Ver.iD does **not** hand the authorization code to the browser. Instead a signed server-to-server webhook is POSTed to your `webhookUri`. Read the request body as **raw text** (the HMAC is computed over the exact bytes) and call `finalizeEmbedded`, which verifies the signature and then exchanges the code for tokens — with no `redirect_uri`:
-
-```ts
-// POST /api/verid/webhook  (body read as raw text)
 import express from 'express';
-import { assertOpenIdJwtPayload } from '@ver-id/embedded-node-client';
+import { SessionFinishError } from '@ver-id/embedded-node-client';
 
 app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) => {
-  const result = await authenticationClient.finalizeEmbedded({
-    rawBody: req.body,
-    signature: req.header('x-signature-256'),
-    secret: process.env.VERID_WEBHOOK_SECRET!,
-    clientAuth: { client_secret: process.env.VERID_CLIENT_SECRET! },
-  });
-
-  const token = await authenticationClient.decode(result, assertOpenIdJwtPayload);
-  await store(result.state, token); // correlate to the browser via `state`
-
-  res.json({ received: true });
+  try {
+    const outcome = await authenticationClient.finishSession({
+      rawBody: req.body,
+      headers: req.headers,
+    });
+    if (outcome.kind === 'completed') await results.save(outcome.state, outcome.result);
+    res.sendStatus(204);
+  } catch (error) {
+    if (!(error instanceof SessionFinishError)) return res.sendStatus(401);
+    if (await results.has(error.state)) return res.sendStatus(204); // a redelivery
+    await loginAttempts.markFailed(error.state, error.cause);
+    res.sendStatus(500);
+  }
 });
 ```
 
-`FinalizeEmbeddedParams`:
+### Read the result
 
-- `rawBody` — the raw, unparsed webhook request body.
-- `signature` — the `x-signature-256` header value (`sha256=<hex>`), or `undefined` if absent.
-- `secret` — the flow's webhook secret from Ver.iD Studio.
-- `clientAuth` — `{ client_secret }` for the token exchange.
-
-If the signature is missing, malformed, or does not match an HMAC-SHA256 of the raw body computed with your webhook secret, `finalizeEmbedded` throws before any token exchange happens.
-
-#### Retries and redelivery
-
-Ver.iD redelivers the webhook when your endpoint does not answer with a 2xx. What a redelivery meets depends on how the first delivery went:
-
-- **The token exchange failed.** The verifier stays cached, so answer with a 5xx and the redelivery can still finalize.
-- **The flow already finalized.** The verifier was removed when the exchange succeeded, so finalizing again throws `OperationFailedError`. Check your own record of results first: if you already stored a result for the payload's `state`, answer with a 2xx and Ver.iD stops delivering.
+| `format`  | `payload`                                                   |
+| --------- | ----------------------------------------------------------- |
+| `openid`  | `OpenIdJwtPayload`: the verified ID token's claims          |
+| `unknown` | A verified token in a format this SDK version does not know |
 
 ```ts
-const verification = client.verifyEmbeddedWebhook({ rawBody, signature, secret });
-if (!verification.ok) return res.status(400).json({ error: verification.reason });
-
-const { state } = verification.payload;
-if (await hasResult(state)) return res.json({ received: true }); // a redelivery
-
-try {
-  const result = await client.finalizeEmbedded({ rawBody, signature, secret, clientAuth });
-  await store(state, result);
-  return res.json({ received: true });
-} catch (error) {
-  return res.status(500).json({ error: 'finalize failed' });
+if (outcome.kind === 'completed' && outcome.result.format === 'openid') {
+  const { payload } = outcome.result; // OpenIdJwtPayload
+  // Sign the user in on the page that polls for this state's result.
 }
 ```
 
-#### Verify without finalizing
-
-If you want to inspect the payload before exchanging the code (for example to route by `type`), verify separately:
-
-```ts
-const verification = authenticationClient.verifyEmbeddedWebhook({
-  rawBody: req.body,
-  signature: req.header('x-signature-256'),
-  secret: process.env.VERID_WEBHOOK_SECRET!,
-});
-
-if (!verification.ok) {
-  // verification.reason is 'invalid_payload' | 'invalid_signature' | 'missing_signature'
-  return res.status(400).json({ error: verification.reason });
-}
-
-// verification.payload = { type, version, code, state, intent_id }
-// intent_id is null when the flow was started without an intent
-```
-
-### Correlate `complete` with the finalized result
-
-The browser receives a `complete` lifecycle event when the flow finishes, but that event carries **no** authorization code — it only means "start awaiting the backend result". The backend is what finalizes, from the webhook. Correlate the two with `state`: store the decoded token against `result.state` on the webhook, and let the frontend poll (or use SSE) for it after `complete`.
-
-### Get decoded Token
-
-Once you have the authentication response, verify and decode it to get the JWT headers and typed payload:
-
-```ts
-import { assertOpenIdJwtPayload } from '@ver-id/embedded-node-client';
-
-const authenticationDecodedToken = await authenticationClient.decode(
-  authenticationResponse,
-  assertOpenIdJwtPayload,
-);
-```
-
-**Note:** The token verification happens on the server side, ensuring the token has not been tampered with and was issued by Ver.iD.
+The webhook reaches your backend without the user's browser session. Sign the user in when their
+page picks up the result for its `state`, not in the webhook handler.

@@ -49,7 +49,7 @@ export interface AttestedOutputItem {
 /**
  * JWT payload structure for attested disclosures in Ver.iD system.
  * Contains cryptographically attested user data with complete identity hierarchies.
- * Used in the 'ver-id/ssi/output/attested/v1+JWT' token type.
+ * Used in the 'ver-id/ssi/disclosure/flat/v1+JWT' token type.
  *
  * @public
  * @extends JWTPayload

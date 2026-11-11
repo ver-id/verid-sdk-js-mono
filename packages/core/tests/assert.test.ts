@@ -6,7 +6,7 @@ import {
   assertObject,
   assertArray,
   assertJsonValue,
-} from '../src/utils/assert';
+} from '../src/utils/assert.js';
 
 describe('Assert utilities', () => {
   describe('assertString', () => {
@@ -37,7 +37,9 @@ describe('Assert utilities', () => {
     });
 
     it('should allow undefined value when configured', () => {
-      expect(() => assertString(undefined, 'value', undefined, { allowUndefined: true })).not.toThrow();
+      expect(() =>
+        assertString(undefined, 'value', undefined, { allowUndefined: true }),
+      ).not.toThrow();
     });
   });
 

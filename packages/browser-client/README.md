@@ -1,256 +1,177 @@
 # Ver.iD Browser Client
 
 [![npm version](https://badge.fury.io/js/@ver-id%2Fbrowser-client.svg)](https://www.npmjs.com/package/@ver-id/browser-client)
-[![Build Status](https://github.com/ver-id/verid-sdk-js-mono/workflows/CI/badge.svg)](https://github.com/ver-id/verid-sdk-js-mono/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
-[![Browser](https://img.shields.io/badge/Platform-Browser-orange.svg)](https://developer.mozilla.org/)
-[![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blueviolet.svg)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-07)
 
-A powerful TypeScript SDK for integrating Ver.iD decentralized identity authentication and disclosure flows into your browser applications.
+Run Ver.iD authentication, disclosure and issuance flows entirely in the browser. The user goes to
+Ver.iD's hosted page and comes back to your redirect URI with the result.
 
-## Getting Started
+A browser cannot keep a secret, so this package only works for flows that need no client secret:
+authentication and disclosure flows without one, and demo issuance flows without one. For any other
+flow, including every production issuance flow, run the session on your backend with
+[`@ver-id/node-client`](https://www.npmjs.com/package/@ver-id/node-client).
 
-### Installation
-
-Using [npm](https://npmjs.org) in your project directory run the following command:
+## Install
 
 ```bash
 npm install @ver-id/browser-client
-```
-
-Using [yarn](https://yarnpkg.com/) in your project directory run the following command:
-
-```bash
+# or
 yarn add @ver-id/browser-client
-```
-
-Using [pnpm](https://pnpm.io/) in your project directory run the following command:
-
-```bash
+# or
 pnpm add @ver-id/browser-client
 ```
 
-### Authentication
+## Quick start
 
-Decentralized identity apps redefine the authentication experience, shifting from traditional, password-based methods to a secure, password-less system utilizing QR codes. This modern approach enhances security, simplifies the login process, and significantly improves user experience by leveraging user-controlled, decentralized authentication.
-
-You can quickly create an authentication flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using authentication client:
+Create a flow in [Ver.iD Studio](https://spas.nebula.ver.id/) and register your redirect URI on it.
+Then create a client for the flow:
 
 ```ts
-import { VeridAuthenticationClient } from '@ver-id/browser-client';
+import { VeridBrowserDisclosureClient } from '@ver-id/browser-client';
 
-// Create authentication client
-const authenticationClient = new VeridAuthenticationClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+const verid = new VeridBrowserDisclosureClient({
+  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
+  redirectUri: 'https://app.example.com/callback',
 });
-
-// Generate authentication url
-const { authenticationUrl, state } =
-  await authenticationClient.generateAuthenticationUrl({
-    scope: '<SCOPES_TO_REQUEST>',
-  });
-
-// Redirects the user to the Ver.iD authentication flow
-window.location.href = authenticationUrl;
-
-// Finalize the flow to get the response
-const authenticationResponse = await authenticationClient.finalize();
-
-// Decode the token
-const authenticationDecodedToken = await authenticationClient.decode(
-  authenticationResponse
-);
 ```
 
-For other comprehensive configurations and examples, see the [AUTHENTICATION.md](./AUTHENTICATION.md) document.
-
-### Verification
-
-Decentralized identity apps transform Know-Your-Customer (KYC) and Know-Your-Business (KYB) procedures used by large online platforms to verify their platform users or companies, effectively replacing tedious manual document verification with a swift, secure exchange of verified digital credentials. This process leverages decentralized identity apps that not only provide essential credentials like passports and ID cards but also enable direct integration with governmental identity databases globally. With regulations such as eIDAS 2.0 and DMA on the horizon, our solution is poised to meet official credential requirements, offering a future-proof method for identity verification.
-
-You can quickly create a disclosure flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using disclosure client:
+Start a session and send the user to Ver.iD:
 
 ```ts
-import { VeridDisclosureClient } from '@ver-id/browser-client';
-
-// Create disclosure client
-const disclosureClient = new VeridDisclosureClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
-});
-
-// Generate disclosure url
-const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();
-
-// Redirects the user to the Ver.iD disclosure flow
-window.location.href = disclosureUrl;
-
-// Finalize the flow to get the response
-const disclosureResponse = await disclosureClient.finalize();
-
-// Decode the token
-const disclosureDecodedToken = await disclosureClient.decode(
-  disclosureResponse
-);
+const { url } = await verid.createSession();
+window.location.href = url;
 ```
 
-For other comprehensive configurations and examples, see the [VERIFICATION.md](./VERIFICATION.md) document.
-
-### Issuance
-
-Issuance flows enable you to issue verified credentials to users that they can store in their decentralized identity wallets. This allows users to prove attributes about themselves without repeatedly going through verification processes. Issued credentials can include digital IDs, certificates, licenses, or any verified information.
-
-You can quickly create an issuance flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using issuance client:
+On the page at your redirect URI, finish the session:
 
 ```ts
-import { VeridIssuanceClient } from '@ver-id/browser-client';
+const result = await verid.finishSession();
 
-// Create issuance client
-const issuanceClient = new VeridIssuanceClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
-});
-
-// Step 1: Generate code challenge
-const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
-
-// Step 2: Create issuance intent (required for issuance flows)
-const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      mapping: {
-        name: 'fullName',
-        email: 'emailAddress',
-      },
-      data: {
-        attributeUuid: '<ATTRIBUTE_UUID>',
-        value: 'John Doe',
-      },
-    },
-  },
-  codeChallenge
-);
-
-// Step 3: Generate issuance url with intent
-const { issuanceUrl, state: finalState } =
-  await issuanceClient.generateIssuanceUrl({
-    intentId,
-    state, // Use the state from Step 1
-    codeChallenge, // Use the code challenge from Step 1
-  });
-
-// Redirects the user to the Ver.iD issuance flow
-window.location.href = issuanceUrl;
-
-// Finalize the flow to get the response
-const issuanceResponse = await issuanceClient.finalize();
-
-// Decode the token
-const issuanceDecodedToken = await issuanceClient.decode(issuanceResponse);
-```
-
-**Note:** Unlike authentication and disclosure, issuance flows **require** intent creation with a credential payload before generating the issuance URL.
-
-For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISSUANCE.md) document.
-
-## Cache Stores
-
-All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `SessionStorageCacheManager` is used. You can swap it for `LocalStorageCacheManager` — or provide your own `ICacheManager` implementation.
-
-### Shared options
-
-Every store takes the same `options`, so swapping one for another does not change how the cache behaves:
-
-| Option       | Default    | Meaning                                                                                                               |
-| ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| `prefix`     | `'verid:'` | Namespaces every key. Pass an empty string to store keys unprefixed.                                                  |
-| `ttlSeconds` | `3600`     | Entry lifetime in seconds. Expired entries read as a miss and are dropped from the store. Pass `0` to disable expiry. |
-
-Every store implements `save`, `get`, `remove` and `clear`. `clear` only removes entries carrying the configured prefix, so keys owned by the rest of your application survive.
-
-### Session Storage (default)
-
-Persists cache to `sessionStorage`. Data is available for the lifetime of the browser tab.
-
-```ts
-import { SessionStorageCacheManager } from '@ver-id/browser-client';
-
-const cacheManager = new SessionStorageCacheManager();
-
-// Same options as every other store
-const cacheManager = new SessionStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 });
-```
-
-### Local Storage
-
-Persists cache to `localStorage`. Data survives tab closes and browser restarts.
-
-```ts
-import { LocalStorageCacheManager } from '@ver-id/browser-client';
-
-const cacheManager = new LocalStorageCacheManager();
-```
-
-### Custom Cache Manager
-
-Implement the `ICacheManager` interface to integrate any storage backend:
-
-```ts
-import type { ICacheManager } from '@ver-id/browser-client';
-
-class MyCacheManager implements ICacheManager {
-  async save(key: string, value: string): Promise<void> {
-    /* ... */
-  }
-  async get(key: string): Promise<string | null> {
-    /* ... */
-  }
-  async remove(key: string): Promise<void> {
-    /* ... */
-  }
+if (result.format === 'disclosure_v1') {
+  console.log(result.payload.credentials);
 }
 ```
 
-### Using a cache store with any flow client
+## Clients
 
-Pass the cache manager via the `options` property:
+| Flow           | Client                             | Guide                                    |
+| -------------- | ---------------------------------- | ---------------------------------------- |
+| Authentication | `VeridBrowserAuthenticationClient` | [AUTHENTICATION.md](./AUTHENTICATION.md) |
+| Disclosure     | `VeridBrowserDisclosureClient`     | [VERIFICATION.md](./VERIFICATION.md)     |
+| Issuance       | `VeridBrowserIssuanceClient`       | [ISSUANCE.md](./ISSUANCE.md)             |
+
+All three take the same configuration:
+
+| Option         | Required | Meaning                                                                                          |
+| -------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `issuerUri`    | yes      | The Ver.iD OAuth issuer URI.                                                                     |
+| `clientId`     | yes      | The flow's id from Ver.iD Studio.                                                                |
+| `redirectUri`  | yes      | One of the redirect URIs registered on the flow.                                                 |
+| `cacheManager` | no       | Where the code verifier is kept between the two calls. Defaults to `SessionStorageCacheManager`. |
+
+## The two methods
+
+### `createSession(input?)`
+
+Prepares a session and returns `{ url, state }`. Send the browser to `url`. `state` identifies the
+session; you do not need to store it yourself.
+
+Every flow accepts these optional fields:
+
+| Field       | Meaning                                                            |
+| ----------- | ------------------------------------------------------------------ |
+| `challenge` | A UUID. It comes back in the result token's `parameter.challenge`. |
+| `brandUuid` | The brand to show during the flow.                                 |
+
+Authentication also requires `scope`, and issuance requires what to issue. See the per-flow guides.
+
+### `finishSession(params?)`
+
+Exchanges the authorization code on the callback, verifies the result token and returns it. It
+reads the callback from `window.location.href` by default. To finish from another URL, pass it:
 
 ```ts
-const authClient = new VeridAuthenticationClient({
+const result = await verid.finishSession({ callbackUrl: savedCallbackUrl });
+```
+
+`callbackUrl` can be a `URL`, a `URLSearchParams` or a string. Finish the session in the same
+browser that created it: the code verifier is read from that browser's cache store.
+
+## Results
+
+`finishSession` returns `{ format, payload, rawToken }`:
+
+- `format` says which token format the flow returned, read from the token's `typ` header.
+- `payload` is the token's verified payload. Narrow it by checking `format`.
+- `rawToken` is the original signed token, if you want to keep or forward it.
+
+A token whose format this SDK version does not know comes back as `format: 'unknown'` with its
+payload untyped and its `typ` header as `typ`. Handle that case, so a new token format does not
+break your app.
+
+## Cache stores
+
+The client keeps the PKCE code verifier between `createSession` and `finishSession`. It is never
+sent anywhere.
+
+- `SessionStorageCacheManager` (default) keeps it in `sessionStorage`, for the lifetime of the tab.
+- `LocalStorageCacheManager` keeps it in `localStorage`, so it survives closing the tab.
+
+Both take the same options:
+
+| Option       | Default    | Meaning                                                                         |
+| ------------ | ---------- | ------------------------------------------------------------------------------- |
+| `prefix`     | `'verid:'` | Namespaces every key. Pass an empty string to store keys unprefixed.            |
+| `ttlSeconds` | `3600`     | Entry lifetime in seconds. Expired entries read as a miss. `0` disables expiry. |
+
+```ts
+import { LocalStorageCacheManager, VeridBrowserDisclosureClient } from '@ver-id/browser-client';
+
+const verid = new VeridBrowserDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
-  redirectUri: 'REGISTERED_REDIRECT_URI',
-  options: {
-    cacheManager: new LocalStorageCacheManager(),
-  },
+  clientId: '<VERID_DISCLOSURE_FLOW_ID>',
+  redirectUri: 'https://app.example.com/callback',
+  cacheManager: new LocalStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 }),
 });
 ```
 
-This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
+To use your own storage, implement `ICacheManager`: `save(key, value)`, `get(key)` (returns the
+value or `null`), `remove(key)`, and optionally `clear()`. Each may return a value or a promise.
 
-## Examples
+## Errors
 
-See the [sample Vue application](https://github.com/ver-id/verid-sdk-js-mono/tree/main/apps/sample-vue-app) for a complete browser integration example.
+Every error the SDK throws extends `VeridError`.
+
+| Error                        | When                                                                                                                                |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `InvalidArgumentError`       | The configuration or the session input is invalid.                                                                                  |
+| `AuthorizationResponseError` | The callback carries an error from Ver.iD instead of a code.                                                                        |
+| `InvalidAssertionError`      | The callback has no `state`.                                                                                                        |
+| `TokenGrantError`            | The token request failed.                                                                                                           |
+| `InvalidResponseError`       | The token response is malformed.                                                                                                    |
+| `OperationFailedError`       | Discovery or the session request failed, no verifier is cached for the callback's `state`, or the token's signature did not verify. |
+
+## Security
+
+- **No client secret.** Anything in the browser is public. A flow that has a client secret must run
+  on a backend with `@ver-id/node-client`. Used here, `createSession` fails right away: every
+  session starts with an intent, and Ver.iD refuses an intent without the secret for such a flow.
+- **The code verifier stays in the browser.** It is created by `createSession`, kept in the cache
+  store and used once by `finishSession`. Only its hash, the code challenge, goes to Ver.iD.
+- **The result is verified.** `finishSession` checks the token's signature against Ver.iD's keys
+  before returning it.
+- **The result lives in the browser.** Your backend should not trust a result the browser sends it.
+  When your backend needs the result, run the flow there with `@ver-id/node-client`.
 
 ## Troubleshooting
 
-| Problem                                           | Fix                                                                                                                              |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionStorage is not defined`                   | You're running in a non-browser environment. Use `@ver-id/node-client` for server-side flows.                                    |
-| State mismatch after redirect                     | Make sure `redirectUri` matches exactly — including trailing slashes and protocol.                                               |
-| CORS errors on token exchange                     | The Ver.iD authorization server must list your origin. Check your flow settings in [Ver.iD Studio](https://spas.nebula.ver.id/). |
-| `OperationFailedError: Failed to discover issuer` | Verify `issuerUri` is correct and reachable from the browser.                                                                    |
-
-## Acknowledgments
-
-- Built with TypeScript
-- Powered by [oauth4webapi](https://github.com/panva/oauth4webapi)
-- Uses [jose](https://www.npmjs.com/package/jose) for JWT handling
+| Problem                                     | Fix                                                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `sessionStorage is not defined`             | The code runs outside a browser, for example during server-side rendering. Call the client only in the browser. |
+| `no code verifier found for state`          | The session was finished in another browser or tab than the one that created it, or the entry expired.          |
+| The redirect fails at Ver.iD                | `redirectUri` must exactly match a URI registered on the flow, including the protocol and any trailing slash.   |
+| `OperationFailedError` or `TokenGrantError` | Check that `issuerUri` is correct and reachable from the browser, and that the flow has no client secret.       |
 
 ## License
 

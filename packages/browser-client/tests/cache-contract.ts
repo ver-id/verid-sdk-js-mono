@@ -13,7 +13,10 @@ export type CacheManagerFactory = (options?: CacheManagerOptions) => ICacheManag
  * Store-specific behaviour (atomic writes, native TTL, migrations) is covered by the
  * individual suites.
  */
-export function describeCacheManagerContract(name: string, createCacheManager: CacheManagerFactory): void {
+export function describeCacheManagerContract(
+  name: string,
+  createCacheManager: CacheManagerFactory,
+): void {
   describe(`${name} cache manager contract`, () => {
     afterEach(() => {
       jest.restoreAllMocks();
@@ -29,7 +32,9 @@ export function describeCacheManagerContract(name: string, createCacheManager: C
       });
 
       it('should reject a non-string prefix', () => {
-        expect(() => createCacheManager({ prefix: 1 as unknown as string })).toThrow(InvalidArgumentError);
+        expect(() => createCacheManager({ prefix: 1 as unknown as string })).toThrow(
+          InvalidArgumentError,
+        );
       });
     });
 
@@ -78,7 +83,9 @@ export function describeCacheManagerContract(name: string, createCacheManager: C
       it('should reject an empty key', async () => {
         const cacheManager = createCacheManager();
 
-        await expect(async () => cacheManager.save('', 'verifier-a')).rejects.toThrow(InvalidArgumentError);
+        await expect(async () => cacheManager.save('', 'verifier-a')).rejects.toThrow(
+          InvalidArgumentError,
+        );
         await expect(async () => cacheManager.get('')).rejects.toThrow(InvalidArgumentError);
         await expect(async () => cacheManager.remove('')).rejects.toThrow(InvalidArgumentError);
       });
@@ -86,15 +93,17 @@ export function describeCacheManagerContract(name: string, createCacheManager: C
       it('should reject a non-string key', async () => {
         const cacheManager = createCacheManager();
 
-        await expect(async () => cacheManager.get(42 as unknown as string)).rejects.toThrow(InvalidArgumentError);
+        await expect(async () => cacheManager.get(42 as unknown as string)).rejects.toThrow(
+          InvalidArgumentError,
+        );
       });
 
       it('should reject a non-string value', async () => {
         const cacheManager = createCacheManager();
 
-        await expect(async () => cacheManager.save('state-a', 42 as unknown as string)).rejects.toThrow(
-          InvalidArgumentError,
-        );
+        await expect(async () =>
+          cacheManager.save('state-a', 42 as unknown as string),
+        ).rejects.toThrow(InvalidArgumentError);
       });
     });
 

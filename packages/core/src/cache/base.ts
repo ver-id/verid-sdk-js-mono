@@ -47,7 +47,9 @@ export abstract class BaseCacheManager implements ICacheManager {
     const ttlSeconds = options?.ttlSeconds ?? DEFAULT_CACHE_TTL_SECONDS;
     assertNumber(ttlSeconds, 'options.ttlSeconds', InvalidArgumentError, { allowZero: true });
     if (!Number.isInteger(ttlSeconds)) {
-      throw new InvalidArgumentError('Invalid options.ttlSeconds: must be a whole number of seconds');
+      throw new InvalidArgumentError(
+        'Invalid options.ttlSeconds: must be a whole number of seconds',
+      );
     }
 
     this.prefix = prefix;
@@ -100,7 +102,9 @@ export abstract class BaseCacheManager implements ICacheManager {
   protected encodeEntry(prefixedKey: string, value: string): string {
     const expiresAt = this.expiresAt();
     const entry: CacheEntry =
-      expiresAt === undefined ? { key: prefixedKey, value } : { key: prefixedKey, value, expiresAt };
+      expiresAt === undefined
+        ? { key: prefixedKey, value }
+        : { key: prefixedKey, value, expiresAt };
     return JSON.stringify(entry);
   }
 

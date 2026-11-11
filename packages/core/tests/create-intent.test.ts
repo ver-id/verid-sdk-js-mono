@@ -1,7 +1,7 @@
-import { VeridOAuthClient } from '../src/oauth/client';
-import { OAuth4WebApiProvider } from '../src/oauth/provider';
-import { InvalidArgumentError, OperationFailedError } from '../src/error';
-import { AuthorizationServer } from '../src/types/oauth';
+import { VeridOAuthClient } from '../src/oauth/client.js';
+import { OAuth4WebApiProvider } from '../src/oauth/provider/index.js';
+import { InvalidArgumentError, OperationFailedError } from '../src/error/index.js';
+import { AuthorizationServer } from '../src/types/oauth/index.js';
 
 const intent = {
   scope: 'disclosure',

@@ -1,6 +1,6 @@
 export default {
   displayName: '@ver-id/node-client',
-  preset: '../../jest.preset.js',
+  preset: '../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [
@@ -20,14 +20,14 @@ export default {
       },
     ],
   },
+  // The OAuth client imports the ESM-only `jose` and `oauth4webapi` packages. Let swc transform them.
+  transformIgnorePatterns: ['node_modules/(?!(?:.pnpm/)?(?:jose|oauth4webapi))'],
   moduleFileExtensions: ['ts', 'js', 'html'],
-  // Resolve @ver-id/core to its sources rather than its bundled dist. The cache manager
-  // contract in ../core/tests asserts on error classes thrown inside core, and those only
-  // match `instanceof` when both sides come from the same module graph.
+  // Resolve @ver-id/core to its sources rather than its bundled dist: Nx's Jest preset hands
+  // the dist's .cjs files to ts-jest, which TypeScript 6 rejects outside this project's rootDir.
   moduleNameMapper: {
     '^@ver-id/core$': '<rootDir>/../core/src/index.ts',
     '^@ver-id/core/(.+)$': '<rootDir>/../core/src/$1/index.ts',
   },
   coverageDirectory: 'test-output/jest/coverage',
-  passWithNoTests: true,
 };

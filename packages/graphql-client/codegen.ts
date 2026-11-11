@@ -11,6 +11,7 @@ const scalarMap = {
   DomainName: 'string',
   ProfilePicture: 'string | null',
   Entitlement: 'string',
+  HexColor: 'string',
   Email: 'string',
   ISO3166: 'string',
   Password: 'string',
@@ -24,8 +25,6 @@ const scalarMap = {
   URL: 'string',
   URN: 'string',
   UUID: 'string',
-  join__FieldSet: 'unknown',
-  link__Import: 'unknown',
   FilteringValue: 'string | number | boolean | string[]',
   UInt: 'number',
   JSONObject: 'any',
@@ -34,7 +33,9 @@ const scalarMap = {
 };
 
 const config: CodegenConfig = {
-  schema: 'https://graphql.ver.id/',
+  // Garden's merged schema. Not the supergraph: its federation types (join__*, link__*)
+  // would become public exports.
+  schema: '../../../libs/schemas/adam/dist/unified.graphql',
   documents: 'src/**/*.gql',
   generates: {
     // Generate base schema types first

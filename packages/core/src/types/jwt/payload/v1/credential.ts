@@ -6,14 +6,18 @@ import { JSONValue, UUID } from '../../../generic.js';
  *
  * @public
  */
-export enum OutputCredentialType {
-  sd_jwt = 'sd_jwt',
-  mdoc = 'mdoc',
-  yivi = 'yivi',
-  datakeeper = 'datakeeper',
-  nl_wallet = 'nl_wallet',
-  none = 'none',
-}
+export const OutputCredentialType = {
+  sd_jwt: 'sd_jwt',
+  mdoc: 'mdoc',
+  yivi: 'yivi',
+  datakeeper: 'datakeeper',
+  nl_wallet: 'nl_wallet',
+  none: 'none',
+} as const;
+
+/** One of the known values above, or a value added by a newer platform. */
+export type OutputCredentialType =
+  (typeof OutputCredentialType)[keyof typeof OutputCredentialType] | (string & {});
 
 /**
  * Base credential structure shared by all operations.

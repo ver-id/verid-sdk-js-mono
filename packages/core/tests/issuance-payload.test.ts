@@ -1,4 +1,4 @@
-import { assertIssuanceFlatV1JwtPayload, assertIssuanceV1JwtPayload } from '../src/utils/assert';
+import { assertIssuanceFlatV1JwtPayload, assertIssuanceV1JwtPayload } from '../src/utils/assert.js';
 
 // Shaped like the platform's issuance token guards (groot GrootMessagesSSIIssuance*TokenPayloadGuard).
 const ids = {

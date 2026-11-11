@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/graphql-client",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Ver.iD GraphQL client for querying the Ver.iD platform API",
   "license": "MIT",
   "author": "Ver.iD",
@@ -34,7 +34,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@verid-sdk-js-mono/source": "./src/index.ts",
+      "@monorepov2/source": "./src/index.ts",
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
@@ -55,44 +55,53 @@
   "publishConfig": {
     "access": "public"
   },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.3",
+    "@graphql-codegen/near-operation-file-preset": "^5.0.0",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-operations": "^5.0.9",
+    "graphql": "^16.13.1",
+    "tsup": "^8.5.1"
+  },
   "nx": {
+    "tags": [
+      "scope:sdk"
+    ],
     "targets": {
       "build": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "codegen"
-        ],
         "outputs": [
           "{projectRoot}/dist"
         ],
         "options": {
           "command": "tsup",
-          "cwd": "packages/graphql-client"
+          "cwd": "{projectRoot}"
         }
       },
       "codegen": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          {
+            "projects": [
+              "@ver.id/libs.schemas.adam"
+            ],
+            "target": "codegen"
+          }
+        ],
         "options": {
           "commands": [
             "graphql-codegen --config codegen.ts",
             "find src/operations -name '*.gql.ts' -exec node scripts/fix-imports.mjs {} \\;"
           ],
           "parallel": false,
-          "cwd": "packages/graphql-client"
+          "cwd": "{projectRoot}"
         }
       }
     }
   },
-  "devDependencies": {
-    "@graphql-codegen/cli": "^6.1.3",
-    "@graphql-codegen/near-operation-file-preset": "^5.0.0",
-    "@graphql-codegen/typescript": "^4.1.6",
-    "@graphql-codegen/typescript-operations": "^5.0.9",
-    "graphql": "^16.13.1"
-  },
   "dependencies": {
     "@apollo/client": "^4.1.6",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@ver-id/core": "^0.2.0"
+    "@ver-id/core": "^0.3.0"
   }
 }

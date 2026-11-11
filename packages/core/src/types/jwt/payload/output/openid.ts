@@ -6,12 +6,17 @@ import { JWTPayload } from 'jose';
  *
  * @public
  */
-export enum OpenIdJwtCompanyIdentifierType {
+export const OpenIdJwtCompanyIdentifierType = {
   /** Unknown or unspecified identifier type */
-  'UNKNOWN' = 'UNKNOWN',
+  UNKNOWN: 'UNKNOWN',
   /** Dutch Chamber of Commerce (Kamer van Koophandel) number */
-  'NL_KVK' = 'NL_KVK',
-}
+  NL_KVK: 'NL_KVK',
+} as const;
+
+/** One of the known values above, or a value added by a newer platform. */
+export type OpenIdJwtCompanyIdentifierType =
+  | (typeof OpenIdJwtCompanyIdentifierType)[keyof typeof OpenIdJwtCompanyIdentifierType]
+  | (string & {});
 
 /**
  * Enumeration of company legal entity types.
@@ -19,53 +24,57 @@ export enum OpenIdJwtCompanyIdentifierType {
  *
  * @public
  */
-export enum OpenIdJwtCompanyType {
-  'UNKNOWN' = 'UNKNOWN',
-  'NL_RNP_EZ' = 'NL_RNP_EZ',
-  'NL_RS_RED' = 'NL_RS_RED',
-  'NL_RS_MA' = 'NL_RS_MA',
-  'NL_RS_VOF' = 'NL_RS_VOF',
-  'NL_RS_CV' = 'NL_RS_CV',
-  'NL_RR_BV' = 'NL_RR_BV',
-  'NL_RR_NV' = 'NL_RR_NV',
-  'NL_RR_COP' = 'NL_RR_COP',
-  'NL_RR_KG' = 'NL_RR_KG',
-  'NL_RR_VVE' = 'NL_RR_VVE',
-  'NL_RR_OWM' = 'NL_RR_OWM',
-  'NL_RR_ST' = 'NL_RR_ST',
-  'NL_RR_EESV' = 'NL_RR_EESV',
-  'NL_RR_SE' = 'NL_RR_SE',
-  'NL_RR_VER' = 'NL_RR_VER',
-  'NL_RR_OPR' = 'NL_RR_OPR',
-  'NL_RR_SCE' = 'NL_RR_SCE',
-  'NL_RR_PR' = 'NL_RR_PR',
-  'NL_RBV_0001' = 'NL_RBV_0001',
-  'NL_RBV_0002' = 'NL_RBV_0002',
-  'NL_RBV_0003' = 'NL_RBV_0003',
-  'NL_ROP_01' = 'NL_ROP_01',
-  'NL_ROP_02' = 'NL_ROP_02',
-  'NL_ROP_03' = 'NL_ROP_03',
-  'NL_ROP_04' = 'NL_ROP_04',
-  'NL_ROP_05' = 'NL_ROP_05',
-  'NL_ROP_06' = 'NL_ROP_06',
-  'NL_ROP_07' = 'NL_ROP_07',
-  'NL_ROP_08' = 'NL_ROP_08',
-  'NL_ROP_09' = 'NL_ROP_09',
-  'NL_RP_01' = 'NL_RP_01',
-  'NL_RP_02' = 'NL_RP_02',
-  'NL_RP_03' = 'NL_RP_03',
-  'NL_RP_04' = 'NL_RP_04',
-  'NL_RP_05' = 'NL_RP_05',
-  'NL_RP_06' = 'NL_RP_06',
-  'NL_RP_07' = 'NL_RP_07',
-  'NL_RP_08' = 'NL_RP_08',
-  'NL_RP_09' = 'NL_RP_09',
-  'NL_RP_10' = 'NL_RP_10',
-  'NL_RP_11' = 'NL_RP_11',
-  'NL_RP_12' = 'NL_RP_12',
-  'NL_RP_13' = 'NL_RP_13',
-  'NL_RP_14' = 'NL_RP_14',
-}
+export const OpenIdJwtCompanyType = {
+  UNKNOWN: 'UNKNOWN',
+  NL_RNP_EZ: 'NL_RNP_EZ',
+  NL_RS_RED: 'NL_RS_RED',
+  NL_RS_MA: 'NL_RS_MA',
+  NL_RS_VOF: 'NL_RS_VOF',
+  NL_RS_CV: 'NL_RS_CV',
+  NL_RR_BV: 'NL_RR_BV',
+  NL_RR_NV: 'NL_RR_NV',
+  NL_RR_COP: 'NL_RR_COP',
+  NL_RR_KG: 'NL_RR_KG',
+  NL_RR_VVE: 'NL_RR_VVE',
+  NL_RR_OWM: 'NL_RR_OWM',
+  NL_RR_ST: 'NL_RR_ST',
+  NL_RR_EESV: 'NL_RR_EESV',
+  NL_RR_SE: 'NL_RR_SE',
+  NL_RR_VER: 'NL_RR_VER',
+  NL_RR_OPR: 'NL_RR_OPR',
+  NL_RR_SCE: 'NL_RR_SCE',
+  NL_RR_PR: 'NL_RR_PR',
+  NL_RBV_0001: 'NL_RBV_0001',
+  NL_RBV_0002: 'NL_RBV_0002',
+  NL_RBV_0003: 'NL_RBV_0003',
+  NL_ROP_01: 'NL_ROP_01',
+  NL_ROP_02: 'NL_ROP_02',
+  NL_ROP_03: 'NL_ROP_03',
+  NL_ROP_04: 'NL_ROP_04',
+  NL_ROP_05: 'NL_ROP_05',
+  NL_ROP_06: 'NL_ROP_06',
+  NL_ROP_07: 'NL_ROP_07',
+  NL_ROP_08: 'NL_ROP_08',
+  NL_ROP_09: 'NL_ROP_09',
+  NL_RP_01: 'NL_RP_01',
+  NL_RP_02: 'NL_RP_02',
+  NL_RP_03: 'NL_RP_03',
+  NL_RP_04: 'NL_RP_04',
+  NL_RP_05: 'NL_RP_05',
+  NL_RP_06: 'NL_RP_06',
+  NL_RP_07: 'NL_RP_07',
+  NL_RP_08: 'NL_RP_08',
+  NL_RP_09: 'NL_RP_09',
+  NL_RP_10: 'NL_RP_10',
+  NL_RP_11: 'NL_RP_11',
+  NL_RP_12: 'NL_RP_12',
+  NL_RP_13: 'NL_RP_13',
+  NL_RP_14: 'NL_RP_14',
+} as const;
+
+/** One of the known values above, or a value added by a newer platform. */
+export type OpenIdJwtCompanyType =
+  (typeof OpenIdJwtCompanyType)[keyof typeof OpenIdJwtCompanyType] | (string & {});
 
 /**
  * Enumeration of National Identification Number (NIN) types.
@@ -73,12 +82,16 @@ export enum OpenIdJwtCompanyType {
  *
  * @public
  */
-export enum OpenIdJwtNINIdentifierType {
+export const OpenIdJwtNINIdentifierType = {
   /** Unknown or unspecified identifier type */
-  'UNKNOWN' = 'UNKNOWN',
+  UNKNOWN: 'UNKNOWN',
   /** Dutch Citizen Service Number (Burgerservicenummer) */
-  'NL_BSN' = 'NL_BSN',
-}
+  NL_BSN: 'NL_BSN',
+} as const;
+
+/** One of the known values above, or a value added by a newer platform. */
+export type OpenIdJwtNINIdentifierType =
+  (typeof OpenIdJwtNINIdentifierType)[keyof typeof OpenIdJwtNINIdentifierType] | (string & {});
 
 /**
  * Structured address information following OpenID Connect standard.
@@ -88,21 +101,21 @@ export enum OpenIdJwtNINIdentifierType {
  */
 export interface OpenIdJwtAddress {
   /** Full formatted address string ready for display */
-  formatted: string;
+  formatted?: string;
   /** Full street address including house number */
-  street_address: string;
+  street_address?: string;
   /** Postal or ZIP code */
-  postal_code: string;
+  postal_code?: string;
   /** House or building number */
-  house_number: string;
+  house_number?: string;
   /** Street name without house number */
-  street: string;
+  street?: string;
   /** City or locality name */
-  locality: string;
+  locality?: string;
   /** State, province, or region */
-  region: string;
+  region?: string;
   /** Country name or code */
-  country: string;
+  country?: string;
 }
 
 /**

@@ -24,8 +24,8 @@ The TypeScript SDK for browser applications to perform authentication and verifi
 - OAuth 2.1 Authentication
 - Verification for KYC/KYB flows
 - Default PKCE support
-- Automatic token management with session/local storage caching
-- JWT token decoding and validation
+- PKCE verifier kept in session or local storage
+- Result tokens verified before they are returned
 
 **Use Cases:**
 
@@ -37,29 +37,21 @@ The TypeScript SDK for browser applications to perform authentication and verifi
 ### Authentication flow
 
 ```ts
-import { VeridAuthenticationClient } from '@ver-id/browser-client';
+import { VeridBrowserAuthenticationClient } from '@ver-id/browser-client';
 
-// Create authentication client
-const authenticationClient = new VeridAuthenticationClient({
+const verid = new VeridBrowserAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+  redirectUri: '<REGISTERED_REDIRECT_URI>', // One of the redirect URIs registered on the flow
 });
 
-// Generate authentication url
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
-});
+// Start the session and send the user to Ver.iD
+const { url } = await verid.createSession({ scope: 'openid profile' });
+window.location.href = url;
 
-// Redirects the user to the Ver.iD authentication flow
-window.location.href = authenticationUrl;
-
-// User authenticates and is redirected back to your callback URL
-// Finalize the flow to get the response
-const authenticationResponse = await authenticationClient.finalize();
-
-// Decode the token
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
+// On the redirect URI page: exchange the code and verify the result token
+const result = await verid.finishSession();
+if (result.format === 'openid') console.log(result.payload.sub);
 ```
 
 For comprehensive configurations and examples, see the [browser-client.](./packages/browser-client/README.md)
@@ -73,8 +65,8 @@ The TypeScript SDK for Node.js server applications to perform authentication and
 - OAuth 2.1 Authentication (Server-side)
 - Verification for KYC/KYB flows
 - Default PKCE support
-- JWT token decoding and validation
-- Secure server-side token handling
+- Result tokens verified before they are returned
+- Client secret and PKCE verifier kept on the server
 
 **Use Cases:**
 
@@ -86,45 +78,43 @@ The TypeScript SDK for Node.js server applications to perform authentication and
 ### Authentication flow
 
 ```ts
-import { VeridAuthenticationClient } from '@ver-id/node-client';
+import { MemoryStorageCacheManager, VeridAuthenticationClient } from '@ver-id/node-client';
 
-// Create authentication client
-const authenticationClient = new VeridAuthenticationClient({
+const verid = new VeridAuthenticationClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
   clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+  clientSecret: process.env.VERID_CLIENT_SECRET!,
+  redirectUri: '<REGISTERED_REDIRECT_URI>', // One of the redirect URIs registered on the flow
+  cacheManager: new MemoryStorageCacheManager(), // RedisCacheManager or DynamoDBCacheManager for several instances
 });
 
-// Generate authentication url
-const { authenticationUrl, state } = await authenticationClient.generateAuthenticationUrl({
-  scope: '<SCOPES_TO_REQUEST>',
+// Start the session and redirect the user to Ver.iD
+app.get('/login', async (_req, res) => {
+  const { url } = await verid.createSession({ scope: 'openid profile' });
+  res.redirect(url);
 });
 
-// Redirect the user to the Ver.iD authentication flow. It can be done via browser or backend based on your system architecture.
-// User authenticates and is redirected back to your callback URL
-
-// In your callback handler, finalize the flow to get the response
-const authenticationResponse = await authenticationClient.finalize({
-  clientAuth: { client_secret: 'YOUR_CLIENT_SECRET' },
-  callbackParams: callbackUrl.searchParams,
+// On the redirect URI: exchange the code and verify the result token
+app.get('/callback', async (req, res) => {
+  const result = await verid.finishSession({ callbackUrl: req.originalUrl });
+  if (result.format === 'openid') req.session.userId = result.payload.sub;
+  res.redirect('/');
 });
-
-// Decode the token
-const authenticationDecodedToken = await authenticationClient.decode(authenticationResponse);
 ```
 
 For comprehensive configurations and examples, see the [node-client.](./packages/node-client/README.md)
 
 ### [@ver-id/embedded-browser-client](./packages/embedded-browser-client) + [@ver-id/embedded-node-client](./packages/embedded-node-client)
 
-A matched pair of SDKs that run a Ver.iD flow **inside your own page** instead of redirecting the user away. The browser half loads Ver.iD's embedded card and reports its lifecycle; the Node half holds the PKCE verifier, receives a signed webhook, and exchanges the authorization code. Neither works without the other.
+A matched pair of SDKs that run a Ver.iD flow **inside your own page** instead of redirecting the user away. The Node half creates the session and finishes it from a signed webhook; the browser half mounts Ver.iD's embedded card and reports its lifecycle. Neither works without the other.
 
 **Features:**
 
 - In-page identity flows — no full-page redirect, no popup
 - PKCE verifier and client secret never leave the server
 - Lifecycle events (`ready`, `complete`, `error`, `cancel`), reported only to the flow's allowed embed origins
-- HMAC-signed server-to-server webhook carrying the authorization code
+- HMAC-signed server-to-server webhook carrying the authorization code, checked before it is read
+- The result goes to your backend only, never to the browser
 - Same authentication, disclosure and issuance clients as the redirect SDKs
 
 **Use Cases:**
@@ -137,66 +127,63 @@ A matched pair of SDKs that run a Ver.iD flow **inside your own page** instead o
 
 ```ts
 // ── SERVER ─────────────────────────────────────────────────────────────────
-import { VeridEmbeddedDisclosureClient } from '@ver-id/embedded-node-client';
+import express from 'express';
+import {
+  MemoryStorageCacheManager,
+  SessionFinishError,
+  VeridEmbeddedDisclosureClient,
+} from '@ver-id/embedded-node-client';
 
-const disclosureClient = new VeridEmbeddedDisclosureClient({
+const verid = new VeridEmbeddedDisclosureClient({
   issuerUri: '<VERID_OAUTH_ISSUER_URI>',
   clientId: '<VERID_DISCLOSURE_FLOW_ID>',
-  // No redirectUri in embedded mode — the code is bound to the client via PKCE.
+  clientSecret: process.env.VERID_CLIENT_SECRET!,
+  webhookUri: 'https://your-public-host/api/verid/webhook',
+  webhookSecret: process.env.VERID_WEBHOOK_SECRET!,
+  cacheManager: new MemoryStorageCacheManager(),
 });
 
-// POST /api/disclosure/embedded/start
-const bootstrap = await disclosureClient.createEmbeddedSession({
-  scope: '<SCOPES_TO_REQUEST>',
-  webhookUri: 'https://your-public-host/api/disclosure/embedded/webhook',
+app.post('/api/verid/session', async (req, res) => {
+  const { sessionContext, state } = await verid.createSession();
+  await sessions.save(state, req.user.id); // the webhook has no user session
+  res.json({ sessionContext });
 });
 
-// bootstrap = { clientId, scope, state, codeChallenge, webhookUri, loaderUri }
-// The code_verifier stays server-side, cached under bootstrap.state.
-res.json(bootstrap);
+// The webhook route needs the RAW body: the signature covers the exact bytes.
+app.post('/api/verid/webhook', express.text({ type: '*/*' }), async (req, res) => {
+  try {
+    const outcome = await verid.finishSession({ rawBody: req.body, headers: req.headers });
+    if (outcome.kind === 'completed') await results.save(outcome.state, outcome.result);
+    res.sendStatus(204);
+  } catch (error) {
+    if (!(error instanceof SessionFinishError)) return res.sendStatus(401);
+    if (await results.has(error.state)) return res.sendStatus(204); // a redelivery
+    await sessions.markFailed(error.state, error.cause);
+    res.sendStatus(500); // Ver.iD retries
+  }
+});
 ```
 
 ```ts
 // ── BROWSER ────────────────────────────────────────────────────────────────
 import { mountVeridEmbeddedComponent } from '@ver-id/embedded-browser-client';
 
-const bootstrap = await fetch('/api/disclosure/embedded/start', { method: 'POST' }).then((r) =>
+const { sessionContext } = await fetch('/api/verid/session', { method: 'POST' }).then((r) =>
   r.json(),
 );
 
-const veridComponent = mountVeridEmbeddedComponent({
-  container: document.getElementById('verid-embed'),
-  ...bootstrap,
+const component = mountVeridEmbeddedComponent({
+  container: document.getElementById('verid-embed')!,
+  sessionContext,
 });
 
 // Nothing starts until open(): call it from your own button, or right away to start on load.
-document.getElementById('verid-continue').addEventListener('click', () => veridComponent.open());
+document.getElementById('verid-continue')!.addEventListener('click', () => component.open());
 
-veridComponent.addEventListener('complete', () => {
-  // A lifecycle signal, not a result: the token arrives on your backend via the
-  // webhook. Poll your own endpoint for it.
-  pollForResult(bootstrap.state);
-});
-```
-
-```ts
-// ── SERVER ─────────────────────────────────────────────────────────────────
-// The webhook route needs the RAW body — the HMAC covers the exact bytes.
-app.use('/api/disclosure/embedded/webhook', express.text({ type: '*/*' }));
-app.use(express.json());
-
-app.post('/api/disclosure/embedded/webhook', async (req, res) => {
-  const result = await disclosureClient.finalizeEmbedded({
-    rawBody: req.body,
-    signature: req.header('x-signature-256'),
-    secret: process.env.VERID_EMBEDDED_DISCLOSURE_WEBHOOK_SECRET,
-    clientAuth: { client_secret: 'YOUR_CLIENT_SECRET' },
-  });
-
-  const token = await disclosureClient.decode(result, assertDisclosureV1JwtPayload);
-  resultStore.resolve(result.state, token);
-
-  res.json({ received: true });
+component.onComplete(() => {
+  // A lifecycle signal, not a result: the result arrives on your backend via the
+  // webhook. Ask your own backend for it.
+  pollForResult();
 });
 ```
 
@@ -241,7 +228,7 @@ For comprehensive configurations and examples, see the [graphql-client](packages
 ### [@ver-id/core](./packages/core)
 
 The shared foundation every client above is built on: the abstract flow clients, the OAuth client,
-the cache contract, the embedded webhook parser, the error hierarchy and the shared types. It is
+the cache contract, the error hierarchy and the shared types. It is
 published as its own package and listed as a dependency of the other clients, so a fix lands once
 instead of being duplicated into five bundles.
 
@@ -250,112 +237,48 @@ when you are building your own client on top of the Ver.iD protocol.
 
 For details, see the [core](./packages/core/README.md) README.
 
-### Prerequisites
+### Requirements
 
-- Node.js >= 18.0.0
-- yarn >= 4.0.0
+Install each package from npm with your package manager (`npm install @ver-id/node-client`).
+The server packages need Node.js 18 or newer.
 
-## Example Application
+## Embedded mode prerequisites
 
-Want to see the SDKs in action? Check out the [Vue 3 Example App](./apps/sample-vue-app) that demonstrates:
+The embedded packages need two things the redirect packages do not.
 
-- Complete OAuth authentication flow with PKCE
-- Embedded (iframe) flows for authentication, disclosure and issuance
-- Token exchange and JWT decoding
-- GraphQL queries
-- Interactive code examples
+**A publicly reachable webhook URL.** Ver.iD delivers the authorization code by POSTing
+to your server directly, so a `localhost` address is never reachable. During development,
+expose your server with a tunnel (`cloudflared tunnel --url http://localhost:3000` or
+`ngrok http 3000`) and use the printed URL as the webhook URI.
 
-### Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/ver-id/verid-sdk-js-mono
-cd verid-sdk-js-mono
-
-# Install dependencies and build
-yarn install
-yarn nx run-many -t build
-
-# Configure your Ver.iD credentials for the Vue app
-cd apps/sample-vue-app
-cp .env.example .env
-# Edit .env with your credentials
-
-# Configure your Ver.iD credentials for the Node server (required for Node.js flow)
-cd ../sample-node-server
-cp .env.example .env
-# Edit .env with your credentials
-
-# Run the example app
-cd ../..
-yarn nx serve sample-vue-app
-
-# In a separate terminal, run the Node.js backend server (required for Node.js flow)
-yarn nx serve sample-node-server
-```
-
-Visit `http://localhost:4200` to explore the examples.
-
-**Note:** The Node.js flow requires both the Vue app and the Node server to be running:
-- Vue app: `http://localhost:4200` (frontend)
-- Node server: `http://localhost:3000` (backend API for server-side OAuth flow)
-
-### Execution modes
-
-Each of the three flow scopes — authentication, disclosure and issuance — can be run three ways from the example app:
-
-| Mode | What happens | Packages |
-| --- | --- | --- |
-| **Browser** | Full-page redirect to Ver.iD, driven entirely from the SPA | `@ver-id/browser-client` |
-| **Node.js** | Full-page redirect to Ver.iD, driven from the backend | `@ver-id/node-client` |
-| **Embedded** | The flow renders in an iframe on the page; the backend finalizes it from a signed webhook | `@ver-id/embedded-browser-client` + `@ver-id/embedded-node-client` |
-
-### Embedded mode prerequisites
-
-Embedded mode needs two things beyond the redirect modes.
-
-**1. A publicly reachable webhook URL.** Ver.iD delivers the authorization code by POSTing to your server directly, so `http://localhost:3000` is never reachable. Set `VERID_WEBHOOK_PUBLIC_URL` in `apps/sample-node-server/.env` to a host Ver.iD can resolve:
-
-```bash
-# Start a tunnel to the Node server
-cloudflared tunnel --url http://localhost:3000
-# ...then paste the printed URL:
-VERID_WEBHOOK_PUBLIC_URL=https://your-tunnel-subdomain.trycloudflare.com
-```
-
-The server refuses to start an embedded session when this points at `localhost`, rather than leaving the browser waiting on a webhook that will never arrive. `ngrok http 3000` works equally well. If you run Ver.iD in a local Garden cluster, its wildcard DNS already resolves your profile host from inside the cluster, so `http://<profile>.ver.garden:3000` works without a tunnel — bind the server with `HOST=0.0.0.0` so it accepts connections from outside the loopback interface.
-
-**2. Flows registered for embedded delivery.** Each scope needs a flow whose registration includes your page origin as an allowed embed origin, your webhook URL, and a webhook signing secret. Configure them per scope:
-
-```bash
-# apps/sample-node-server/.env
-VERID_EMBEDDED_DISCLOSURE_FLOW_ID=<flow id>
-VERID_EMBEDDED_DISCLOSURE_WEBHOOK_SECRET=<signing secret>
-VERID_EMBEDDED_DISCLOSURE_SCOPES=disclosure
-
-# apps/sample-vue-app/.env — the app shows the id, the browser never sees the secret
-VITE_VERID_EMBEDDED_DISCLOSURE_FLOW_ID=<flow id>
-```
-
-Note that `VERID_EMBEDDED_AUTHENTICATION_SCOPES` must request more than `openid` alone — `openid profile` is the working default.
-
+**Flows registered for embedded delivery.** Each flow you embed must list your page's
+origin as an allowed embed origin and carry your webhook URL and a webhook signing secret,
+configured in Ver.iD Studio. A page whose origin is not allowed hears only `onError`, never
+`onReady`, `onComplete` or `onCancel`. Note that an authentication flow must request more than `openid`
+alone; `openid profile` is the working default.
 
 ## Changelogs
 
-Each package keeps its own changelog, written automatically on release from
-conventional commits. A package's changelog appears once it has shipped its first
+Each package keeps its own changelog, written on release from the release notes of the
+changes it contains. A package's changelog appears once it has shipped its first
 release.
 
+- [@ver-id/core](./packages/core/CHANGELOG.md)
 - [@ver-id/browser-client](./packages/browser-client/CHANGELOG.md)
 - [@ver-id/node-client](./packages/node-client/CHANGELOG.md)
+- [@ver-id/embedded-browser-client](./packages/embedded-browser-client/CHANGELOG.md)
+- [@ver-id/embedded-node-client](./packages/embedded-node-client/CHANGELOG.md)
 - [@ver-id/graphql-client](./packages/graphql-client/CHANGELOG.md)
 
-Upgrading between versions is covered in [UPGRADING.md](./UPGRADING.md), and the
-release process in [RELEASING.md](./RELEASING.md).
+A breaking change's entry says what to change when you upgrade. How releases are made
+is in [CONTRIBUTING.md](./CONTRIBUTING.md#releases).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and commit message format.
+This repository is a read-only mirror: the SDK is developed in Ver.iD's internal
+monorepo, and pull requests here are not merged. Issues are welcome, for problems and
+for change requests; [CONTRIBUTING.md](CONTRIBUTING.md) says what a useful report
+contains and how the SDK is developed and released.
 
 ## License
 

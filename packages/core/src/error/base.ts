@@ -21,8 +21,19 @@ export abstract class VeridError extends Error {
    */
   protected abstract readonly _type_description: string;
 
-  constructor(message: string) {
-    super(message);
+  /**
+   * @param message - What went wrong
+   * @param cause - The underlying error, appended to the message and kept as `cause`
+   */
+  constructor(message: string, cause?: unknown) {
+    super(
+      cause === undefined
+        ? message
+        : `${message}: ${cause instanceof Error ? cause.message : String(cause)}`,
+    );
+    if (cause !== undefined) {
+      this.cause = cause;
+    }
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
   }

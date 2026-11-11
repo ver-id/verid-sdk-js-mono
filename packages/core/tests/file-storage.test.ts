@@ -1,9 +1,9 @@
 import { existsSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { InvalidArgumentError } from '../src/error/index';
-import { FileStorageCacheManager } from '../src/cache/node/file-storage';
-import { describeCacheManagerContract } from './cache-contract';
+import { InvalidArgumentError } from '../src/error/index.js';
+import { FileStorageCacheManager } from '../src/cache/node/file-storage.js';
+import { describeCacheManagerContract } from './cache-contract.js';
 
 describe('FileStorageCacheManager', () => {
   let cacheDir: string;
@@ -24,7 +24,9 @@ describe('FileStorageCacheManager', () => {
 
   describe('constructor', () => {
     it('should reject a non-string cache directory', () => {
-      expect(() => new FileStorageCacheManager(42 as unknown as string)).toThrow(InvalidArgumentError);
+      expect(() => new FileStorageCacheManager(42 as unknown as string)).toThrow(
+        InvalidArgumentError,
+      );
     });
   });
 
@@ -82,7 +84,10 @@ describe('FileStorageCacheManager', () => {
       const first = new FileStorageCacheManager(cacheDir);
       const second = new FileStorageCacheManager(cacheDir);
 
-      await Promise.all([first.save('state-a', 'verifier-a'), second.save('state-b', 'verifier-b')]);
+      await Promise.all([
+        first.save('state-a', 'verifier-a'),
+        second.save('state-b', 'verifier-b'),
+      ]);
 
       expect(first.get('state-a')).toBe('verifier-a');
       expect(first.get('state-b')).toBe('verifier-b');

@@ -6,12 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "lib": ["ESNext", "DOM"]
   },
-  "include": [
-    "jest.config.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ],
+  "include": ["jest.config.ts", "jest.setup.ts", "tests/**/*.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

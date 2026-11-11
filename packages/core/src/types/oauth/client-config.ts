@@ -19,7 +19,7 @@ export interface ClientConfig {
    * {@link AuthorizationServer.id_token_signing_alg_values_supported `as.id_token_signing_alg_values_supported`}
    * and fall back to `RS256` when the authorization server metadata is not set.
    */
-  readonly id_token_signed_response_alg?: string
+  readonly id_token_signed_response_alg?: string;
 
   /**
    * Additional metadata about the OAuth client.

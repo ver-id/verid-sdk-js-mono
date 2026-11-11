@@ -1,340 +1,122 @@
 ## Issuance
 
-Execute an issuance flow to issue verified credentials to users. This allows you to create and deliver digital credentials that users can store in their decentralized identity wallets, enabling them to prove attributes about themselves without repeatedly going through verification processes.
+Issue credentials, such as a membership card, a certificate or a licence, to a user's identity
+wallet. The user can then prove those attributes elsewhere without being verified again.
 
-### Create an Issuance client
+Create an issuance flow in [Ver.iD Studio](https://spas.nebula.ver.id/), choose the credentials it
+issues, register your redirect URI, and copy its flow id and client secret. Configuration, cache
+stores, errors and security notes are in the [README](./README.md).
+
+### Create the client
 
 ```ts
-import { VeridIssuanceClient } from '@ver-id/node-client';
+import { RedisCacheManager, VeridIssuanceClient } from '@ver-id/node-client';
 
-const issuanceClient = new VeridIssuanceClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+const verid = new VeridIssuanceClient({
+  issuerUri: process.env.VERID_ISSUER_URI!,
+  clientId: process.env.VERID_ISSUANCE_FLOW_ID!,
+  clientSecret: process.env.VERID_CLIENT_SECRET!,
+  redirectUri: 'https://app.example.com/verid/callback',
+  cacheManager: new RedisCacheManager({ client: redisClient }),
 });
 ```
 
-#### Caching options
+### Start a session
 
-The issuance client can be configured to cache flow context (state and code verifiers) using file storage. The default is `FileStorageCacheManager`, which writes one JSON file per entry under `~/.verid-cache/`. Every read and write goes to disk, so all processes on the same host share the cache. This setting can be controlled using the `cacheManager` option when creating the issuance client.
+`createSession` takes what to issue, as exactly one of `mapping` or `data`.
 
-To use the default file storage, no additional options are required. To configure the client to use a custom cache directory:
-
-```ts
-import { VeridIssuanceClient, FileStorageCacheManager } from '@ver-id/node-client';
-
-const issuanceClient = new VeridIssuanceClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  clientId: '<VERID_ISSUANCE_FLOW_ID>',
-  redirectUri: 'REGISTERED_REDIRECT_URI',
-  options: {
-    cacheManager: new FileStorageCacheManager('/path/to/custom/cache'), // Use custom directory for file storage
-  },
-});
-```
-
-`FileStorageCacheManager` takes the same `options` as every other Ver.iD cache manager: `prefix` (default `'verid:'`) namespaces the keys, and `ttlSeconds` (default `3600`) expires them. Pass `0` to disable expiry.
+With `mapping`, you set the custom claims mapped on the flow in Ver.iD Studio. Include every claim
+the flow maps:
 
 ```ts
-new FileStorageCacheManager('/path/to/custom/cache', { prefix: 'myapp:', ttlSeconds: 600 });
-```
-
-**Important:** This feature allows the caching of flow context **such as state and code verifier** to be stored in the specified cache store.
-
-**File Storage Benefits:**
-
-- **Persistence**: Data survives server restarts and process terminations
-- **Security**: Files are created with restrictive permissions (0o600)
-- **Atomicity**: Each entry is written atomically to its own file, so concurrent writers never corrupt or overwrite each other's entries
-- **Multi-process**: A flow started by one worker can be finalized by another worker on the same host
-- **Expiry**: Entries expire after `ttlSeconds` (default: 1 hour), so abandoned flows do not accumulate
-- **Cross-session**: Enables issuance flows that span multiple HTTP requests
-
-Choosing file storage is ideal for server-side applications where data needs to persist across requests and server restarts.
-
-Processes spread over multiple hosts or containers do not share a filesystem. Use `RedisCacheManager` or `DynamoDBCacheManager` for those deployments.
-
-#### Creating a custom cache
-
-The client can be configured to use a custom cache store that is implemented by your application. This is useful if you want to have more control over the stored context (e.g., using Redis, database, or encrypted storage).
-
-To do this, provide an object to the `cacheManager` property of the client configuration.
-
-The object should implement the following functions. Note that all of these functions can optionally return a Promise or a static value.
-
-| Signature                          | Return type               | Description                                                                                   |
-| ---------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `get(key)`                         | Promise<string> or string or null | Returns the item from the cache with the specified key, or `null` if it was not found    |
-| `save(key: string, value: string)` | Promise<void> or void     | Sets an item into the cache                                                                   |
-| `remove(key)`                      | Promise<void> or void     | Removes a single item from the cache at the specified key, or no-op if the item was not found |
-
-Here's an example of a custom cache implementation that uses an in-memory store:
-
-```ts
-const CustomMemoryCache = {
-  private store: Record<string, string> = {};
-  
-  save(key: string, value: string) {
-    this.store[key] = value;
-  },
-  get(key: string) {
-    return this.store[key] || null;
-  },
-  remove(key: string) {
-    delete this.store[key];
-  }
-}
-
-const issuanceClient = new VeridIssuanceClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  clientId: '<VERID_ISSUANCE_FLOW_ID>',
-  redirectUri: 'REGISTERED_REDIRECT_URI',
-  options: {
-    cacheManager: CustomMemoryCache // use custom store for caching
-  }
-})
-```
-
-### Issuance Flow
-
-**Important:** Issuance flows **require** intent creation. The intent must contain the credential issuance payload with mapping or data information.
-
-#### Step 1: Generate Code Challenge
-
-First, generate a PKCE code challenge:
-
-```ts
-const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
-```
-
-#### Step 2: Create Issuance Intent (Required)
-
-Create an issuance intent with the credential payload. This step is **mandatory** for issuance flows.
-
-**Important:** You must provide **either** `payload.mapping` **or** `payload.data`, but **not both**. Choose the approach based on your use case:
-
-##### Option A: Using Mapping (Recommended for flexible credential structures)
-
-Use `mapping` object to assign values to custom claims mapped to one or multiple attributes. You can define and assign mappings to the issuance flow using Ver.iD Studio. Please make sure that all the attributes in your flow are mapped to custom claims and `mapping` object includes all the custom claims.
-
-```ts
-const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      mapping: {
-        // Map credential attributes to your data fields
-        firstName: 'John',
-        email: 'john.doe@example.com',
-        dateOfBirth: '1990-01-01',
-        // ... other attribute mappings
-      },
+app.post('/issue', async (req, res) => {
+  const { url, state, issuanceRunUuid } = await verid.createSession({
+    mapping: {
+      firstName: 'John',
+      email: 'john.doe@example.com',
+      dateOfBirth: '1990-01-01',
     },
-    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
-    brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-  },
-  codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
-);
-```
-##### Option B: Using Data (when no mapping are assigned)
-
-Use `data` array when you don't have mappings assigned to your flow. Please make sure that you have all the attributes from you flow defined in the data array.
-
-```ts
-const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      data: [{
-        attributeUuid: '<ATTRIBUTE_UUID>', // UUID of the attribute being issued
-        value: 'John',
-      }],
-    },
-    challenge: '<OPTIONAL_CHALLENGE_UUID>', // Optional
-    brandUuid: '<OPTIONAL_BRAND_UUID>', // Optional
-  },
-  codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' }, // Client authentication required for Node.js
-);
-```
-
-**When to use data:**
-- You need to specify exact UUIDs for attributes, credentials, issuers, schemes, and providers
-- You're working with multiple credential types and need precise control
-- You need to reference specific credential configurations by UUID
-- You're programmatically managing credential metadata
-
-**Parameters Summary:**
-
-Required (choose **one**):
-- `payload.mapping` - Object mapping credential attribute names to values
-- `payload.data` - Explicit credential data object with UUIDs and values
-  - `payload.data.attributeUuid` - UUID of the attribute being issued
-  - `payload.data.value` - The actual credential data to be issued
-
-Optional:
-- `challenge` - Custom challenge string for additional security
-- `brandUuid` - Brand-specific customization for the issuance experience
-
-#### Step 3: Generate Issuance URL with Intent
-
-Generate the issuance URL using the created intent:
-
-```ts
-const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intentId, // Intent ID is mandatory for issuance flows
-  state: state, // Use the state from Step 1
-  codeChallenge: codeChallenge, // Use the code challenge from Step 1
+  });
+  req.session.verid = { state, issuanceRunUuid };
+  res.redirect(url);
 });
 ```
 
-**Note:** The `intentId` parameter is **required** for `generateIssuanceUrl`. You cannot generate an issuance URL without first creating an intent.
-
-#### Advanced PKCE Configuration
-
-Issuance flows are compliant with OAuth 2.1 and use PKCE (Proof Key for Code Exchange) for security. By default, PKCE options (code challenge and state) are automatically generated by `generateCodeChallenge`. However, you can provide your own PKCE configuration for advanced use cases.
-
-##### Using Custom State
-
-You can provide your own unique state identifier:
+With `data`, you set attribute values directly by attribute UUID. Use it for flows without
+mappings, and include every attribute the flow issues:
 
 ```ts
-const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intentId,
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-  },
+const { url, state } = await verid.createSession({
+  data: [
+    { attributeUuid: '<ATTRIBUTE_UUID>', value: 'John' },
+    { attributeUuid: '<ANOTHER_ATTRIBUTE_UUID>', value: 'john.doe@example.com' },
+  ],
 });
 ```
 
-**Important:** State is mandatory if `pkceOptions` are being provided.
+Input:
 
-##### Using External Code Challenge
+| Field                           | Description                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `mapping`                       | Values by custom claim name. Give this or `data`, not both.                                       |
+| `data`                          | `{ attributeUuid, value }` entries. Give this or `mapping`, not both.                             |
+| `expirationDuration`            | Optional. How long the issued credentials stay valid, in seconds. Overrides the flow's setting.   |
+| `credentialExpirationDurations` | Optional. Validity in seconds per credential, by credential UUID. Overrides `expirationDuration`. |
+| `challenge`                     | Optional. A UUID. Echoed in the result's `payload.parameter.challenge`.                           |
+| `brandUuid`                     | Optional. The brand to show during the flow.                                                      |
 
-You can provide an externally generated code challenge. This is useful when the code challenge is generated elsewhere (e.g., via a backend service):
+`createSession` throws `InvalidArgumentError` when neither or both of `mapping` and `data` are
+given, and `OperationFailedError` when Ver.iD rejects the session.
 
-```ts
-const { issuanceUrl, state } = await issuanceClient.generateIssuanceUrl({
-  intentId,
-  pkceOptions: {
-    state: '<UNIQUE_STATE>',
-    codeChallenge: '<UNIQUE_CODE_CHALLENGE>',
-  },
-});
-```
+It returns:
 
-##### Generating Code Challenge Separately
+- `url` — send the browser here.
+- `state` — identifies the session.
+- `issuanceRunUuid` — the issuance run this session belongs to, when the platform allocated one.
 
-You can generate a code challenge independently for use in intent creation:
+### Finish the session
 
-```ts
-const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
-// Use codeChallenge and state for intent creation
-```
-
-You can also provide a custom state when generating the code challenge:
+Ver.iD redirects the browser to your `redirectUri` with `code` and `state`:
 
 ```ts
-const { codeChallenge, state } = await issuanceClient.generateCodeChallenge('<CUSTOM_STATE>');
-```
-
-**Security Note:** As per PKCE standards ([RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1)), a code verifier is created when generating a code challenge. The code verifier is stored in the cache manager against the state and is used to complete the OAuth flow. **Never expose the code verifier or transmit it over the network**, as this could compromise security.
-
-### Initiate Issuance
-
-To initiate the issuance process, redirect the user to the generated issuance URL. In a server-side context, you can send this URL to your frontend:
-
-```ts
-// Return URL to frontend
-res.json({ issuanceUrl, state });
-
-// Or redirect directly
-res.redirect(issuanceUrl);
-```
-
-Your frontend can then redirect the user to the issuance flow:
-
-```ts
-// Frontend code
-window.location.href = issuanceUrl; // Redirects the user to the Ver.iD issuance flow
-```
-
-Alternatively, you can open the issuance flow in a new tab or window:
-
-```ts
-window.open(issuanceUrl, '_blank'); // Opens the issuance flow in a new browser tab
-```
-
-### Finalize Issuance
-
-After the user completes the issuance flow, Ver.iD will redirect back to your registered `redirectUri` with query parameters such as `code` and `state`. You need to finalize the issuance to exchange the authorization code for tokens:
-
-```ts
-const issuanceResponse = await issuanceClient.finalize({
-  clientAuth: {
-    client_secret: '<YOUR_CLIENT_SECRET>', // Client secret from Ver.iD Studio
-  },
-  callbackParams: callbackUrl, // The complete callback URL with code and state parameters
-});
-```
-
-The `finalize` method returns a Promise that resolves to the issuance response. The response includes the `access_token` (JWT) containing the issued credential information, along with token metadata.
-
-**Important:** The Node.js client requires explicit `clientAuth` with a `client_secret` parameter. This enables secure server-side issuance flows where the client secret is never exposed to the frontend. The `client_secret` can be obtained from Ver.iD Studio when you register your issuance flow.
-
-#### Understanding the finalize flow
-
-In a typical server-side OAuth flow:
-
-1. **Generate Code Challenge**: Backend generates PKCE code challenge
-2. **Create Intent**: Backend creates issuance intent with credential payload
-3. **Generate URL**: Backend generates the issuance URL and sends it to frontend
-4. **User Issuance**: Frontend redirects user to Ver.iD issuance flow
-5. **Callback**: Ver.iD redirects user back to your `redirectUri` (usually a frontend route)
-6. **Backend Finalize**: Frontend sends the callback URL/params to your backend
-7. **Token Exchange**: Backend calls `finalize()` with client secret to exchange code for tokens
-
-Example backend endpoint for finalization:
-
-```ts
-app.post('/api/issuance/finalize', async (req, res) => {
-  try {
-    const { callbackUrl } = req.body;
-    
-    const issuanceResponse = await issuanceClient.finalize({
-      clientAuth: {
-        client_secret: process.env.VERID_CLIENT_SECRET,
-      },
-      callbackParams: callbackUrl,
-    });
-    
-    res.json(issuanceResponse);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+app.get('/verid/callback', async (req, res) => {
+  const expected = req.session.verid;
+  if (!expected || req.query.state !== expected.state) {
+    return res.status(400).send('This issuance was not started here.');
   }
+
+  const result = await verid.finishSession({ callbackUrl: req.originalUrl });
+  if (result.format !== 'issuance_v1') {
+    return res.status(502).send(`Unexpected token format: ${result.format}`);
+  }
+
+  for (const credential of result.payload.credentials) {
+    console.log(credential.credentialName, credential.status, credential.credentialRecordUuid);
+  }
+  res.redirect('/issued');
 });
 ```
 
-#### Callback parameters format
+### The result
 
-The `callbackParams` parameter accepts multiple formats:
+Which format you receive depends on the output format configured on the flow in Ver.iD Studio:
 
-- **String (complete URL)**: `'https://example.com/callback?code=ABC&state=XYZ'`
-- **URL object**: `new URL('https://example.com/callback?code=ABC&state=XYZ')`
-- **URLSearchParams**: `new URLSearchParams('code=ABC&state=XYZ')`
+| `format`             | `payload`                                       |
+| -------------------- | ----------------------------------------------- |
+| `'issuance_v1'`      | `IssuanceV1JwtPayload`, grouped by credential   |
+| `'issuance_flat_v1'` | `IssuanceFlatV1JwtPayload`, the older flat form |
+| `'unknown'`          | a plain JWT payload                             |
 
-### Get decoded Token
+`IssuanceV1JwtPayload` contains:
 
-Once you have the issuance response, you can verify and decode the token to get the JWT headers and payload.
+- `credentials` — one entry per issued credential, with `credentialName`, `issuerName`, its
+  `attributes`, its `status` (for example `'FULFILLED'`) and `credentialRecordUuid`, the record of
+  the issued credential.
+- `issuanceRunUuid` — the issuance run that produced the token.
+- `parameter.challenge` and `parameter.payload` — the session's challenge, and the `data` and
+  `mapping` you sent.
+- `meta` — metadata configured on the flow.
+- `issuanceUuid` and `organizationUuid` — the flow and the organisation that configured it.
+- `handlerAppUuid` and `appName` — the app the user completed the flow with.
 
-You have to pass `typeAssert` function based on the output type configured in your flow.
-
-```ts
-import { assertIssuanceV1JwtPayload } from '@ver-id/node-client';
-
-const issuanceDecodedToken = await issuanceClient.decode(
-  issuanceResponse,
-  assertIssuanceV1JwtPayload,
-);
-```
-
-**Note:** The token verification happens on the server side, ensuring that the token has not been tampered with and was issued by Ver.iD. The decoded token contains the issued credential information based on your issuance flow configuration.
+`rawToken` is the signed token as received.

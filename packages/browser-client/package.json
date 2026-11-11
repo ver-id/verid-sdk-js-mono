@@ -1,6 +1,6 @@
 {
   "name": "@ver-id/browser-client",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Ver.iD Browser SDK for decentralized identity authentication, disclosure, and issuance flows",
   "license": "MIT",
   "author": "Ver.iD",
@@ -26,6 +26,9 @@
     "browser",
     "sdk"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "sideEffects": false,
   "type": "module",
   "main": "./dist/index.js",
@@ -34,7 +37,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@verid-sdk-js-mono/source": "./src/index.ts",
+      "@monorepov2/source": "./src/index.ts",
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
@@ -46,9 +49,6 @@
       "default": "./dist/index.js"
     }
   },
-  "engines": {
-    "node": ">=18"
-  },
   "files": [
     "dist",
     "LICENSE",
@@ -59,9 +59,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@ver-id/core": "^0.2.0"
+    "@ver-id/core": "^0.3.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
   },
   "nx": {
+    "tags": [
+      "scope:sdk"
+    ],
     "targets": {
       "build": {
         "executor": "nx:run-commands",
@@ -70,7 +76,7 @@
         ],
         "options": {
           "command": "tsup",
-          "cwd": "packages/browser-client"
+          "cwd": "{projectRoot}"
         }
       }
     }

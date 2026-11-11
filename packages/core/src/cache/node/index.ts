@@ -3,3 +3,5 @@
  * browser-safe `@ver-id/core/cache` entry never pulls in `fs` and friends.
  */
 export * from './file-storage.js';
+export * from './redis-storage.js';
+export * from './dynamodb-storage.js';

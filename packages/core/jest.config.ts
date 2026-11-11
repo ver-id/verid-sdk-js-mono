@@ -1,6 +1,6 @@
 export default {
   displayName: '@ver-id/core',
-  preset: '../../jest.preset.js',
+  preset: '../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

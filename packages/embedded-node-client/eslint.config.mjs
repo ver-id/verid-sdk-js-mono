@@ -1,4 +1,4 @@
-import baseConfig from '../../eslint.config.mjs';
+import baseConfig from '../../../eslint.config.mjs';
 
 export default [
   ...baseConfig,
@@ -10,9 +10,15 @@ export default [
         {
           ignoredFiles: [
             '{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}',
+            '{projectRoot}/tests/**/*',
           ],
+          // Optional peers of the Redis and DynamoDB stores re-exported from core.
           ignoredDependencies: [
-            'tsup'
+            'tsup',
+            'redis',
+            'ioredis',
+            '@aws-sdk/client-dynamodb',
+            '@aws-sdk/lib-dynamodb',
           ],
         },
       ],

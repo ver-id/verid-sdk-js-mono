@@ -1,8 +1,5 @@
-// jsdom does not expose TextEncoder/TextDecoder on the global scope, but core's
-// crypto dependencies (jose) require them. Polyfill from Node's `util`.
-import { TextEncoder, TextDecoder } from 'node:util';
+// jsdom does not expose TextDecoder on the global scope, but decoding the sessionContext needs
+// it. Polyfill from Node's `util`.
+import { TextDecoder } from 'node:util';
 
-Object.assign(globalThis, {
-  TextEncoder: globalThis.TextEncoder ?? TextEncoder,
-  TextDecoder: globalThis.TextDecoder ?? TextDecoder,
-});
+Object.assign(globalThis, { TextDecoder: globalThis.TextDecoder ?? TextDecoder });

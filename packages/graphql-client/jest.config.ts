@@ -1,6 +1,6 @@
 export default {
   displayName: '@ver-id/graphql-client',
-  preset: '../../jest.preset.js',
+  preset: '../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

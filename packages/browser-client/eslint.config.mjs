@@ -1,4 +1,4 @@
-import baseConfig from '../../eslint.config.mjs';
+import baseConfig from '../../../eslint.config.mjs';
 
 export default [
   ...baseConfig,
@@ -10,10 +10,9 @@ export default [
         {
           ignoredFiles: [
             '{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}',
+            '{projectRoot}/tests/**/*',
           ],
-          ignoredDependencies: [
-            'tsup'
-          ],
+          ignoredDependencies: ['tsup'],
         },
       ],
     },

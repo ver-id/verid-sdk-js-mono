@@ -10,14 +10,8 @@ import {
   IssuanceFlatV1JwtPayload,
   IssuanceV1JwtPayload,
   IssuanceResponse,
-  OpenIdJwtCompanyIdentifierType,
-  OpenIdJwtCompanyType,
-  OpenIdJwtNINIdentifierType,
   OpenIdJwtPayload,
-  OutputCredentialType,
-  SignatureV1JwtPayload,
 } from '../types/index.js';
-import { convertEnumToValues } from './generic.js';
 
 /**
  * Regular expression pattern for validating UUID strings (versions 1-5).
@@ -53,13 +47,10 @@ export function assert(
   message: string,
   ctor?: ErrorConstructorType,
 ): asserts assertion {
-  // Test assertion
   if (!assertion) {
-    // Throw statement
     if (ctor) {
       assert(ctor?.prototype instanceof Error, 'Invalid ctor argument: not a valid Error.');
 
-      // Throw the error
       throw new ctor(message);
     } else {
       throw new InvalidAssertionError(message);
@@ -454,7 +445,7 @@ export function assertJwtPayload(
 
 /**
  * Asserts that the given data array contains valid output data items.
- * Validates each data item has required UUID properties and a valid JSON value.
+ * Validates each data item has its id properties as strings and a valid JSON value.
  * This is a common helper used by both assertAttestedFlatV1JwtPayload and assertIssuanceFlatV1JwtPayload.
  *
  * @param data - The data array to validate
@@ -483,7 +474,7 @@ function assertOutputDataItems(
       'trustUuid',
       'handlerUuid',
     ]) {
-      assertUUID(
+      assertString(
         dataItem[prop],
         `"dataItem.${prop}" at index ${dataIndex} in "OutputItem.data" ${outputIndex} in ${name}`,
         ctor,
@@ -525,32 +516,22 @@ export function assertAttestedFlatV1JwtPayload(
   // Validate each OutputItem
   for (const [index, item] of value.output.entries()) {
     assertObject(item, `OutputItem at index ${index} in ${name}`, ctor);
-    // Validate uuid
     assertString(item.uuid, `OutputItem.uuid at index ${index} in ${name}`, ctor);
-    // Validate type
-    assert(
-      item.type === 'disclosure' || item.type === 'signature',
-      `Invalid "OutputItem.type" at index ${index} in ${name}: must be 'disclosure' or 'signature'`,
-      ctor,
-    );
-    // Validate parameter
+    assertString(item.type, `"OutputItem.type" at index ${index} in ${name}`, ctor);
     assertObject(item.parameter, `"OutputItem.parameter" at index ${index} in ${name}`, ctor);
     assertString(
-      (item.parameter as any).challenge,
+      item.parameter.challenge,
       `"OutputItem.parameter.challenge" at index ${index} in ${name}`,
       ctor,
     );
 
-    // Validate meta
     assertObject(item.meta, `"OutputItem.meta" at index ${index} in ${name}`, ctor);
 
-    // Validate data
     assertArray(item.data, `"OutputItem.data" at index ${index} in ${name}`, ctor);
 
     // Validate each data item using common helper
     assertOutputDataItems(item.data as unknown[], index, name, ctor);
 
-    // Validate mapping
     assertObject(item.mapping, `"OutputItem.mapping" at index ${index} in ${name}`, ctor);
   }
 }
@@ -573,7 +554,7 @@ export function assertIssuanceFlatV1JwtPayload(
 
   assertJwtPayload(value, name, ctor);
 
-  assertUUID(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
+  assertString(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
 
   // Check output property
   assert('output' in value, `Invalid "output" in ${name}: should be defined.`, ctor);
@@ -582,27 +563,39 @@ export function assertIssuanceFlatV1JwtPayload(
   // Validate each IssuanceOutputItem
   for (const [index, item] of value.output.entries()) {
     assertObject(item, `OutputItem at index ${index} in ${name}`, ctor);
-    // Validate uuid
     assertString(item.uuid, `OutputItem.uuid at index ${index} in ${name}`, ctor);
 
-    // Validate parameter
     assertObject(item.parameter, `"OutputItem.parameter" at index ${index} in ${name}`, ctor);
     assertString(
-      (item.parameter as any).challenge,
+      item.parameter.challenge,
       `"OutputItem.parameter.challenge" at index ${index} in ${name}`,
       ctor,
     );
 
-    // Validate meta
     assertObject(item.meta, `"OutputItem.meta" at index ${index} in ${name}`, ctor);
 
-    // Validate data
     assertArray(item.data, `"OutputItem.data" at index ${index} in ${name}`, ctor);
 
     // Validate each data item using common helper
     assertOutputDataItems(item.data as unknown[], index, name, ctor);
   }
 }
+
+/** Optional OpenID claims that must be non-empty strings when present. */
+const OPEN_ID_STRING_CLAIMS = [
+  'name',
+  'given_name',
+  'middle_name',
+  'family_name',
+  'birthdate',
+  'birth_country',
+  'nonce',
+  'email',
+  'phone_number',
+] as const;
+
+/** Optional OpenID claims that must be booleans when present. */
+const OPEN_ID_BOOLEAN_CLAIMS = ['email_verified', 'phone_number_verified'] as const;
 
 /**
  * Asserts that the given value is a valid OpenIdJwtPayload.
@@ -624,47 +617,38 @@ export function assertOpenIdJwtPayload(
 
   assertJwtPayload(value, name, ctor);
 
-  // Required property
   assertString(value.sub, `sub in ${name}`, ctor);
 
-  // Optional string properties
-  if (typeof value.name !== 'undefined') assertString(value.name, `name in ${name}`, ctor);
-  if (typeof value.given_name !== 'undefined')
-    assertString(value.given_name, `given_name in ${name}`, ctor);
-  if (typeof value.middle_name !== 'undefined')
-    assertString(value.middle_name, `middle_name in ${name}`, ctor);
-  if (typeof value.family_name !== 'undefined')
-    assertString(value.family_name, `family_name in ${name}`, ctor);
-  if (typeof value.birthdate !== 'undefined')
-    assertString(value.birthdate, `birthdate in ${name}`, ctor);
-  if (typeof value.birth_country !== 'undefined')
-    assertString(value.birth_country, `birth_country in ${name}`, ctor);
-  if (typeof value.nonce !== 'undefined') assertString(value.nonce, `nonce in ${name}`, ctor);
-  if (typeof value.email !== 'undefined') assertString(value.email, `email in ${name}`, ctor);
-  if (typeof value.phone_number !== 'undefined')
-    assertString(value.phone_number, `phone_number in ${name}`, ctor);
-
-  // Optional boolean properties
-  if (typeof value.email_verified !== 'undefined')
-    assertBoolean(value.email_verified, `email_verified in ${name}`, ctor);
-  if (typeof value.phone_number_verified !== 'undefined')
-    assertBoolean(value.phone_number_verified, `phone_number_verified in ${name}`, ctor);
-
-  // Optional number properties
-  if (typeof value.updated_at !== 'undefined')
+  for (const claim of OPEN_ID_STRING_CLAIMS) {
+    assertString(value[claim], `${claim} in ${name}`, ctor, { allowUndefined: true });
+  }
+  for (const claim of OPEN_ID_BOOLEAN_CLAIMS) {
+    if (typeof value[claim] !== 'undefined') {
+      assertBoolean(value[claim], `${claim} in ${name}`, ctor);
+    }
+  }
+  if (typeof value.updated_at !== 'undefined') {
     assertNumber(value.updated_at, `updated_at in ${name}`, ctor);
+  }
 
-  // Address object
+  // Address object: each part is optional
   if (typeof value.address !== 'undefined') {
     assertObject(value.address, `address in ${name}`, ctor);
-    assertString(value.address.formatted, `address.formatted in ${name}`, ctor);
-    assertString(value.address.street_address, `address.street_address in ${name}`, ctor);
-    assertString(value.address.postal_code, `address.postal_code in ${name}`, ctor);
-    assertString(value.address.house_number, `address.house_number in ${name}`, ctor);
-    assertString(value.address.street, `address.street in ${name}`, ctor);
-    assertString(value.address.locality, `address.locality in ${name}`, ctor);
-    assertString(value.address.region, `address.region in ${name}`, ctor);
-    assertString(value.address.country, `address.country in ${name}`, ctor);
+    for (const part of [
+      'formatted',
+      'street_address',
+      'postal_code',
+      'house_number',
+      'street',
+      'locality',
+      'region',
+      'country',
+    ]) {
+      assertString(value.address[part], `address.${part} in ${name}`, ctor, {
+        allowEmpty: true,
+        allowUndefined: true,
+      });
+    }
   }
 
   // Company object
@@ -672,78 +656,72 @@ export function assertOpenIdJwtPayload(
     assertObject(value.company, `company in ${name}`, ctor);
     assertString(value.company.identifier, `company.identifier in ${name}`, ctor);
     assertString(value.company.name, `company.name in ${name}`, ctor);
-    assert(
-      convertEnumToValues(OpenIdJwtCompanyIdentifierType).includes(value.company.identifier_type),
-      `Invalid company.identifier_type in ${name}: not a valid OpenIdJwtCompanyIdentifierType`,
-      ctor,
-    );
-    assert(
-      convertEnumToValues(OpenIdJwtCompanyType).includes(value.company.type),
-      `Invalid company.type in ${name}: not a valid OpenIdJwtCompanyType`,
-      ctor,
-    );
+    assertString(value.company.identifier_type, `company.identifier_type in ${name}`, ctor);
+    assertString(value.company.type, `company.type in ${name}`, ctor);
   }
 
   // NIN object
   if (typeof value.nin !== 'undefined') {
     assertObject(value.nin, `nin in ${name}`, ctor);
     assertString(value.nin.identifier, `nin.identifier in ${name}`, ctor);
-    assert(
-      convertEnumToValues(OpenIdJwtNINIdentifierType).includes(value.nin.identifier_type),
-      `Invalid nin.identifier_type in ${name}: not a valid OpenIdJwtNinIdentifierType`,
-      ctor,
-    );
+    assertString(value.nin.identifier_type, `nin.identifier_type in ${name}`, ctor);
   }
 }
 
 /**
  * Asserts that the given credentials array contains valid credential-grouped items.
- * Validates each credential has required UUID, name, type, and attribute properties.
- * Used by assertDisclosureV1JwtPayload, assertSignatureV1JwtPayload, and assertIssuanceV1JwtPayload.
+ * Requires the attributes and each attribute's name and value; ids, names and types are checked
+ * as strings only, so values a newer platform adds still pass.
+ * Used by assertDisclosureV1JwtPayload and assertIssuanceV1JwtPayload.
  *
  * @param credentials - The credentials array to validate
  * @param name - The name of the parent payload for error reporting
  * @param ctor - The error constructor to use when assertion fails
  * @internal
  */
-function assertCredentials(
-  credentials: unknown[],
-  name: string,
-  ctor: ErrorConstructorType,
-): void {
+function assertCredentials(credentials: unknown[], name: string, ctor: ErrorConstructorType): void {
   for (const [index, cred] of credentials.entries()) {
     assertObject(cred, `credential at index ${index} in ${name}`, ctor);
 
     const c = cred as Record<string, unknown>;
 
-    // UUID fields
+    // Id fields
     for (const prop of ['credentialUuid', 'issuerUuid', 'trustUuid', 'handlerUuid']) {
-      assertUUID(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
+      assertString(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
     }
 
     // Name fields
     for (const prop of ['credentialName', 'issuerName', 'trustName', 'handlerName']) {
-      assertString(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor);
+      assertString(c[prop], `"${prop}" in credential at index ${index} in ${name}`, ctor, {
+        allowEmpty: true,
+      });
     }
 
-    // Type
-    assert(
-      convertEnumToValues(OutputCredentialType).includes(c.type as string),
-      `Invalid "type" in credential at index ${index} in ${name}: not a valid OutputCredentialType`,
-      ctor,
-    );
+    assertString(c.type, `"type" in credential at index ${index} in ${name}`, ctor);
 
     // Attributes
     assertArray(c.attributes, `"attributes" in credential at index ${index} in ${name}`, ctor);
     for (const [attrIndex, attr] of (c.attributes as unknown[]).entries()) {
       assertObject(attr, `attribute at index ${attrIndex} in credential ${index} in ${name}`, ctor);
       const a = attr as Record<string, unknown>;
-      assertUUID(a.attributeUuid, `"attributeUuid" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
-      assertString(a.attributeName, `"attributeName" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
-      assertJsonValue(a.value, `"value" in attribute ${attrIndex} in credential ${index} in ${name}`, ctor);
-      assert(
-        convertEnumToValues(OutputCredentialType).includes(a.type as string),
-        `Invalid "type" in attribute ${attrIndex} in credential ${index} in ${name}: not a valid OutputCredentialType`,
+      assertString(
+        a.attributeUuid,
+        `"attributeUuid" in attribute ${attrIndex} in credential ${index} in ${name}`,
+        ctor,
+      );
+      assertString(
+        a.attributeName,
+        `"attributeName" in attribute ${attrIndex} in credential ${index} in ${name}`,
+        ctor,
+      );
+      assertJsonValue(
+        a.value,
+        `"value" in attribute ${attrIndex} in credential ${index} in ${name}`,
+        ctor,
+      );
+      assertString(
+        a.type,
+        `"type" in attribute ${attrIndex} in credential ${index} in ${name}`,
         ctor,
       );
     }
@@ -768,43 +746,13 @@ export function assertDisclosureV1JwtPayload(
 
   assertJwtPayload(value, name, ctor);
 
-  assertUUID(value.uuid, `"uuid" in ${name}`, ctor);
+  assertString(value.uuid, `"uuid" in ${name}`, ctor);
   assertObject(value.parameter, `"parameter" in ${name}`, ctor);
-  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
+  assertString(value.parameter.challenge, `"parameter.challenge" in ${name}`, ctor);
   assertObject(value.meta, `"meta" in ${name}`, ctor);
   assertObject(value.mapping, `"mapping" in ${name}`, ctor);
-  assertUUID(value.disclosureUuid, `"disclosureUuid" in ${name}`, ctor);
-  assertUUID(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
-
-  assertArray(value.credentials, `"credentials" in ${name}`, ctor);
-  assertCredentials(value.credentials as unknown[], name, ctor);
-}
-
-/**
- * Asserts that the given value is a valid SignatureV1JwtPayload (v2 credential-grouped format).
- * Validates JWT payload with credentials array, flow context, and metadata.
- *
- * @param value - The value to validate as a SignatureV1JwtPayload
- * @param name - The name of the value for error reporting
- * @param error - Optional custom error constructor to use when assertion fails
- * @throws {InvalidAssertionError} When value is not a valid SignatureV1JwtPayload (by default)
- */
-export function assertSignatureV1JwtPayload(
-  value: unknown,
-  name: string,
-  error?: ErrorConstructorType,
-): asserts value is SignatureV1JwtPayload {
-  const ctor = error ?? InvalidAssertionError;
-
-  assertJwtPayload(value, name, ctor);
-
-  assertUUID(value.uuid, `"uuid" in ${name}`, ctor);
-  assertObject(value.parameter, `"parameter" in ${name}`, ctor);
-  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
-  assertObject(value.meta, `"meta" in ${name}`, ctor);
-  assertObject(value.mapping, `"mapping" in ${name}`, ctor);
-  assertUUID(value.signatureUuid, `"signatureUuid" in ${name}`, ctor);
-  assertUUID(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
+  assertString(value.disclosureUuid, `"disclosureUuid" in ${name}`, ctor);
+  assertString(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
 
   assertArray(value.credentials, `"credentials" in ${name}`, ctor);
   assertCredentials(value.credentials as unknown[], name, ctor);
@@ -830,12 +778,12 @@ export function assertIssuanceV1JwtPayload(
 
   assertString(value.uuid, `"uuid" in ${name}`, ctor);
   assertObject(value.parameter, `"parameter" in ${name}`, ctor);
-  assertString((value.parameter as any).challenge, `"parameter.challenge" in ${name}`, ctor);
-  assertObject((value.parameter as any).payload, `"parameter.payload" in ${name}`, ctor);
+  assertString(value.parameter.challenge, `"parameter.challenge" in ${name}`, ctor);
+  assertObject(value.parameter.payload, `"parameter.payload" in ${name}`, ctor);
   assertObject(value.meta, `"meta" in ${name}`, ctor);
   assertString(value.issuanceUuid, `"issuanceUuid" in ${name}`, ctor);
   assertString(value.organizationUuid, `"organizationUuid" in ${name}`, ctor);
-  assertUUID(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
+  assertString(value.issuanceRunUuid, `"issuanceRunUuid" in ${name}`, ctor);
 
   assertArray(value.credentials, `"credentials" in ${name}`, ctor);
   assertCredentials(value.credentials as unknown[], name, ctor);

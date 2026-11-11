@@ -6,3 +6,4 @@ export * from './unknown.js';
 export * from './invalid-assertion.js';
 export * from './authorization-response.js';
 export * from './token-grant.js';
+export * from './session-finish.js';

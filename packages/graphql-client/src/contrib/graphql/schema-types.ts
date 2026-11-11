@@ -12,32 +12,61 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** A data scalar for client pictures */
   ClientPicture: { input: string | null; output: string | null; }
+  /** An ISO-8601 encoded UTC date string. */
   DateTime: { input: string; output: string; }
+  /** A domain. */
   Domain: { input: string; output: string; }
+  /** A scalar for domains */
   DomainName: { input: string; output: string; }
+  /** An email address. */
   Email: { input: string; output: string; }
+  /** An FilteringValue for Connection filters */
   FilteringValue: { input: string | number | boolean | string[]; output: string | number | boolean | string[]; }
+  /** A grant classification (admin, user, guest). */
   Grant: { input: unknown; output: unknown; }
+  /** An opaque RGB colour in hex notation (#RRGGBB) */
+  HexColor: { input: string; output: string; }
+  /** An ISO-3166 encoded country */
   ISO3166: { input: string; output: string; }
+  /** A data scalar for JSON objects */
   JSONObject: { input: any; output: any; }
+  /** Based on the RFC 9068 media type. */
   JwtMediaType: { input: string; output: string; }
+  /** An i18n locale. */
   Locale: { input: string; output: string; }
+  /** A NACE Rev. 2.1 economic activity code (e.g. "64.19") */
   NACECode: { input: unknown; output: unknown; }
+  /** A data scalar for non empty strings */
   NonEmpty: { input: string; output: string; }
+  /** A scalar that represents void return value */
   Null: { input: unknown; output: unknown; }
+  /** A password (minimum: 8 characters, 1 numeric, 1 upper, 1 lower and 1 special). */
   Password: { input: string; output: string; }
+  /** A price unit in the system */
   Price: { input: number; output: number; }
+  /** A data scalar for profile pictures */
   ProfilePicture: { input: string | null; output: string | null; }
+  /** Redirect path */
   RedirectPath: { input: string; output: string; }
+  /** Redirect port */
   RedirectPort: { input: number; output: number; }
+  /** Redirect protocol */
   RedirectProtocol: { input: string; output: string; }
+  /** A resource name */
   Resource: { input: string; output: string; }
+  /** A role */
   Role: { input: string; output: string; }
+  /** A valid name for graphql types */
   TypeName: { input: unknown; output: unknown; }
+  /** A data scalar for positive integers */
   UInt: { input: number; output: number; }
+  /** String containing a URL. */
   URL: { input: string; output: string; }
+  /** An RFC 8141 (level 4) compliant URN string. */
   URN: { input: string; output: string; }
+  /** An RFC 4122 (level 4) compliant UUID string. */
   UUID: { input: string; output: string; }
 };
 
@@ -1228,6 +1257,8 @@ export type AttributeSortInput = {
 /** Flow authentication definition. */
 export type Authentication = Model & {
   __typename?: 'Authentication';
+  /** The indicator if the flow may be embedded */
+  allowEmbedded: Scalars['Boolean']['output'];
   /** The associated brands with this authentication */
   authenticationBrands: AuthenticationBrandConnection;
   /** The associated domains with this authentication */
@@ -1362,6 +1393,8 @@ export type AuthenticationBrand = Model & {
   authentication: Authentication;
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
+  /** The embedded appearance, absent when the flow brand uses the default look */
+  embeddedAppearance?: Maybe<AuthenticationBrandEmbeddedAppearance>;
   /** Is default branding */
   isDefault: Scalars['Boolean']['output'];
   /** The user organization brand */
@@ -1384,6 +1417,49 @@ export type AuthenticationBrandEdge = {
   __typename?: 'AuthenticationBrandEdge';
   cursor: Scalars['String']['output'];
   node: AuthenticationBrand;
+};
+
+/** The embedded appearance of a flow brand. */
+export type AuthenticationBrandEmbeddedAppearance = Model & {
+  __typename?: 'AuthenticationBrandEmbeddedAppearance';
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent: Scalars['HexColor']['output'];
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground: Scalars['HexColor']['output'];
+  /** The flow brand */
+  authenticationBrand: AuthenticationBrand;
+  /** The `background` token. Today the outline button fill. */
+  background: Scalars['HexColor']['output'];
+  /** The `border` token. Today the border and divider colour. */
+  border: Scalars['HexColor']['output'];
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth: Scalars['UInt']['output'];
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary: Scalars['HexColor']['output'];
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius: Scalars['UInt']['output'];
+  /** The `card` token. Today the card surface colour. */
+  card: Scalars['HexColor']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The `destructive` token. Today the error colour. */
+  destructive: Scalars['HexColor']['output'];
+  /** The `foreground` token. Today the main text colour. */
+  foreground: Scalars['HexColor']['output'];
+  /** The `muted` token. Today the muted fill colour. */
+  muted: Scalars['HexColor']['output'];
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground: Scalars['HexColor']['output'];
+  /** The `primary` token. Today the main button colour. */
+  primary: Scalars['HexColor']['output'];
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground: Scalars['HexColor']['output'];
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius: Scalars['UInt']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
 };
 
 /** Fields which can be used to filter brands on. Value must be camel case. */
@@ -3181,6 +3257,12 @@ export type CreateAttributeLocaleInput = {
 };
 
 /** Create input */
+export type CreateAuthenticationBrandEmbeddedAppearanceInput = {
+  /** The UUID of the flow brand the appearance belongs to. */
+  authenticationBrandUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
 export type CreateAuthenticationBrandInput = {
   /** The UUID of the organization the brand belongs to. */
   authenticationUuid: Scalars['UUID']['input'];
@@ -3468,6 +3550,12 @@ export type CreateDisclosureAttributeInput = {
 };
 
 /** Create input */
+export type CreateDisclosureBrandEmbeddedAppearanceInput = {
+  /** The UUID of the flow brand the appearance belongs to. */
+  disclosureBrandUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
 export type CreateDisclosureBrandInput = {
   /** The UUID of the organization the brand belongs to. */
   disclosureUuid: Scalars['UUID']['input'];
@@ -3693,6 +3781,12 @@ export type CreateIssuanceAttributeInput = {
   attributeUuid: Scalars['UUID']['input'];
   /** The uuid of the query the attribute belongs to. */
   issuanceCredentialUuid: Scalars['UUID']['input'];
+};
+
+/** Create input */
+export type CreateIssuanceBrandEmbeddedAppearanceInput = {
+  /** The UUID of the flow brand the appearance belongs to. */
+  issuanceBrandUuid: Scalars['UUID']['input'];
 };
 
 /** Create input */
@@ -6494,6 +6588,8 @@ export type DeprecateCredentialInput = {
 /** Flow disclosure definition. */
 export type Disclosure = Model & {
   __typename?: 'Disclosure';
+  /** The indicator if the flow may be embedded */
+  allowEmbedded: Scalars['Boolean']['output'];
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
   /** The data deletion policy. */
@@ -6520,8 +6616,6 @@ export type Disclosure = Model & {
   organization: Organization;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
   /** The data retention policy. */
   retentionPolicy?: Maybe<Scalars['String']['output']>;
   /** The data sharing policy. */
@@ -6695,6 +6789,8 @@ export type DisclosureBrand = Model & {
   createdAt: Scalars['DateTime']['output'];
   /** The flow disclosure */
   disclosure: Disclosure;
+  /** The embedded appearance, absent when the flow brand uses the default look */
+  embeddedAppearance?: Maybe<DisclosureBrandEmbeddedAppearance>;
   /** Is default brand */
   isDefault: Scalars['Boolean']['output'];
   /** The user organization brand */
@@ -6717,6 +6813,49 @@ export type DisclosureBrandEdge = {
   __typename?: 'DisclosureBrandEdge';
   cursor: Scalars['String']['output'];
   node: DisclosureBrand;
+};
+
+/** The embedded appearance of a flow brand. */
+export type DisclosureBrandEmbeddedAppearance = Model & {
+  __typename?: 'DisclosureBrandEmbeddedAppearance';
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent: Scalars['HexColor']['output'];
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground: Scalars['HexColor']['output'];
+  /** The `background` token. Today the outline button fill. */
+  background: Scalars['HexColor']['output'];
+  /** The `border` token. Today the border and divider colour. */
+  border: Scalars['HexColor']['output'];
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth: Scalars['UInt']['output'];
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary: Scalars['HexColor']['output'];
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius: Scalars['UInt']['output'];
+  /** The `card` token. Today the card surface colour. */
+  card: Scalars['HexColor']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The `destructive` token. Today the error colour. */
+  destructive: Scalars['HexColor']['output'];
+  /** The flow brand */
+  disclosureBrand: DisclosureBrand;
+  /** The `foreground` token. Today the main text colour. */
+  foreground: Scalars['HexColor']['output'];
+  /** The `muted` token. Today the muted fill colour. */
+  muted: Scalars['HexColor']['output'];
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground: Scalars['HexColor']['output'];
+  /** The `primary` token. Today the main button colour. */
+  primary: Scalars['HexColor']['output'];
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground: Scalars['HexColor']['output'];
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius: Scalars['UInt']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
 };
 
 /** Fields which can be used to filter brands on. Value must be camel case. */
@@ -12489,7 +12628,6 @@ export enum HandlerAppProtocolOid4vcWalletImplementation {
   DYou = 'D_YOU',
   FranceIdentite = 'FRANCE_IDENTITE',
   Lissi = 'LISSI',
-  NlWalletDemo = 'NL_WALLET_DEMO',
   NlWalletPreprod = 'NL_WALLET_PREPROD',
   ThalesWallet = 'THALES_WALLET',
   Yivi = 'YIVI'
@@ -12744,6 +12882,8 @@ export enum Interval {
 /** Flow issuance definition. */
 export type Issuance = Model & {
   __typename?: 'Issuance';
+  /** The indicator if the flow may be embedded */
+  allowEmbedded: Scalars['Boolean']['output'];
   /** The creation timestamp. */
   createdAt: Scalars['DateTime']['output'];
   /** The data deletion policy. */
@@ -12770,8 +12910,6 @@ export type Issuance = Model & {
   organization: Organization;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
   /** The data retention policy. */
   retentionPolicy?: Maybe<Scalars['String']['output']>;
   /** The data sharing policy. */
@@ -12943,6 +13081,8 @@ export type IssuanceBrand = Model & {
   __typename?: 'IssuanceBrand';
   /** The creation time */
   createdAt: Scalars['DateTime']['output'];
+  /** The embedded appearance, absent when the flow brand uses the default look */
+  embeddedAppearance?: Maybe<IssuanceBrandEmbeddedAppearance>;
   /** Is default branding */
   isDefault: Scalars['Boolean']['output'];
   /** The flow issuance */
@@ -12967,6 +13107,49 @@ export type IssuanceBrandEdge = {
   __typename?: 'IssuanceBrandEdge';
   cursor: Scalars['String']['output'];
   node: IssuanceBrand;
+};
+
+/** The embedded appearance of a flow brand. */
+export type IssuanceBrandEmbeddedAppearance = Model & {
+  __typename?: 'IssuanceBrandEmbeddedAppearance';
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent: Scalars['HexColor']['output'];
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground: Scalars['HexColor']['output'];
+  /** The `background` token. Today the outline button fill. */
+  background: Scalars['HexColor']['output'];
+  /** The `border` token. Today the border and divider colour. */
+  border: Scalars['HexColor']['output'];
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth: Scalars['UInt']['output'];
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary: Scalars['HexColor']['output'];
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius: Scalars['UInt']['output'];
+  /** The `card` token. Today the card surface colour. */
+  card: Scalars['HexColor']['output'];
+  /** The creation time */
+  createdAt: Scalars['DateTime']['output'];
+  /** The `destructive` token. Today the error colour. */
+  destructive: Scalars['HexColor']['output'];
+  /** The `foreground` token. Today the main text colour. */
+  foreground: Scalars['HexColor']['output'];
+  /** The flow brand */
+  issuanceBrand: IssuanceBrand;
+  /** The `muted` token. Today the muted fill colour. */
+  muted: Scalars['HexColor']['output'];
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground: Scalars['HexColor']['output'];
+  /** The `primary` token. Today the main button colour. */
+  primary: Scalars['HexColor']['output'];
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground: Scalars['HexColor']['output'];
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius: Scalars['UInt']['output'];
+  /** The update time */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The UUID */
+  uuid: Scalars['UUID']['output'];
 };
 
 /** Fields which can be used to filter brands on. Value must be camel case. */
@@ -15325,6 +15508,8 @@ export type Mutation = {
   createAuthentication: Authentication;
   /** Create and store a new brand type. */
   createAuthenticationBrand: AuthenticationBrand;
+  /** Create the embedded appearance of a flow brand, filled with the default look. */
+  createAuthenticationBrandEmbeddedAppearance: AuthenticationBrandEmbeddedAppearance;
   /** Create and store a new domain type. */
   createAuthenticationDomain: AuthenticationDomain;
   /** Create a flow authentication handler. */
@@ -15378,6 +15563,8 @@ export type Mutation = {
   createDisclosureAttribute: DisclosureAttribute;
   /** Create and store a new brand type. */
   createDisclosureBrand: DisclosureBrand;
+  /** Create the embedded appearance of a flow brand, filled with the default look. */
+  createDisclosureBrandEmbeddedAppearance: DisclosureBrandEmbeddedAppearance;
   /** Create a flow disclosure credential. */
   createDisclosureCredential: DisclosureCredential;
   /** Create and store a new domain type. */
@@ -15416,6 +15603,8 @@ export type Mutation = {
   createIssuanceAttribute: IssuanceAttribute;
   /** Create and store a new brand type. */
   createIssuanceBrand: IssuanceBrand;
+  /** Create the embedded appearance of a flow brand, filled with the default look. */
+  createIssuanceBrandEmbeddedAppearance: IssuanceBrandEmbeddedAppearance;
   /** Create a flow issuance credential. */
   createIssuanceCredential: IssuanceCredential;
   /** Create a flow credential meta datakeeper. */
@@ -15668,6 +15857,8 @@ export type Mutation = {
   deleteAuthentication?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
   deleteAuthenticationBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete the embedded appearance of a flow brand, returning it to the default look. */
+  deleteAuthenticationBrandEmbeddedAppearance?: Maybe<Scalars['Null']['output']>;
   /** Delete a domain. */
   deleteAuthenticationDomain?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow authentication handler. */
@@ -15714,6 +15905,8 @@ export type Mutation = {
   deleteDisclosureAttribute?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
   deleteDisclosureBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete the embedded appearance of a flow brand, returning it to the default look. */
+  deleteDisclosureBrandEmbeddedAppearance?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow disclosure credential. */
   deleteDisclosureCredential?: Maybe<Scalars['Null']['output']>;
   /** Delete a domain. */
@@ -15750,6 +15943,8 @@ export type Mutation = {
   deleteIssuanceAttribute?: Maybe<Scalars['Null']['output']>;
   /** Delete a brand. */
   deleteIssuanceBrand?: Maybe<Scalars['Null']['output']>;
+  /** Delete the embedded appearance of a flow brand, returning it to the default look. */
+  deleteIssuanceBrandEmbeddedAppearance?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow issuance credential. */
   deleteIssuanceCredential?: Maybe<Scalars['Null']['output']>;
   /** Delete a flow credential meta datakeeper. */
@@ -16145,6 +16340,8 @@ export type Mutation = {
   updateAuthentication: Authentication;
   /** Update brand. */
   updateAuthenticationBrand: AuthenticationBrand;
+  /** Update the embedded appearance of a flow brand. */
+  updateAuthenticationBrandEmbeddedAppearance: AuthenticationBrandEmbeddedAppearance;
   /** Update an domain. */
   updateAuthenticationDomain: AuthenticationDomain;
   /** Update a flow authentication handler. */
@@ -16185,6 +16382,8 @@ export type Mutation = {
   updateDisclosure: Disclosure;
   /** Update brand */
   updateDisclosureBrand: DisclosureBrand;
+  /** Update the embedded appearance of a flow brand. */
+  updateDisclosureBrandEmbeddedAppearance: DisclosureBrandEmbeddedAppearance;
   /**
    * Configure the accepted trust (and optional issuer) of a disclosure credential.
    * A null issuer accepts any issuer under the trust; visibility/app-association
@@ -16211,6 +16410,8 @@ export type Mutation = {
   updateIssuance: Issuance;
   /** Update brand */
   updateIssuanceBrand: IssuanceBrand;
+  /** Update the embedded appearance of a flow brand. */
+  updateIssuanceBrandEmbeddedAppearance: IssuanceBrandEmbeddedAppearance;
   /**
    * Configure the issuing trust issuer (issuer + trust) of an issuance credential.
    * The pair must be a real trust issuer; provisioning/activation readiness is
@@ -16683,6 +16884,11 @@ export type MutationCreateAuthenticationBrandArgs = {
 };
 
 
+export type MutationCreateAuthenticationBrandEmbeddedAppearanceArgs = {
+  input: CreateAuthenticationBrandEmbeddedAppearanceInput;
+};
+
+
 export type MutationCreateAuthenticationDomainArgs = {
   input: CreateAuthenticationDomainInput;
 };
@@ -16808,6 +17014,11 @@ export type MutationCreateDisclosureBrandArgs = {
 };
 
 
+export type MutationCreateDisclosureBrandEmbeddedAppearanceArgs = {
+  input: CreateDisclosureBrandEmbeddedAppearanceInput;
+};
+
+
 export type MutationCreateDisclosureCredentialArgs = {
   input: CreateDisclosureCredentialInput;
 };
@@ -16900,6 +17111,11 @@ export type MutationCreateIssuanceAttributeArgs = {
 
 export type MutationCreateIssuanceBrandArgs = {
   input: CreateIssuanceBrandInput;
+};
+
+
+export type MutationCreateIssuanceBrandEmbeddedAppearanceArgs = {
+  input: CreateIssuanceBrandEmbeddedAppearanceInput;
 };
 
 
@@ -17504,6 +17720,11 @@ export type MutationDeleteAuthenticationBrandArgs = {
 };
 
 
+export type MutationDeleteAuthenticationBrandEmbeddedAppearanceArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteAuthenticationDomainArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -17619,6 +17840,11 @@ export type MutationDeleteDisclosureBrandArgs = {
 };
 
 
+export type MutationDeleteDisclosureBrandEmbeddedAppearanceArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteDisclosureCredentialArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -17705,6 +17931,11 @@ export type MutationDeleteIssuanceAttributeArgs = {
 
 
 export type MutationDeleteIssuanceBrandArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationDeleteIssuanceBrandEmbeddedAppearanceArgs = {
   uuid: Scalars['UUID']['input'];
 };
 
@@ -18444,6 +18675,12 @@ export type MutationUpdateAuthenticationBrandArgs = {
 };
 
 
+export type MutationUpdateAuthenticationBrandEmbeddedAppearanceArgs = {
+  input: UpdateAuthenticationBrandEmbeddedAppearanceInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateAuthenticationDomainArgs = {
   input: UpdateAuthenticationDomainInput;
   uuid: Scalars['UUID']['input'];
@@ -18564,6 +18801,12 @@ export type MutationUpdateDisclosureBrandArgs = {
 };
 
 
+export type MutationUpdateDisclosureBrandEmbeddedAppearanceArgs = {
+  input: UpdateDisclosureBrandEmbeddedAppearanceInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateDisclosureCredentialArgs = {
   input: UpdateDisclosureCredentialInput;
   uuid: Scalars['UUID']['input'];
@@ -18626,6 +18869,12 @@ export type MutationUpdateIssuanceArgs = {
 
 export type MutationUpdateIssuanceBrandArgs = {
   input: UpdateIssuanceBrandInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateIssuanceBrandEmbeddedAppearanceArgs = {
+  input: UpdateIssuanceBrandEmbeddedAppearanceInput;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -26563,8 +26812,6 @@ export type Signature = Model & {
   organization: Organization;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: Maybe<Scalars['String']['output']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent: Scalars['Boolean']['output'];
   /** The data retention policy. */
   retentionPolicy?: Maybe<Scalars['String']['output']>;
   /** The data sharing policy. */
@@ -29109,6 +29356,40 @@ export type UpdateAttributeLocaleInput = {
 };
 
 /** Update input */
+export type UpdateAuthenticationBrandEmbeddedAppearanceInput = {
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `background` token. Today the outline button fill. */
+  background?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border` token. Today the border and divider colour. */
+  border?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `card` token. Today the card surface colour. */
+  card?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `destructive` token. Today the error colour. */
+  destructive?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `foreground` token. Today the main text colour. */
+  foreground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted` token. Today the muted fill colour. */
+  muted?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary` token. Today the main button colour. */
+  primary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius?: InputMaybe<Scalars['UInt']['input']>;
+};
+
+/** Update input */
 export type UpdateAuthenticationBrandInput = {
   /** Sets flow brand as default */
   isDefault: Scalars['Boolean']['input'];
@@ -29159,6 +29440,8 @@ export type UpdateAuthenticationHandlerInput = {
 
 /** Update Input */
 export type UpdateAuthenticationInput = {
+  /** The indicator if the flow may be embedded */
+  allowEmbedded?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data deletion policy. */
   deletionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The name of the flow authentication. */
@@ -29320,6 +29603,40 @@ export type UpdateCredentialLocaleInput = {
 };
 
 /** Update input */
+export type UpdateDisclosureBrandEmbeddedAppearanceInput = {
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `background` token. Today the outline button fill. */
+  background?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border` token. Today the border and divider colour. */
+  border?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `card` token. Today the card surface colour. */
+  card?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `destructive` token. Today the error colour. */
+  destructive?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `foreground` token. Today the main text colour. */
+  foreground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted` token. Today the muted fill colour. */
+  muted?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary` token. Today the main button colour. */
+  primary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius?: InputMaybe<Scalars['UInt']['input']>;
+};
+
+/** Update input */
 export type UpdateDisclosureBrandInput = {
   /** Sets flow brand as default */
   isDefault: Scalars['Boolean']['input'];
@@ -29396,6 +29713,8 @@ export type UpdateDisclosureHandlerInput = {
 
 /** Update Input */
 export type UpdateDisclosureInput = {
+  /** The indicator if the flow may be embedded */
+  allowEmbedded?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data deletion policy. */
   deletionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The JWT media type */
@@ -29406,8 +29725,6 @@ export type UpdateDisclosureInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: InputMaybe<Scalars['String']['input']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data retention policy. */
   retentionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The data sharing policy. */
@@ -29446,6 +29763,40 @@ export type UpdateHandlerLocaleInput = {
   locale?: InputMaybe<Scalars['Locale']['input']>;
   /** The name */
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
+};
+
+/** Update input */
+export type UpdateIssuanceBrandEmbeddedAppearanceInput = {
+  /** The `accent` token. Today the hover colour of tiles and outline buttons. */
+  accent?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `accent-foreground` token. Today the outline button label colour. */
+  accentForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `background` token. Today the outline button fill. */
+  background?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border` token. Today the border and divider colour. */
+  border?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `border-width` token in pixels (0-3). Today the desktop card's border; the phone sheet has none. */
+  borderWidth?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `brand-primary` token. Today the spinner and link colour. */
+  brandPrimary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `button-radius` token in pixels (0-24). Today the corner radius of the card's buttons. */
+  buttonRadius?: InputMaybe<Scalars['UInt']['input']>;
+  /** The `card` token. Today the card surface colour. */
+  card?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `destructive` token. Today the error colour. */
+  destructive?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `foreground` token. Today the main text colour. */
+  foreground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted` token. Today the muted fill colour. */
+  muted?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `muted-foreground` token. Today the secondary text colour. */
+  mutedForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary` token. Today the main button colour. */
+  primary?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `primary-foreground` token. Today the main button label colour. */
+  primaryForeground?: InputMaybe<Scalars['HexColor']['input']>;
+  /** The `radius` token in pixels (0-24). Today the corner radius of tiles and boxes; the card's outer corner follows it. */
+  radius?: InputMaybe<Scalars['UInt']['input']>;
 };
 
 /** Update input */
@@ -29544,6 +29895,8 @@ export type UpdateIssuanceHandlerInput = {
 
 /** Update Input */
 export type UpdateIssuanceInput = {
+  /** The indicator if the flow may be embedded */
+  allowEmbedded?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data deletion policy. */
   deletionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The JWT media type */
@@ -29554,8 +29907,6 @@ export type UpdateIssuanceInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: InputMaybe<Scalars['String']['input']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data retention policy. */
   retentionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The data sharing policy. */
@@ -30026,8 +30377,6 @@ export type UpdateSignatureInput = {
   name?: InputMaybe<Scalars['NonEmpty']['input']>;
   /** The purpose statement describing why attributes are being attested. */
   purposeStatement?: InputMaybe<Scalars['String']['input']>;
-  /** The indicator if explicit consent is required */
-  requireExplicitConsent?: InputMaybe<Scalars['Boolean']['input']>;
   /** The data retention policy. */
   retentionPolicy?: InputMaybe<Scalars['String']['input']>;
   /** The data sharing policy. */

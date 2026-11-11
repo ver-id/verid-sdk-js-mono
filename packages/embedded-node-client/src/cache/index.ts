@@ -1,4 +1,14 @@
-// Shared with @ver-id/node-client through @ver-id/core, so both node SDKs use one
-// implementation of each store.
+// The stores live in @ver-id/core so this package and @ver-id/node-client share one
+// implementation of each.
 export { MemoryStorageCacheManager } from '@ver-id/core/cache';
-export { FileStorageCacheManager } from '@ver-id/core/cache/node';
+export {
+  FileStorageCacheManager,
+  RedisCacheManager,
+  DynamoDBCacheManager,
+} from '@ver-id/core/cache/node';
+export type {
+  RedisCacheManagerConfig,
+  RedisCompatibleClient,
+  DynamoDBCacheManagerConfig,
+  DynamoDBCompatibleClient,
+} from '@ver-id/core/cache/node';

@@ -1,6 +1,5 @@
-import { LocalStorageCacheManager } from '../src/cache/local-storage';
-import { SessionStorageCacheManager } from '../src/cache/session-storage';
-import { describeCacheManagerContract } from './cache-contract';
+import { LocalStorageCacheManager, SessionStorageCacheManager } from '../src/index.js';
+import { describeCacheManagerContract } from './cache-contract.js';
 
 /** Minimal `Storage` stand-in, since neither storage exists in the node test environment. */
 function createStorageMock() {
@@ -37,7 +36,10 @@ describe('LocalStorageCacheManager', () => {
     local.store.clear();
   });
 
-  describeCacheManagerContract('LocalStorageCacheManager', (options) => new LocalStorageCacheManager(options));
+  describeCacheManagerContract(
+    'LocalStorageCacheManager',
+    (options) => new LocalStorageCacheManager(options),
+  );
 
   it('should write to localStorage under the prefixed key', () => {
     new LocalStorageCacheManager().save('state-a', 'verifier-a');
@@ -80,7 +82,10 @@ describe('SessionStorageCacheManager', () => {
     session.store.clear();
   });
 
-  describeCacheManagerContract('SessionStorageCacheManager', (options) => new SessionStorageCacheManager(options));
+  describeCacheManagerContract(
+    'SessionStorageCacheManager',
+    (options) => new SessionStorageCacheManager(options),
+  );
 
   it('should write to sessionStorage under the prefixed key', () => {
     new SessionStorageCacheManager().save('state-a', 'verifier-a');

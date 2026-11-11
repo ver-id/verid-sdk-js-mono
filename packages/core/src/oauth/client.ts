@@ -1,5 +1,5 @@
 import { createRemoteJWKSet, JWTPayload, jwtVerify } from 'jose';
-import { ClientAuth, ClientConfig } from '../types/oauth/index.js';
+import { AuthorizationServer, ClientAuth, ClientConfig } from '../types/oauth/index.js';
 import { IOAuthProvider } from '../interface/IOAuthProvider.js';
 import {
   assert,
@@ -8,13 +8,26 @@ import {
   assertUrlString,
   assertUUID,
 } from '../utils/assert.js';
-import { InvalidArgumentError, InvalidAssertionError, OperationFailedError, VeridError } from '../error/index.js';
+import {
+  InvalidArgumentError,
+  InvalidAssertionError,
+  InvalidResponseError,
+  OperationFailedError,
+  VeridError,
+} from '../error/index.js';
 import { OAuth4WebApiProvider } from './provider/index.js';
 import { GrantResponse } from '../types/response/index.js';
-import { Jwt, JwtVerificationOptions } from '../types/jwt/index.js';
+import { Jwt } from '../types/jwt/index.js';
 import { BaseIntent, IntentResponse } from '../types/intent/base.js';
 import { UUID } from '../types/generic.js';
 import { FlowAuthCodeDeliveryBinding } from './auth-code-delivery-binding.js';
+import { basicAuthorization } from './basic-authorization.js';
+
+/**
+ * How long discovered metadata is reused, so a change to it reaches a long-running process. The
+ * signing keys refresh on their own when a token carries an unknown key id.
+ */
+const DISCOVERY_TTL_MS = 10 * 60 * 1000;
 
 /**
  * Configuration options for the OAuth client.
@@ -39,26 +52,21 @@ export interface OAuthRequestParams {
   /**
    * The scope of the authorization request.
    */
-  scope?: string;
+  scope: string;
 
   /**
    * The state for the oauth flow
    */
-  state?: string;
+  state: string;
   /**
    * The Code challenge for the PKCE
    */
   codeChallenge: string;
 
   /**
-   * The Code challenge method for the PKCE
-   */
-  codeChallengeMethod?: 'S256' | 'plain';
-
-  /**
    * Intent Id to associate with the request
    */
-  intentId?: UUID;
+  intentId: UUID;
 }
 
 /**
@@ -113,6 +121,10 @@ export class VeridOAuthClient {
 
   private provider: IOAuthProvider;
 
+  private discovery?: { expiresAt: number; metadata: Promise<AuthorizationServer> };
+
+  private keySet?: { uri: string; jwks: ReturnType<typeof createRemoteJWKSet> };
+
   constructor(config: OAuthClientConfig) {
     assertUUID(config.clientId, 'clientId', InvalidArgumentError);
     assertUrlString(config.issuer, 'issuer', InvalidArgumentError);
@@ -127,6 +139,28 @@ export class VeridOAuthClient {
    */
   clientId() {
     return this._clientId;
+  }
+
+  /** The authorization server's metadata, discovered once per {@link DISCOVERY_TTL_MS}. */
+  private authorizationServer(): Promise<AuthorizationServer> {
+    const now = Date.now();
+    if (!this.discovery || this.discovery.expiresAt <= now) {
+      const metadata = this.provider.discover(this.issuer);
+      this.discovery = { expiresAt: now + DISCOVERY_TTL_MS, metadata };
+      // A failed discovery is not reused; the caller still receives the rejection.
+      metadata.catch(() => {
+        if (this.discovery?.metadata === metadata) this.discovery = undefined;
+      });
+    }
+    return this.discovery.metadata;
+  }
+
+  /** The issuer's signing keys, shared by every token this client verifies. */
+  private signingKeys(jwksUri: string): ReturnType<typeof createRemoteJWKSet> {
+    if (this.keySet?.uri !== jwksUri) {
+      this.keySet = { uri: jwksUri, jwks: createRemoteJWKSet(new URL(jwksUri)) };
+    }
+    return this.keySet.jwks;
   }
 
   /**
@@ -156,11 +190,11 @@ export class VeridOAuthClient {
    * @throws {InvalidAssertionError} When the authorization server metadata has no embedded loader
    */
   async embeddedLoaderUri(): Promise<string> {
-    const authorizationServer = await this.provider.discover(this.issuer);
+    const authorizationServer = await this.authorizationServer();
     assertUrlString(
       authorizationServer.embedded_loader_uri,
       'embedded_loader_uri in authorization server metadata',
-      InvalidAssertionError
+      InvalidAssertionError,
     );
     return authorizationServer.embedded_loader_uri;
   }
@@ -188,11 +222,11 @@ export class VeridOAuthClient {
       assertUUID(intent.challenge, 'challenge', InvalidArgumentError);
     }
 
-    const authorizationServer = await this.provider.discover(this.issuer);
+    const authorizationServer = await this.authorizationServer();
     assertUrlString(
       authorizationServer.intent_endpoint,
       'intent_endpoint in authorization server metadata',
-      InvalidAssertionError
+      InvalidAssertionError,
     );
     const url = new URL(authorizationServer.intent_endpoint);
 
@@ -203,29 +237,32 @@ export class VeridOAuthClient {
     if (clientAuth) {
       assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
       assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-      const credentials = btoa(`${this._clientId}:${clientAuth.client_secret}`);
-      headers['Authorization'] = `Basic ${credentials}`;
+      headers['Authorization'] = basicAuthorization(this._clientId, clientAuth.client_secret);
     }
 
     try {
-    const intentResponse = await fetch(`${url}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(intent),
-    });
+      const intentResponse = await fetch(`${url}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(intent),
+      });
 
-    if (!intentResponse.ok) {
-      throw new OperationFailedError(`Error occurred while calling intent endpoint: ${intentResponse.status}`, await intentResponse.text());
-    }
+      if (!intentResponse.ok) {
+        throw new OperationFailedError(
+          `Error occurred while calling intent endpoint: ${intentResponse.status}`,
+          await intentResponse.text(),
+        );
+      }
 
-    const intentData = await intentResponse.json() as IntentResponse;
-    return intentData;
-  } catch (error) {
-    if (error instanceof VeridError) {
-      throw error;
+      const intentData = (await intentResponse.json()) as IntentResponse;
+      assertString(intentData?.intent_id, 'intent_id in the intent response', InvalidResponseError);
+      return intentData;
+    } catch (error) {
+      if (error instanceof VeridError) {
+        throw error;
+      }
+      throw new OperationFailedError('Unknown error occurred while creating intent', error);
     }
-    throw new OperationFailedError('Unknown error occurred while creating intent', error);
-  }
   }
 
   /**
@@ -245,7 +282,6 @@ export class VeridOAuthClient {
    * Generates an OAuth 2.1 authorization URL with PKCE parameters.
    *
    * @param params - Parameters for the authorization request
-   * @param additionalParams - Additional query parameters to append to the authorization URL
    * @returns The authorization URL
    * @throws {InvalidArgumentError} When required parameters are invalid or missing
    * @throws {InvalidAssertionError} When the authorization server metadata has no authorization
@@ -259,15 +295,12 @@ export class VeridOAuthClient {
    * });
    * ```
    */
-  async generateAuthorizationUrl(
-    params: OAuthRequestParams,
-    additionalParams?: Record<string, string>,
-  ) {
-    const authorizationServer = await this.provider.discover(this.issuer);
+  async generateAuthorizationUrl(params: OAuthRequestParams) {
+    const authorizationServer = await this.authorizationServer();
     assertUrlString(
       authorizationServer.authorization_endpoint,
       'authorization_endpoint in authorization server metadata',
-      InvalidAssertionError
+      InvalidAssertionError,
     );
 
     const url = new URL(authorizationServer.authorization_endpoint);
@@ -277,40 +310,21 @@ export class VeridOAuthClient {
       url.searchParams.set('redirect_uri', params.binding.redirectUri);
     }
 
-    if (params.scope) {
-      assertString(params.scope, 'scope', InvalidArgumentError);
-      url.searchParams.set('scope', params.scope);
-    }
+    assertString(params.scope, 'scope', InvalidArgumentError);
+    url.searchParams.set('scope', params.scope);
 
-    if (params.state) {
-      assertString(params.state, 'state', InvalidArgumentError);
-      url.searchParams.set('state', params.state);
-    }
+    assertString(params.state, 'state', InvalidArgumentError);
+    url.searchParams.set('state', params.state);
 
     url.searchParams.set('client_id', this._clientId);
     url.searchParams.set('response_type', 'code');
 
     assertString(params.codeChallenge, 'codeChallenge', InvalidArgumentError);
     url.searchParams.set('code_challenge', params.codeChallenge);
-    if (params.codeChallengeMethod) {
-      assert(
-        ['S256', 'plain'].includes(params.codeChallengeMethod),
-        `Invalid codeChallengeMethod: ${params.codeChallengeMethod} is not a supported method`,
-        InvalidArgumentError,
-      );
-    }
-    url.searchParams.set('code_challenge_method', params.codeChallengeMethod ?? 'S256');
+    url.searchParams.set('code_challenge_method', 'S256');
 
-    if (params.intentId) {
-      assertUUID(params.intentId, 'intentId', InvalidArgumentError);
-      url.searchParams.set('intent_id', params.intentId);
-    }
-
-    if (additionalParams) {
-      Object.entries(additionalParams).forEach(([k, v]) => {
-        url.searchParams.set(k, v);
-      });
-    }
+    assertUUID(params.intentId, 'intentId', InvalidArgumentError);
+    url.searchParams.set('intent_id', params.intentId);
 
     return url.toString();
   }
@@ -345,7 +359,7 @@ export class VeridOAuthClient {
       );
     }
 
-    const authorizationServer = await this.provider.discover(this.issuer);
+    const authorizationServer = await this.authorizationServer();
     const clientConfig: ClientConfig = {
       client_id: this._clientId,
       id_token_signed_response_alg: 'ES384',
@@ -370,12 +384,12 @@ export class VeridOAuthClient {
     const result = await this.provider.processAuthorizationCodeResponse(
       authorizationServer,
       {
-        ...clientConfig,},
+        ...clientConfig,
+      },
       authorizationCodeGrantResponse,
     );
 
     return result;
-
   }
 
   /**
@@ -389,7 +403,7 @@ export class VeridOAuthClient {
     assertObject(params, 'params', InvalidArgumentError);
     assertString(params.clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
 
-    const authorizationServer = await this.provider.discover(this.issuer);
+    const authorizationServer = await this.authorizationServer();
     const clientConfig: ClientConfig = {
       client_id: this._clientId,
     };
@@ -415,7 +429,6 @@ export class VeridOAuthClient {
    *
    * @param token - The JWT token string to verify and decode
    * @param typeAssert - Assertion function that narrows the verified payload to `T`
-   * @param options - Optional verification options including issuer and audience
    * @returns Verified decoded JWT containing the typed payload and protected header
    * @throws {InvalidArgumentError} When the token is invalid
    * @throws {OperationFailedError} When JWT verification fails
@@ -424,20 +437,19 @@ export class VeridOAuthClient {
   async decode<T extends JWTPayload>(
     token: string,
     typeAssert: (payload: unknown, name: string) => asserts payload is T,
-    options?: JwtVerificationOptions,
   ): Promise<Jwt<T>> {
     assertString(token, 'token', InvalidArgumentError);
-    const authorizationServer = await this.provider.discover(this.issuer);
-    const JWKS = createRemoteJWKSet(new URL(authorizationServer.jwks_uri as string));
+    const authorizationServer = await this.authorizationServer();
+    assertUrlString(
+      authorizationServer.jwks_uri,
+      'jwks_uri in authorization server metadata',
+      InvalidAssertionError,
+    );
     let payload, protectedHeader;
     try {
       ({ payload, protectedHeader } = await jwtVerify(
         token,
-        JWKS,
-        options && {
-          issuer: options.issuer,
-          audience: options.audience,
-        },
+        this.signingKeys(authorizationServer.jwks_uri),
       ));
     } catch (err) {
       throw new OperationFailedError('JWT verification failed', err);

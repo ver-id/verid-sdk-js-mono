@@ -1,6 +1,6 @@
 export default {
   displayName: '@ver-id/embedded-browser-client',
-  preset: '../../jest.preset.js',
+  preset: '../../../jest.preset.js',
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.[tj]s$': [

@@ -4,8 +4,6 @@ import { BaseCacheManager } from '@ver-id/core/cache';
  * Shared implementation for the browser `Storage` backed caches.
  * The storage object is resolved per call, so constructing a manager never touches
  * `localStorage` or `sessionStorage` (which are absent while server-side rendering).
- *
- * @public
  */
 export abstract class WebStorageCacheManager extends BaseCacheManager {
   /**
@@ -13,8 +11,6 @@ export abstract class WebStorageCacheManager extends BaseCacheManager {
    * @protected
    */
   protected abstract get storage(): Storage;
-
-  // ICacheManager methods
 
   save(key: string, value: string): void {
     const prefixedKey = this.prefixedKey(key);

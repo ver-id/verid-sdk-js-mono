@@ -7,237 +7,218 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green.svg)](https://nodejs.org/)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blueviolet.svg)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-07)
 
-A powerful TypeScript SDK for integrating Ver.iD decentralized identity authentication and disclosure flows into your Node.js server applications. This package enables server-side OAuth 2.1 flows with secure client authentication using client secrets.
+Run Ver.iD authentication, disclosure and issuance flows from your Node.js backend. The user
+completes the flow on Ver.iD's hosted page and returns to your redirect URI. Your backend holds the
+client secret and receives a verified result.
 
-## Getting Started
-
-### Installation
-
-Using [npm](https://npmjs.org) in your project directory run the following command:
+## Installation
 
 ```bash
 npm install @ver-id/node-client
-```
-
-Using [yarn](https://yarnpkg.com/) in your project directory run the following command:
-
-```bash
+# or
 yarn add @ver-id/node-client
-```
-
-Using [pnpm](https://pnpm.io/) in your project directory run the following command:
-
-```bash
+# or
 pnpm add @ver-id/node-client
 ```
 
-### Authentication
+Node.js 18 or later is required.
 
-Decentralized identity apps redefine the authentication experience, shifting from traditional, password-based methods to a secure, password-less system utilizing QR codes. This modern approach enhances security, simplifies the login process, and significantly improves user experience by leveraging user-controlled, decentralized authentication.
+## How it works
 
-You can quickly create an authentication flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using authentication client:
+Every client has two methods:
 
-```ts
-import { VeridAuthenticationClient } from '@ver-id/node-client';
+1. `createSession(input)` prepares the session and returns `{ url, state }`. Redirect the browser
+   to `url`.
+2. The user completes the flow, and Ver.iD redirects the browser to your `redirectUri` with `code`
+   and `state` in the query.
+3. `finishSession({ callbackUrl })` exchanges the code with your client secret, verifies the result
+   token and returns `{ format, payload, rawToken }`.
 
-// Create authentication client
-const authenticationClient = new VeridAuthenticationClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_AUTHENTICATION_FLOW_ID>', // Authentication flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
-});
+Between the two calls, the PKCE code verifier is kept in the `cacheManager` under the session's
+`state`. It never leaves your backend.
 
-// Generate authentication url
-const { authenticationUrl, state } =
-  await authenticationClient.generateAuthenticationUrl({
-    scope: '<SCOPES_TO_REQUEST>',
-  });
+## Quick start
 
-// Redirect the user to the Ver.iD authentication flow (or return URL to frontend)
-// After user completes authentication, Ver.iD redirects to your redirectUri with code and state
-
-// Finalize the flow to exchange authorization code for tokens
-const authenticationResponse = await authenticationClient.finalize({
-  clientAuth: {
-    client_secret: '<YOUR_CLIENT_SECRET>', // Client secret from Ver.iD Studio
-  },
-  callbackParams: callbackUrl, // The complete callback URL with code and state
-});
-
-// Decode the ID token
-const authenticationDecodedToken = await authenticationClient.decode(
-  authenticationResponse
-);
-```
-
-**Note:** Unlike browser clients, the Node.js client requires explicit `clientAuth` with a `client_secret` during the finalize step. This enables secure server-side authentication flows where the client secret is never exposed to the frontend.
-
-For other comprehensive configurations and examples, see the [AUTHENTICATION.md](./AUTHENTICATION.md) document.
-
-### Verification
-
-Decentralized identity apps transform Know-Your-Customer (KYC) and Know-Your-Business (KYB) procedures used by large online platforms to verify their platform users or companies, effectively replacing tedious manual document verification with a swift, secure exchange of verified digital credentials. This process leverages decentralized identity apps that not only provide essential credentials like passports and ID cards but also enable direct integration with governmental identity databases globally. With regulations such as eIDAS 2.0 and DMA on the horizon, our solution is poised to meet official credential requirements, offering a future-proof method for identity verification.
-
-You can quickly create a disclosure flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using disclosure client:
+Create the flow in [Ver.iD Studio](https://spas.nebula.ver.id/), register your redirect URI on it,
+and copy its flow id and client secret.
 
 ```ts
-import { VeridDisclosureClient } from '@ver-id/node-client';
+import express from 'express';
+import { MemoryStorageCacheManager, VeridDisclosureClient } from '@ver-id/node-client';
 
-// Create disclosure client
-const disclosureClient = new VeridDisclosureClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_DISCLOSURE_FLOW_ID>', // Disclosure flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
+const verid = new VeridDisclosureClient({
+  issuerUri: process.env.VERID_ISSUER_URI!,
+  clientId: process.env.VERID_DISCLOSURE_FLOW_ID!,
+  clientSecret: process.env.VERID_CLIENT_SECRET!,
+  redirectUri: 'https://app.example.com/verid/callback',
+  // Single process only. Use RedisCacheManager or DynamoDBCacheManager across hosts.
+  cacheManager: new MemoryStorageCacheManager(),
 });
 
-// Generate disclosure url
-const { disclosureUrl, state } = await disclosureClient.generateDisclosureUrl();
+const app = express();
 
-// Redirect the user to the Ver.iD disclosure flow (or return URL to frontend)
-// After user completes disclosure, Ver.iD redirects to your redirectUri with code and state
-
-// Finalize the flow to exchange authorization code for tokens
-const disclosureResponse = await disclosureClient.finalize({
-  clientAuth: {
-    client_secret: '<YOUR_CLIENT_SECRET>', // Client secret from Ver.iD Studio
-  },
-  callbackParams: callbackUrl, // The complete callback URL with code and state
+app.get('/verid/start', async (_req, res) => {
+  const { url } = await verid.createSession();
+  res.redirect(url);
 });
 
-// Decode the token
-const disclosureDecodedToken = await disclosureClient.decode(
-  disclosureResponse
-);
+app.get('/verid/callback', async (req, res) => {
+  const result = await verid.finishSession({ callbackUrl: req.originalUrl });
+  if (result.format === 'disclosure_v1') {
+    res.json(result.payload.credentials);
+  } else {
+    res.json(result.payload);
+  }
+});
 ```
 
-**Note:** Unlike browser clients, the Node.js client requires explicit `clientAuth` with a `client_secret` during the finalize step. This enables secure server-side disclosure flows where the client secret is never exposed to the frontend.
+`VeridAuthenticationClient` and `VeridIssuanceClient` work the same way. Only their
+`createSession` input and their result formats differ:
 
-For other comprehensive configurations and examples, see the [VERIFICATION.md](./VERIFICATION.md) document.
+- [AUTHENTICATION.md](./AUTHENTICATION.md) — sign users in with an ID token.
+- [VERIFICATION.md](./VERIFICATION.md) — receive verified credentials (disclosure).
+- [ISSUANCE.md](./ISSUANCE.md) — issue credentials to a user's wallet.
 
-### Issuance
+## Configuration
 
-Issuance flows enable you to issue verified credentials to users that they can store in their decentralized identity wallets. This allows users to prove attributes about themselves without repeatedly going through verification processes. Issued credentials can include digital IDs, certificates, licenses, or any verified information.
+All three clients take the same configuration:
 
-You can quickly create an issuance flow using [Ver.iD Studio](https://spas.nebula.ver.id/) and execute the flow using issuance client:
+| Field          | Description                                                                          |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `issuerUri`    | Ver.iD OAuth issuer URI.                                                             |
+| `clientId`     | The flow id from Ver.iD Studio.                                                      |
+| `clientSecret` | The flow's client secret from Ver.iD Studio. Keep it on the server.                  |
+| `redirectUri`  | One of the redirect URIs registered on the flow.                                     |
+| `cacheManager` | Stores code verifiers between `createSession` and `finishSession`. See Cache stores. |
+
+All fields are required. The constructor throws `InvalidArgumentError` when one is missing or
+invalid.
+
+## `createSession`
 
 ```ts
-import { VeridIssuanceClient } from '@ver-id/node-client';
-
-// Create issuance client
-const issuanceClient = new VeridIssuanceClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>', // Ver.iD OAuth Issuer URI
-  clientId: '<VERID_ISSUANCE_FLOW_ID>', // Issuance flow id registered in Ver.iD Studio
-  redirectUri: 'REGISTERED_REDIRECT_URI', // One of the registered redirect uri in the flow
-});
-
-// Step 1: Generate code challenge
-const { codeChallenge, state } = await issuanceClient.generateCodeChallenge();
-
-// Step 2: Create issuance intent (required for issuance flows)
-// Only pass either payload.mapping or payload.data
-const intentId = await issuanceClient.createIssuanceIntent(
-  {
-    payload: {
-      mapping: { name: 'fullName', email: 'emailAddress' },
-      data: {
-        attributeUuid: '<ATTRIBUTE_UUID>',
-        value: 'John Doe',
-      },
-    },
-  },
-  codeChallenge,
-  { client_secret: '<YOUR_CLIENT_SECRET>' } // Client authentication required for Node.js
-);
-
-// Step 3: Generate issuance url with intent
-const { issuanceUrl, state: finalState } =
-  await issuanceClient.generateIssuanceUrl({
-    intentId,
-    state, // Use the state from Step 1
-    codeChallenge, // Use the code challenge from Step 1
-  });
-
-// Redirect the user to the Ver.iD issuance flow (or return URL to frontend)
-// After user completes issuance, Ver.iD redirects to your redirectUri with code and state
-
-// Finalize the flow to exchange authorization code for tokens
-const issuanceResponse = await issuanceClient.finalize({
-  clientAuth: {
-    client_secret: '<YOUR_CLIENT_SECRET>', // Client secret from Ver.iD Studio
-  },
-  callbackParams: callbackUrl, // The complete callback URL with code and state
-});
-
-// Decode the token
-const issuanceDecodedToken = await issuanceClient.decode(issuanceResponse);
+const { url, state } = await verid.createSession({ challenge, brandUuid });
 ```
 
-**Note:** Unlike authentication and disclosure, issuance flows **require** intent creation with a credential payload before generating the issuance URL. The Node.js client requires `clientAuth` with a `client_secret` for both intent creation and the finalize step for secure server-side flows.
+Every flow accepts these optional fields:
 
-For other comprehensive configurations and examples, see the [ISSUANCE.md](./ISSUANCE.md) document.
+| Field       | Description                                                               |
+| ----------- | ------------------------------------------------------------------------- |
+| `challenge` | A UUID. Disclosure and issuance echo it in `payload.parameter.challenge`. |
+| `brandUuid` | The brand to show during the flow.                                        |
 
-## Examples
+Authentication also requires `scope`. Issuance requires what to issue, and returns
+`issuanceRunUuid` as well. See the flow guides.
 
-See the [apps/sample-node-server](../../apps/sample-node-server) directory for a complete Express.js server implementation demonstrating authentication and verification flows.
+It returns:
 
-## Cache Stores
+- `url` — send the browser here.
+- `state` — identifies the session. It is also in the callback URL.
 
-All SDK flow clients use a cache manager to persist temporary OAuth state (PKCE verifiers, nonces). By default, `FileStorageCacheManager` is used. You can swap it for any built-in store — or provide your own `ICacheManager` implementation.
+## `finishSession`
+
+```ts
+const result = await verid.finishSession({ callbackUrl: req.originalUrl });
+```
+
+`callbackUrl` is the URL Ver.iD redirected to. It can be a full URL string, a path with a query
+such as `req.originalUrl`, a `URL` or a `URLSearchParams`.
+
+`finishSession` looks up the code verifier by `state`, exchanges the code with your client secret,
+verifies the token's signature, and selects the result format from the token's `typ` header. The
+verifier is removed only after the exchange succeeds, so a call that failed on a network error can
+be retried. A second call with the same callback after a success throws `OperationFailedError`.
+
+## Results
+
+A result is `{ format, payload, rawToken }`:
+
+- `format` — which payload type you have. Check it before reading `payload`.
+- `payload` — the verified token payload.
+- `rawToken` — the signed token as received, if you want to store or forward it.
+
+| Client                      | Formats                                   |
+| --------------------------- | ----------------------------------------- |
+| `VeridAuthenticationClient` | `'openid'`                                |
+| `VeridDisclosureClient`     | `'disclosure_v1'`, `'disclosure_flat_v1'` |
+| `VeridIssuanceClient`       | `'issuance_v1'`, `'issuance_flat_v1'`     |
+
+Every client can also return `'unknown'`: a token whose signature verified, but whose `typ` this
+SDK version does not know. Its `payload` is a plain JWT payload and its `typ` is the token's
+`typ` header. Handle it, for example by logging `typ`, so a format added to the platform later does
+not break your integration.
+
+## Errors
+
+All errors extend `VeridError`.
+
+| Error                        | When                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `InvalidArgumentError`       | The configuration or `createSession` input is invalid.                                                |
+| `InvalidAssertionError`      | The callback has no `state`, or a verified token's payload does not match its format.                 |
+| `AuthorizationResponseError` | The callback carries an error, for example when the user cancelled.                                   |
+| `TokenGrantError`            | The token request failed, for example with a wrong client secret or redirect URI.                     |
+| `InvalidResponseError`       | The token response is missing the expected token.                                                     |
+| `OperationFailedError`       | Issuer discovery failed, the intent was rejected, no verifier was found, or the token did not verify. |
+
+## Security
+
+- **The client secret stays on your backend.** Never send it to the browser.
+- **Bind the callback to the user's session.** `finishSession` finds the verifier by the `state` in
+  the callback URL. It does not check which browser started the session. Store `state` in the
+  user's session in `createSession`, and compare it with the callback's `state` before calling
+  `finishSession`.
+- **Check your `challenge`.** If you pass a `challenge`, compare it with the one in the result
+  payload (`payload.parameter.challenge` for `disclosure_v1` and `issuance_v1`).
+- **Results are verified.** `finishSession` verifies the token's signature before it returns. There
+  is no way to get an unverified result.
+
+## Cache stores
+
+The cache holds one code verifier per open session. Pick a store that every instance of your
+backend can reach: the callback may land on a different process than the one that created the
+session.
 
 ### Shared options
 
-Every store takes the same `options`, so swapping one for another does not change how the cache behaves:
+Every built-in store takes the same `options`:
 
 | Option       | Default    | Meaning                                                                                                               |
 | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | `prefix`     | `'verid:'` | Namespaces every key. Pass an empty string to store keys unprefixed.                                                  |
 | `ttlSeconds` | `3600`     | Entry lifetime in seconds. Expired entries read as a miss and are dropped from the store. Pass `0` to disable expiry. |
 
-Every store implements `save`, `get`, `remove` and `clear`. `clear` only removes entries carrying the configured prefix, so keys owned by the rest of your application survive.
+Every built-in store implements `save`, `get`, `remove` and `clear`. `clear` only removes entries
+carrying the configured prefix, so keys owned by the rest of your application survive.
 
-### File Storage (default)
+### Memory
 
-Persists each entry as its own JSON file on disk. Every read and write goes to disk, so all processes on the same host share the cache: a flow started by one worker can be finalized by another. Processes spread over multiple hosts or containers do not share a filesystem, so use Redis or DynamoDB there.
-
-```ts
-import { FileStorageCacheManager } from '@ver-id/node-client';
-
-// Uses default directory: ~/.verid-cache/
-const cacheManager = new FileStorageCacheManager();
-
-// Or specify a custom directory
-const cacheManager = new FileStorageCacheManager('/tmp/my-app-cache');
-
-// Entries expire after 1 hour by default; pass 0 to disable expiry
-const cacheManager = new FileStorageCacheManager('/tmp/my-app-cache', { ttlSeconds: 600 });
-```
-
-### Memory Storage
-
-In-memory `Map`-based store. Fastest option but data is lost on process restart and not shared across instances. A multi-worker server will fail to finalize flows with it, because the callback usually lands on a different worker than the one that started the flow.
+An in-memory `Map`. Data is lost on restart and not shared between processes, so use it only for a
+single process or for tests.
 
 ```ts
 import { MemoryStorageCacheManager } from '@ver-id/node-client';
 
-const cacheManager = new MemoryStorageCacheManager();
-
-// Same options as every other store
 const cacheManager = new MemoryStorageCacheManager({ prefix: 'myapp:', ttlSeconds: 600 });
+```
+
+### File
+
+One JSON file per entry, under `~/.verid-cache/` unless you pass a directory. All processes on the
+same host share it. Processes on different hosts or containers do not share a filesystem.
+
+```ts
+import { FileStorageCacheManager } from '@ver-id/node-client';
+
+const cacheManager = new FileStorageCacheManager('/var/lib/my-app/verid-cache', {
+  ttlSeconds: 600,
+});
 ```
 
 ### Redis
 
-Shared cache for distributed / multi-instance deployments. Works with both [`redis`](https://www.npmjs.com/package/redis) (node-redis) and [`ioredis`](https://www.npmjs.com/package/ioredis).
-
-Install one of the Redis client libraries:
-
-```bash
-yarn add redis
-# or
-yarn add ioredis
-```
-
-**Using `redis` (node-redis):**
+For deployments with several hosts. Works with [`redis`](https://www.npmjs.com/package/redis)
+(node-redis) and [`ioredis`](https://www.npmjs.com/package/ioredis). Redis expires the keys itself.
 
 ```ts
 import { createClient } from 'redis';
@@ -248,91 +229,66 @@ await redisClient.connect();
 
 const cacheManager = new RedisCacheManager({
   client: redisClient,
-  options: {
-    prefix: 'myapp:', // optional, default: 'verid:'
-    ttlSeconds: 600, // optional, default: 3600 (Redis expires the key itself)
-  },
+  options: { prefix: 'myapp:', ttlSeconds: 600 },
 });
 ```
 
-**Using `ioredis`:**
+With `ioredis`:
 
 ```ts
 import Redis from 'ioredis';
 import { RedisCacheManager } from '@ver-id/node-client';
 
-const redisClient = new Redis();
-
-const cacheManager = new RedisCacheManager({ client: redisClient });
+const cacheManager = new RedisCacheManager({ client: new Redis() });
 ```
 
 ### AWS DynamoDB
 
-Serverless cache for AWS-native environments. Ideal for Lambda deployments where Redis isn't available.
+For AWS deployments without Redis, such as Lambda. Install `@aws-sdk/client-dynamodb` and
+`@aws-sdk/lib-dynamodb`.
 
-Install the AWS SDK packages:
-
-```bash
-yarn add @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
-```
-
-**DynamoDB table requirements:**
-
-- Partition key: `pk` (String)
-- Optional TTL attribute: `ttl` (Number) — [enable DynamoDB TTL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) on this attribute
+The table needs a partition key `pk` (String). To have DynamoDB delete expired items, [enable
+TTL](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html) on the `ttl`
+attribute. Expired items never read back either way.
 
 ```ts
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBCacheManager } from '@ver-id/node-client';
 
-const dynamoClient = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ region: 'us-east-1' })
-);
-
 const cacheManager = new DynamoDBCacheManager({
-  client: dynamoClient,
+  client: DynamoDBDocumentClient.from(new DynamoDBClient({ region: 'eu-west-1' })),
   tableName: 'verid-cache',
-  options: {
-    prefix: 'myapp:', // optional, default: 'verid:'
-    ttlSeconds: 600, // optional, requires DynamoDB TTL enabled on `ttl` attribute
-  },
+  options: { prefix: 'myapp:', ttlSeconds: 600 },
 });
 ```
 
-### Using a cache store with any flow client
+### Your own store
 
-Pass the cache manager via the `options.cacheManager` property:
+Any object implementing `ICacheManager` works:
 
 ```ts
-const authClient = new VeridAuthenticationClient({
-  issuerUri: '<VERID_OAUTH_ISSUER_URI>',
-  clientId: '<VERID_AUTHENTICATION_FLOW_ID>',
-  redirectUri: 'REGISTERED_REDIRECT_URI',
-  options: {
-    cacheManager: new RedisCacheManager({ client: redisClient }),
-  },
-});
+import type { ICacheManager } from '@ver-id/node-client';
+
+const cacheManager: ICacheManager = {
+  save: (key, value) => db.put(key, value),
+  get: (key) => db.get(key), // string, or null when missing
+  remove: (key) => db.delete(key),
+};
 ```
 
-This works identically for `VeridDisclosureClient` and `VeridIssuanceClient`.
+Each method may return a value or a promise. `clear` is optional. Expire entries yourself, or
+sessions that are never finished stay in the store.
 
 ## Troubleshooting
 
-| Problem                                                        | Fix                                                                                                                                                                                                                                                             |
-| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENOENT: no such file or directory, open '...verid-cache/...'` | The default `FileStorageCacheManager` writes to `~/.verid-cache/`. Ensure the process has write permission, or point it at a writable directory.                                                                                                                |
-| `Invalid code verifier: no code verifier found for state ...`  | The flow was started against a different cache store than the one that finalized it, or the entry expired. Across multiple hosts or containers use `RedisCacheManager` or `DynamoDBCacheManager`; with `MemoryStorageCacheManager` any second worker hits this. |
-| State mismatch on finalize                                     | The `callbackParams` URL must contain the same `state` parameter that was generated. Ensure you're forwarding the full callback URL.                                                                                                                            |
-| `OperationFailedError: Failed to discover issuer`              | Verify `issuerUri` is correct and reachable from the server.                                                                                                                                                                                                    |
-| `TokenGrantError` during finalize                              | Double-check `client_secret` and ensure the redirect URI matches exactly.                                                                                                                                                                                       |
-| Redis / DynamoDB connection errors                             | Ensure the cache client is connected before passing it to the cache manager constructor.                                                                                                                                                                        |
-
-## Acknowledgments
-
-- Built with TypeScript
-- Powered by [oauth4webapi](https://github.com/panva/oauth4webapi)
-- Uses [jose](https://www.npmjs.com/package/jose) for JWT handling
+| Problem                                                       | Fix                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Invalid code verifier: no code verifier found for state ...` | The session was created against a different cache than the one that finished it, or the entry expired. Across hosts or containers use `RedisCacheManager` or `DynamoDBCacheManager`. A repeated callback also hits this. |
+| `Authorization server discovery failed`                       | Check that `issuerUri` is correct and reachable from the server.                                                                                                                                                         |
+| `TokenGrantError` in `finishSession`                          | Check the client secret, and that `redirectUri` exactly matches one registered on the flow.                                                                                                                              |
+| `ENOENT` under `.verid-cache`                                 | `FileStorageCacheManager` needs a writable directory. Pass one explicitly.                                                                                                                                               |
+| Redis or DynamoDB connection errors                           | Connect the client before passing it to the cache manager.                                                                                                                                                               |
 
 ## License
 

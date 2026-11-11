@@ -42,16 +42,17 @@ export interface IOAuthProvider {
    *
    * @param authorizationServer - The authorization server metadata
    * @param clientConfig - The client configuration
-   * @param url - The redirect URL, or its query parameters, containing the authorization response
+   * @param parameters - The redirect URL, or its query parameters, containing the authorization
+   *   response
    * @param state - The expected OAuth state parameter, if one was sent
    * @returns The validated callback parameters
    */
   validateAuthResponse(
     authorizationServer: AuthorizationServer,
     clientConfig: ClientConfig,
-    url: URL | URLSearchParams,
+    parameters: URL | URLSearchParams,
     state?: string,
-  ): any;
+  ): URLSearchParams;
 
   /**
    * Sends an authorization code grant request to the token endpoint.

@@ -14,13 +14,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   // @ver-id/core is a published dependency, not something we inline.
-  external: [
-    '@ver-id/core',
-    'redis',
-    'ioredis',
-    '@aws-sdk/client-dynamodb',
-    '@aws-sdk/lib-dynamodb',
-  ],
+  external: ['@ver-id/core'],
   treeshake: true,
   splitting: false,
   bundle: true,

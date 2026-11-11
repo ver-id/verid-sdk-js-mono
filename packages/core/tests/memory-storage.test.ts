@@ -1,9 +1,12 @@
-import { MemoryStorageCacheManager } from '../src/cache/memory-storage';
-import { describeCacheManagerContract } from './cache-contract';
+import { MemoryStorageCacheManager } from '../src/cache/memory-storage.js';
+import { describeCacheManagerContract } from './cache-contract.js';
 
 describe('MemoryStorageCacheManager', () => {
   // every manager owns its Map, so the contract's shared-store cases are satisfied per instance
-  describeCacheManagerContract('MemoryStorageCacheManager', (options) => new MemoryStorageCacheManager(options));
+  describeCacheManagerContract(
+    'MemoryStorageCacheManager',
+    (options) => new MemoryStorageCacheManager(options),
+  );
 
   it('should not share entries between instances', () => {
     const first = new MemoryStorageCacheManager();

@@ -15,35 +15,34 @@ import {
 import { IOAuthProvider } from '../../interface/IOAuthProvider.js';
 import { AuthorizationServer, ClientAuth, ClientConfig } from '../../types/oauth/index.js';
 import { GrantResponse, RecognizedTokenTypes } from '../../types/response/index.js';
-import { assertObject, assertString, assertUrlString } from '../../utils/assert.js';
-import { InvalidArgumentError } from '../../error/invalid-argument.js';
+import { assertString, assertUrlString } from '../../utils/assert.js';
 import {
+  InvalidArgumentError,
+  InvalidAssertionError,
   OperationFailedError,
   AuthorizationResponseError as AuthResponseError,
   TokenGrantError,
 } from '../../error/index.js';
 import { FlowAuthCodeDeliveryBinding } from '../auth-code-delivery-binding.js';
+import { basicAuthorization } from '../basic-authorization.js';
 
+/**
+ * The `IOAuthProvider` on oauth4webapi. `VeridOAuthClient` validates every argument before calling
+ * it, so it does not check them again.
+ */
 export class OAuth4WebApiProvider implements IOAuthProvider {
   /**
-   * Custom implementation of Client Secret Basic authentication.
-   * Creates a client authentication method that uses HTTP Basic authentication
-   * with the client ID and secret encoded in base64.
-   * @param clientSecret The client secret for authentication
-   * @returns A client authentication method compatible with oauth4webapi
+   * HTTP Basic client authentication in oauth4webapi's form, sending `id:secret` as the SDK
+   * always has, rather than through oauth4webapi's form-encoding `ClientSecretBasic`.
    */
-  private ClientSecretBasic(clientSecret: string) {
+  private clientSecretBasic(clientSecret: string) {
     return (
-      as: AuthorizationServer,
+      _as: AuthorizationServer,
       client: ClientConfig,
-      parameters: URLSearchParams,
+      _parameters: URLSearchParams,
       headers: Headers,
     ): void => {
-      const clientId = client.client_id;
-      const credentials = btoa(`${clientId}:${clientSecret}`);
-
-      // Set the Authorization header with Basic authentication
-      headers.set('Authorization', `Basic ${credentials}`);
+      headers.set('Authorization', basicAuthorization(client.client_id, clientSecret));
     };
   }
 
@@ -71,11 +70,11 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
   validateAuthResponse(
     authorizationServer: AuthorizationServer,
     clientConfig: ClientConfig,
-    url: URL,
+    parameters: URL | URLSearchParams,
     state?: string,
-  ): any {
+  ): URLSearchParams {
     try {
-      return validateAuthResponse(authorizationServer, clientConfig, url, state);
+      return validateAuthResponse(authorizationServer, clientConfig, parameters, state);
     } catch (error) {
       if (error instanceof AuthorizationResponseError) {
         throw new AuthResponseError(error.error_description || error.message);
@@ -102,14 +101,9 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
         );
       }
 
-      let clientAuthentication;
-      if (clientAuth) {
-        assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
-        assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-        clientAuthentication = this.ClientSecretBasic(clientAuth.client_secret);
-      } else {
-        clientAuthentication = None();
-      }
+      const clientAuthentication = clientAuth
+        ? this.clientSecretBasic(clientAuth.client_secret)
+        : None();
 
       return await authorizationCodeGrantRequest(
         authorizationServer,
@@ -138,6 +132,7 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
     assertUrlString(
       authorizationServer.token_endpoint,
       'token_endpoint in authorization server metadata',
+      InvalidAssertionError,
     );
 
     const code = params.get('code');
@@ -156,10 +151,10 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
     });
 
     if (clientAuth) {
-      assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
-      assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-      const credentials = btoa(`${clientConfig.client_id}:${clientAuth.client_secret}`);
-      headers.set('Authorization', `Basic ${credentials}`);
+      headers.set(
+        'Authorization',
+        basicAuthorization(clientConfig.client_id, clientAuth.client_secret),
+      );
     }
 
     return fetch(authorizationServer.token_endpoint, {
@@ -174,9 +169,7 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
     clientAuth: ClientAuth,
     params: URLSearchParams,
   ): Promise<Response> {
-    assertObject(clientAuth, 'clientAuth', InvalidArgumentError);
-    assertString(clientAuth.client_secret, 'clientAuth.client_secret', InvalidArgumentError);
-    const clientAuthentication = this.ClientSecretBasic(clientAuth.client_secret);
+    const clientAuthentication = this.clientSecretBasic(clientAuth.client_secret);
     try {
       return await clientCredentialsGrantRequest(
         authorizationServer,
@@ -206,7 +199,11 @@ export class OAuth4WebApiProvider implements IOAuthProvider {
   ): Promise<GrantResponse> {
     try {
       return await processClientCredentialsResponse(authorizationServer, clientConfig, response, {
-        recognizedTokenTypes: { [RecognizedTokenTypes.VeridGraphQLToken.toLowerCase()]: () => { return } },
+        recognizedTokenTypes: {
+          [RecognizedTokenTypes.VeridGraphQLToken.toLowerCase()]: () => {
+            return;
+          },
+        },
       });
     } catch (error) {
       throw new TokenGrantError('Failed to process client credentials response', error);
