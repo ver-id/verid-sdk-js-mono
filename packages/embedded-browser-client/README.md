@@ -178,6 +178,10 @@ in the page's main document, not inside a shadow root.
 - **Allowed embed origins.** Ver.iD reports the lifecycle only to pages whose origin is one of the
   flow's allowed embed origins in Ver.iD Studio. Any other page hears only `onError`, with
   `origin_not_allowed` or the error that stopped the flow before its origin was checked.
+- **Ver.iD's loader only.** The loader runs as a script in your page, so the component loads it
+  only from an `https` address on Ver.iD's own domain and throws for a `sessionContext` that names
+  any other. Still, mount only a `sessionContext` your backend created: never one read from the
+  page address or other user input.
 - **Content Security Policy.** If your page sends a CSP, allow the origin of Ver.iD's loader in
   `script-src` and in `frame-src`, for the card's iframe. That origin is the one of the
   `embedded_loader_uri` in your Ver.iD issuer's metadata. A blocked script surfaces as

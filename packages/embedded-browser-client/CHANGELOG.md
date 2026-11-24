@@ -1,3 +1,13 @@
+## 0.4.1 (2026-11-24)
+
+### 🩹 Fixes
+
+- The component loads Ver.iD's loader only from an https address on Ver.iD's own domain, and throws a TypeError for a sessionContext that names any other.
+
+### ❤️ Thank You
+
+- kuldeep
+
 ## 0.4.0 (2026-11-11)
 
 ### 🚀 Features

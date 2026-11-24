@@ -4,7 +4,7 @@ import {
   type VeridEmbeddedError,
 } from '../src/index.js';
 
-const LOADER_SRC = 'https://gateway.example.com/embedded.js';
+const LOADER_SRC = 'https://gateway.ver.id/embedded.js';
 
 /** Packs fields the way `createSession` does on the backend. */
 function encodeContext(fields: object): string {
@@ -100,6 +100,42 @@ describe('mountVeridEmbeddedComponent', () => {
       mountVeridEmbeddedComponent({ container, sessionContext: 'not-a-context' }),
     ).toThrow('Invalid sessionContext');
     expect(container.children).toHaveLength(0);
+  });
+
+  describe('the loader address', () => {
+    function mountWithLoader(loaderUri: unknown): VeridEmbeddedComponent {
+      return mountVeridEmbeddedComponent({
+        container,
+        sessionContext: encodeContext({ ...sessionFields, loaderUri }),
+      });
+    }
+
+    it.each([
+      ['another site', 'https://evil.example.com/embedded.js'],
+      ['a look-alike domain', 'https://evilver.id/embedded.js'],
+      ["Ver.iD's domain under another domain", 'https://ver.id.evil.example.com/embedded.js'],
+      ["Ver.iD's domain as a username", 'https://ver.id@evil.example.com/embedded.js'],
+      ['plain http', 'http://gateway.ver.id/embedded.js'],
+      ['a script address', 'javascript:alert(1)'],
+      ['a data address', 'data:text/javascript,alert(1)'],
+      ['a relative address', '/embedded.js'],
+      ['a value that is no string', 42],
+    ])('refuses %s and adds no script', (_name, loaderUri) => {
+      expect(() => mountWithLoader(loaderUri)).toThrow('Invalid sessionContext');
+      expect(document.querySelector('script')).toBeNull();
+      expect(container.children).toHaveLength(0);
+    });
+
+    it.each([
+      'https://ver.id/embedded.js',
+      'https://gateway.staging.ver.id/embedded.js',
+      // jsdom's page is on localhost, a development page.
+      'https://gateway.local.ver.garden:13370/embedded.js',
+    ])('loads %s', (loaderUri) => {
+      const component = mountWithLoader(loaderUri);
+      expect(document.querySelector(`script[src="${loaderUri}"]`)).not.toBeNull();
+      component.destroy();
+    });
   });
 
   describe('on* methods', () => {

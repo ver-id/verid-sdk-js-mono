@@ -55,6 +55,55 @@ function loadEmbeddedScript(src: string): Promise<void> {
 const INVALID_SESSION_CONTEXT =
   'Invalid sessionContext: pass the value from createSession unchanged.';
 
+const INVALID_LOADER_URI =
+  "Invalid sessionContext: the loader it names is not Ver.iD's, or is a development loader on a page outside development.";
+
+/** The domain Ver.iD serves its loader from, in production and staging. */
+const VERID_DOMAIN = 'ver.id';
+
+/** The domain of Ver.iD's development environments. */
+const VERID_DEVELOPMENT_DOMAIN = 'ver.garden';
+
+/** Whether `hostname` is `domain` or a host under it. */
+function isOnDomain(hostname: string, domain: string): boolean {
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+/** Whether this page is itself in development: served locally or from a development environment. */
+function isDevelopmentPage(): boolean {
+  const { hostname } = window.location;
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    isOnDomain(hostname, VERID_DEVELOPMENT_DOMAIN)
+  );
+}
+
+/**
+ * Whether Ver.iD serves the loader at this address. The loader runs as a script in the page, so a
+ * `sessionContext` that did not come from the backend must not be able to name its own: only an
+ * `https` address on Ver.iD's domain passes. A development environment's loader passes on a
+ * development page only, so a live page never runs one.
+ */
+function isVeridLoaderUri(loaderUri: unknown): loaderUri is string {
+  if (typeof loaderUri !== 'string') {
+    return false;
+  }
+  let url: URL;
+  try {
+    url = new URL(loaderUri);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:') {
+    return false;
+  }
+  return (
+    isOnDomain(url.hostname, VERID_DOMAIN) ||
+    (isOnDomain(url.hostname, VERID_DEVELOPMENT_DOMAIN) && isDevelopmentPage())
+  );
+}
+
 /** The fields inside a `sessionContext`. Only `loaderUri` is read here; the loader reads the rest. */
 type SessionContextFields = { loaderUri: string } & Record<string, unknown>;
 
@@ -70,6 +119,9 @@ function decodeSessionContext(sessionContext: string): SessionContextFields {
   }
   if (typeof fields !== 'object' || fields === null || !('loaderUri' in fields)) {
     throw new TypeError(INVALID_SESSION_CONTEXT);
+  }
+  if (!isVeridLoaderUri(fields.loaderUri)) {
+    throw new TypeError(INVALID_LOADER_URI);
   }
   return fields as SessionContextFields;
 }
